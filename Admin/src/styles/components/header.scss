@@ -1,0 +1,233 @@
+@import '../variables.scss';
+@import '../mixins.scss';
+
+.header {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 24px;
+  height: $header-height;
+
+  .header-content {
+    @include flex-between;
+    height: 100%;
+  }
+
+  .header-left {
+    .search-container {
+      position: relative;
+      width: 300px;
+
+      @include responsive(tablet) {
+        width: 200px;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 10px 12px 10px 40px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 14px;
+        background: var(--gray-50);
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          background: var(--white);
+        }
+      }
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .stats-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--success-color);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+
+      .currency {
+        font-weight: 600;
+      }
+    }
+
+    .icon-btn {
+      @include button-base;
+      padding: 8px;
+      background: none;
+      color: var(--gray-500);
+
+      &:hover {
+        background: var(--gray-100);
+        color: var(--gray-700);
+      }
+    }
+
+    .notification-container {
+      position: relative;
+
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--danger-color);
+        color: var(--white);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        @include flex-center;
+      }
+
+      .notification-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 320px;
+        @include card;
+        margin-top: 8px;
+        z-index: 1000;
+
+        .notification-header {
+          @include flex-between;
+          padding: 16px;
+          border-bottom: 1px solid var(--gray-200);
+
+          h3 {
+            font-size: 16px;
+            font-weight: 600;
+          }
+
+          .notification-count {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+          }
+        }
+
+        .notification-list {
+          max-height: 300px;
+          overflow-y: auto;
+
+          .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-100);
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            .notification-content {
+              p {
+                font-size: 14px;
+                color: var(--gray-900);
+                margin-bottom: 4px;
+              }
+
+              .notification-time {
+                font-size: 12px;
+                color: var(--gray-500);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .profile-container {
+      position: relative;
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: background 0.2s;
+
+        &:hover {
+          background: var(--gray-100);
+        }
+
+        .user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: var(--gray-500);
+          @include flex-center;
+          color: var(--white);
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        .user-info {
+          display: flex;
+          flex-direction: column;
+
+          @include responsive(tablet) {
+            display: none;
+          }
+
+          .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-900);
+          }
+
+          .user-role {
+            font-size: 12px;
+            color: var(--gray-500);
+          }
+        }
+      }
+
+      .profile-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 200px;
+        @include card;
+        margin-top: 8px;
+        z-index: 1000;
+
+        .profile-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          cursor: pointer;
+          transition: background 0.2s;
+          font-size: 14px;
+
+          &:hover {
+            background: var(--gray-50);
+          }
+
+          &.logout {
+            color: var(--danger-color);
+            border-top: 1px solid var(--gray-200);
+          }
+        }
+      }
+    }
+  }
+}
