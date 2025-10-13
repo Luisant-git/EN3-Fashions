@@ -329,12 +329,12 @@ const ProductCard = ({ product, setView }) => {
 
 const SubcategoryPage = ({ title, tag, setView }) => {
     const subcategories = [
-        { name: 'Polo T-Shirts', image: 'https://rukminim2.flixcart.com/image/612/612/xif0q/t-shirt/g/k/n/m-64518810-try-this-original-imahev3vmv63z92z.jpeg?q=70' },
-        { name: 'Round Neck T-Shirts', image: 'https://rukminim2.flixcart.com/image/612/612/xif0q/t-shirt/m/e/i/-original-imah4qhe6t66ydgt.jpeg?q=70' },
-        { name: 'Long Sleeve T-Shirts', image: 'https://rukminim2.flixcart.com/image/612/612/xif0q/t-shirt/9/n/w/xxl-urm025601p-urgear-original-imahe3fpwpvxedrp.jpeg?q=70' },
-        { name: 'Track Pants', image: 'https://rukminim2.flixcart.com/image/612/612/xif0q/track-pant/u/v/y/xxl-nr22-conway-original-imahgya8hupaym5b.jpeg?q=70' },
-        { name: 'Trousers', image: 'https://rukminim2.flixcart.com/image/612/612/xif0q/trouser/2/c/c/32-kctr-dmy-2121-olive-fubar-original-imahyex5gahhabjs.jpeg?q=70' },
-        { name: 'Shorts', image: 'https://rukminim2.flixcart.com/image/612/612/xif0q/track-pant/t/1/e/32-gryjgr0506emenlwrs-dockstreet-original-imahc7vwcjse9geu.jpeg?q=70' }
+        { name: 'Polo T-Shirts', image: '/p1.png' },
+        { name: 'Round Neck T-Shirts', image: '/p2.png' },
+        { name: 'Long Sleeve T-Shirts', image: '/p3.png' },
+        { name: 'Track Pants', image: '/p4.png' },
+        { name: 'Trousers', image: '/p6.png' },
+        { name: 'Shorts', image: '/p5.png' }
     ];
 
     return (
@@ -352,57 +352,65 @@ const SubcategoryPage = ({ title, tag, setView }) => {
     );
 };
 
-const HomePage = ({ setView }) => (
-    <div className="home-page">
-        <section className="hero-section">
-            <div className="hero-content">
-                <h1>Elevate Your Style</h1>
-                <p>Discover the latest trends in men's and boys' fashion, shop now and redefine your wardrobe.</p>
-                <button onClick={() => setView({ page: 'category', title: 'New Arrivals', filter: { type: 'tag', value: 'new' } })}>Shop Now</button>
-            </div>
-        </section>
-        
-        <section className="home-section">
-            <h2>Shop by Category</h2>
-            <div className="category-display">
-                <div className="category-card" onClick={() => setView({ page: 'subcategory', title: "Men's Collection", tag: 'men' })}>
-                    <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/t-shirt/g/k/n/m-64518810-try-this-original-imahev3vmv63z92z.jpeg?q=70" alt="Men's Wear"/>
-                    <p>Men's Wear</p>
+const HomePage = ({ setView }) => {
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const heroImages = [
+        '/bg7.png',
+        '/bg9.png',
+        '/bg10.png'
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [heroImages.length]);
+
+    return (
+        <div className="home-page">
+            <section className="hero-section">
+                <div className="hero-slider">
+                    {heroImages.map((image, index) => (
+                        <div 
+                            key={index}
+                            className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
+                            style={{ backgroundImage: `url(${image})` }}
+                        />
+                    ))}
                 </div>
-                <div className="category-card" onClick={() => setView({ page: 'subcategory', title: "Boys' Collection", tag: 'boys' })}>
-                    <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/sweatshirt/4/v/1/7-8-years-peb9773-bumzee-original-imah3yn5yqc3hyfp.jpeg?q=70" alt="Kids Wear"/>
-                    <p>Kids Wear</p>
+                <div className="hero-content">
+                    <h1>Elevate Your Style</h1>
+                    <p>Discover the latest trends in men's and boys' fashion, shop now and redefine your wardrobe.</p>
+                    <button onClick={() => setView({ page: 'category', title: 'New Arrivals', filter: { type: 'tag', value: 'new' } })}>Shop Now</button>
                 </div>
-            </div>
-        </section>
-        
-        {/* <section className="home-bundle-offer">
-            <div className="bundle-image">
-                <img src="https://image.hm.com/assets/hm/25/d6/25d6724a4e4191a8a42167628a72c586c980fca3.jpg?imwidth=820" alt="Folded sweaters" />
-            </div>
-            <div className="bundle-content">
-                <h2>Pick Any 3<br/>for &#8377;999</h2>
-                <p>Mix and match your favorite styles from our curated collection. Create your perfect bundle today!</p>
-                <button onClick={() => setView({ page: 'category', title: "Men's Collection", filter: { type: 'tag', value: 'men' } })}>Shop Bundle</button>
-            </div>
-        </section> */}
-        
-        {/* <section className="home-section">
-            <h2>Featured Items</h2>
-            <div className="featured-items-grid">
-                {FEATURED_ITEMS.map(item => (
-                     <div key={item.id} className="featured-item-card">
-                         <img src={item.imageUrl} alt={item.name} />
-                         <div className="featured-item-info">
-                            <p className="featured-item-name">{item.name}</p>
-                            <p className="featured-item-price">₹{item.price}</p>
-                         </div>
+                <div className="hero-dots">
+                    {heroImages.map((_, index) => (
+                        <div 
+                            key={index}
+                            className={`hero-dot ${index === currentSlide ? 'active' : ''}`}
+                            onClick={() => setCurrentSlide(index)}
+                        />
+                    ))}
+                </div>
+            </section>
+            
+            <section className="home-section">
+                <h2>Shop by Category</h2>
+                <div className="category-display">
+                    <div className="category-card" onClick={() => setView({ page: 'subcategory', title: "Men's Collection", tag: 'men' })}>
+                        <img src="/c2.png" alt="Men's Wear"/>
+                        <p>Men's Wear</p>
                     </div>
-                ))}
-            </div>
-        </section> */}
-    </div>
-);
+                    <div className="category-card" onClick={() => setView({ page: 'subcategory', title: "Boys' Collection", tag: 'boys' })}>
+                        <img src="/c3.png" alt="Kids Wear"/>
+                        <p>Kids Wear</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+};
 
 const FiltersComponent = ({ filters, setFilters, availableSizes, availableColors }) => {
     const handleFilterChange = (type, value) => {
