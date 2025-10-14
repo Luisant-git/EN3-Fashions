@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import bg7 from '/bg7.png';
+import bg9 from '/bg9.png';
+import bg10 from '/bg10.png';
+import c5 from '/c5.png';
+import c6 from '/c6.png';
 
 const HomePage = ({ setView }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const heroImages = [
-        '/bg7.png',
-        '/bg9.png',
-        '/bg10.png'
+        bg7,
+        bg9,
+        bg10
     ];
 
     useEffect(() => {
@@ -47,11 +52,11 @@ const HomePage = ({ setView }) => {
                 <h2>Shop by Category</h2>
                 <div className="category-display">
                     <div className="category-card" onClick={() => setView({ page: 'subcategory', title: "Men's Collection", tag: 'men' })}>
-                        <img src="/c5.png" alt="Men's Wear"/>
+                        <img src={c5} alt="Men's Wear"/>
                         <p>Men's Wear</p>
                     </div>
                     <div className="category-card" onClick={() => setView({ page: 'subcategory', title: "Boys' Collection", tag: 'boys' })}>
-                        <img src="/c6.png" alt="Kids Wear"/>
+                        <img src={c6} alt="Kids Wear"/>
                         <p>Kids Wear</p>
                     </div>
                 </div>

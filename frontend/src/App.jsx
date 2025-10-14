@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TopHeader from './components/TopHeader';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
@@ -72,6 +73,7 @@ const App = () => {
             <WishlistProvider>
                 <CartProvider>
                     <div className="app-container">
+                        <TopHeader />
                         <Header setView={setView} />
                         <main className="main-content">
                             {renderView()}
