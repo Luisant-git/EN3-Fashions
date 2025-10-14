@@ -1,17 +1,29 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, Lock, Eye, EyeOff } from 'lucide-react'
+import { adminLogin } from '../api'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
-  const [credentials, setCredentials] = useState({ username: '', password: '' })
+  const [credentials, setCredentials] = useState({ email: '', password: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (credentials.username && credentials.password) {
+    setLoading(true)
+    setError('')
+    
+    try {
+      const response = await adminLogin(credentials.email, credentials.password)
       localStorage.setItem('isAuthenticated', 'true')
+      localStorage.setItem('adminToken', response.access_token)
       window.location.href = '/dashboard'
+    } catch (err) {
+      setError(err.message || 'Login failed')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -24,14 +36,16 @@ const Login = () => {
         </div>
         
         <form onSubmit={handleLogin} className="login-form">
+          {error && <div className="error-message">{error}</div>}
+          
           <div className="form-group">
             <div className="input-wrapper">
               <User size={20} className="input-icon" />
               <input
-                type="text"
-                placeholder="Username"
-                value={credentials.username}
-                onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                type="email"
+                placeholder="Email"
+                value={credentials.email}
+                onChange={(e) => setCredentials({...credentials, email: e.target.value})}
                 required
               />
             </div>
@@ -57,8 +71,8 @@ const Login = () => {
             </div>
           </div>
           
-          <button type="submit" className="login-btn">
-            Sign In
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
       </div>

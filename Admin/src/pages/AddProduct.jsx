@@ -1,14 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Upload, X, Plus } from 'lucide-react'
+import { toast } from 'react-toastify'
 import ProductAttributes from '../components/ProductAttributes'
+import { createProduct, getCategories, getSubCategories, getBrands, uploadImage } from '../api'
 
 const AddProduct = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: '',
-    subCategory: '',
-    brand: '',
+    categoryId: '',
+    subCategoryId: '',
+    brandId: '',
     price: '',
     comparePrice: '',
     costPrice: '',
@@ -31,6 +33,11 @@ const AddProduct = () => {
 
   const [images, setImages] = useState([])
   const [newTag, setNewTag] = useState('')
+  const [categories, setCategories] = useState([])
+  const [subCategories, setSubCategories] = useState([])
+  const [brands, setBrands] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
@@ -50,19 +57,25 @@ const AddProduct = () => {
     }
   }
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files)
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (event) => {
+    if (files.length === 0) return
+    
+    for (const file of files) {
+      try {
+        const uploadResult = await uploadImage(file)
         setImages(prev => [...prev, {
           id: Date.now() + Math.random(),
-          url: event.target.result,
-          file
+          url: uploadResult.url,
+          filename: uploadResult.filename
         }])
+        toast.success('Image uploaded successfully!')
+      } catch (err) {
+        toast.error('Failed to upload image')
       }
-      reader.readAsDataURL(file)
-    })
+    }
+    
+    e.target.value = ''
   }
 
   const removeImage = (id) => {
@@ -93,11 +106,88 @@ const AddProduct = () => {
     }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log('Product data:', formData)
-    console.log('Images:', images)
-    // Handle form submission
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [categoriesData, subCategoriesData, brandsData] = await Promise.all([
+          getCategories(),
+          getSubCategories(),
+          getBrands()
+        ]);
+        setCategories(categoriesData);
+        setSubCategories(subCategoriesData);
+        setBrands(brandsData);
+      } catch (err) {
+        setError('Failed to load form data');
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const productData = {
+        name: formData.name,
+        description: formData.description,
+        categoryId: parseInt(formData.categoryId),
+        subCategoryId: formData.subCategoryId ? parseInt(formData.subCategoryId) : null,
+        brandId: formData.brandId ? parseInt(formData.brandId) : null,
+        price: parseFloat(formData.price),
+        comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
+        costPrice: formData.costPrice ? parseFloat(formData.costPrice) : null,
+        sku: formData.sku,
+        barcode: formData.barcode,
+        trackQuantity: formData.trackQuantity,
+        quantity: parseInt(formData.quantity) || 0,
+        weight: formData.weight ? parseFloat(formData.weight) : null,
+        length: formData.dimensions.length ? parseFloat(formData.dimensions.length) : null,
+        width: formData.dimensions.width ? parseFloat(formData.dimensions.width) : null,
+        height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : null,
+        tags: formData.tags,
+        seoTitle: formData.seoTitle,
+        seoDescription: formData.seoDescription,
+        image: images.length > 0 ? images[0].url : null,
+        status: formData.status,
+        attributes: formData.attributes
+      };
+      
+      await createProduct(productData);
+      toast.success('Product created successfully!');
+      
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        categoryId: '',
+        subCategoryId: '',
+        brandId: '',
+        price: '',
+        comparePrice: '',
+        costPrice: '',
+        sku: '',
+        barcode: '',
+        trackQuantity: true,
+        quantity: '',
+        weight: '',
+        dimensions: { length: '', width: '', height: '' },
+        tags: [],
+        seoTitle: '',
+        seoDescription: '',
+        status: 'active',
+        attributes: []
+      });
+      setImages([]);
+    } catch (err) {
+      const errorMsg = err.message || 'Failed to create product';
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -107,6 +197,8 @@ const AddProduct = () => {
         <p>Create a new product for your store</p>
       </div>
 
+      {error && <div className="error-message">{error}</div>}
+      
       <form onSubmit={handleSubmit} className="product-form">
         <div className="form-grid">
           <div className="form-section">
@@ -142,16 +234,16 @@ const AddProduct = () => {
                 <label className="form-label">Category *</label>
                 <select
                   className="form-select"
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  value={formData.categoryId}
+                  onChange={(e) => handleInputChange('categoryId', e.target.value)}
                   required
                 >
                   <option value="">Select Category</option>
-                  <option value="electronics">Electronics</option>
-                  <option value="clothing">Clothing</option>
-                  <option value="accessories">Accessories</option>
-                  <option value="footwear">Footwear</option>
-                  <option value="home-kitchen">Home & Kitchen</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -159,13 +251,17 @@ const AddProduct = () => {
                 <label className="form-label">Sub Category</label>
                 <select
                   className="form-select"
-                  value={formData.subCategory}
-                  onChange={(e) => handleInputChange('subCategory', e.target.value)}
+                  value={formData.subCategoryId}
+                  onChange={(e) => handleInputChange('subCategoryId', e.target.value)}
                 >
                   <option value="">Select Sub Category</option>
-                  <option value="smartphones">Smartphones</option>
-                  <option value="laptops">Laptops</option>
-                  <option value="headphones">Headphones</option>
+                  {subCategories
+                    .filter(sub => !formData.categoryId || sub.categoryId === parseInt(formData.categoryId))
+                    .map(subCategory => (
+                      <option key={subCategory.id} value={subCategory.id}>
+                        {subCategory.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
@@ -174,14 +270,15 @@ const AddProduct = () => {
               <label className="form-label">Brand</label>
               <select
                 className="form-select"
-                value={formData.brand}
-                onChange={(e) => handleInputChange('brand', e.target.value)}
+                value={formData.brandId}
+                onChange={(e) => handleInputChange('brandId', e.target.value)}
               >
                 <option value="">Select Brand</option>
-                <option value="apple">Apple</option>
-                <option value="samsung">Samsung</option>
-                <option value="sony">Sony</option>
-                <option value="nike">Nike</option>
+                {brands.map(brand => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -192,20 +289,20 @@ const AddProduct = () => {
             </div>
 
             <div className="image-upload-section">
-              <div className="image-upload-area">
+              <div className="image-upload-area" onClick={() => document.getElementById('image-upload').click()}>
                 <input
                   type="file"
                   id="image-upload"
                   multiple
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="image-input"
+                  style={{ display: 'none' }}
                 />
-                <label htmlFor="image-upload" className="upload-label">
+                <div className="upload-label">
                   <Upload size={48} />
                   <p>Click to upload images</p>
                   <span>PNG, JPG, GIF up to 10MB</span>
-                </label>
+                </div>
               </div>
 
               {images.length > 0 && (
@@ -448,11 +545,8 @@ const AddProduct = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn btn-outline">
-            Save as Draft
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Publish Product
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating Product...' : 'Publish Product'}
           </button>
         </div>
       </form>

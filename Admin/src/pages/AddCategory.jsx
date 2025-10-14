@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { createCategory, uploadImage } from '../api'
 import '../styles/pages/add-category.scss'
 
 const AddCategory = () => {
@@ -11,6 +13,7 @@ const AddCategory = () => {
     featured: false
   })
   const [image, setImage] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -19,17 +22,20 @@ const AddCategory = () => {
     }))
   }
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
+      try {
+        const uploadResult = await uploadImage(file)
         setImage({
           file,
-          url: event.target.result
+          url: uploadResult.url,
+          filename: uploadResult.filename
         })
+        toast.success('Image uploaded successfully!')
+      } catch (err) {
+        toast.error('Failed to upload image')
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -37,9 +43,28 @@ const AddCategory = () => {
     setImage(null)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Category data:', formData, image)
+    setLoading(true)
+    
+    try {
+      const categoryData = {
+        name: formData.name,
+        description: formData.description,
+        image: image ? image.url : null
+      }
+      
+      await createCategory(categoryData)
+      toast.success('Category created successfully!')
+      
+      // Reset form
+      setFormData({ name: '', description: '', parentCategory: '', status: 'active', featured: false })
+      setImage(null)
+    } catch (err) {
+      toast.error(err.message || 'Failed to create category')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -84,44 +109,6 @@ const AddCategory = () => {
                 rows={4}
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Parent Category</label>
-              <select
-                className="form-select"
-                value={formData.parentCategory}
-                onChange={(e) => handleInputChange('parentCategory', e.target.value)}
-              >
-                <option value="">None (Root Category)</option>
-                <option value="electronics">Electronics</option>
-                <option value="clothing">Clothing</option>
-                <option value="home">Home & Garden</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <div className="checkbox-group">
-                <input
-                  type="checkbox"
-                  id="featured"
-                  checked={formData.featured}
-                  onChange={(e) => handleInputChange('featured', e.target.checked)}
-                />
-                <label htmlFor="featured">Featured Category</label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <select
-                className="form-select"
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
           </div>
 
           <div className="form-section">
@@ -165,8 +152,8 @@ const AddCategory = () => {
           <button type="button" className="btn btn-outline">
             Save as Draft
           </button>
-          <button type="submit" className="btn btn-primary">
-            Create Category
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating Category...' : 'Create Category'}
           </button>
         </div>
       </form>
