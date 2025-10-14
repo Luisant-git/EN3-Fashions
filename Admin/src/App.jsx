@@ -24,6 +24,13 @@ import EmployeeDetails from './pages/EmployeeDetails'
 import AddEmployee from './pages/AddEmployee'
 import AddTemplate from './pages/AddTemplate'
 import Login from './pages/Login'
+import BrandList from './pages/BrandList'
+import CategoryList from './pages/CategoryList'
+import SubCategoryList from './pages/SubCategoryList'
+import BannerList from './pages/BannerList'
+import CouponList from './pages/CouponList'
+import PincodeList from './pages/PincodeList'
+import CreateCombo from './pages/CreateCombo'
 
 // Import all SCSS files
 import './styles/base.scss'
@@ -43,6 +50,8 @@ import './styles/pages/stock.scss'
 import './styles/pages/products.scss'
 import './styles/pages/add-template.scss'
 import './styles/pages/login.scss'
+import './styles/pages/list-pages.scss'
+import './styles/pages/create-combo.scss'
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -100,6 +109,13 @@ function App() {
               <Route path="/employee-details" element={<EmployeeDetails />} />
               <Route path="/add-employee" element={<AddEmployee />} />
               <Route path="/add-template" element={<AddTemplate />} />
+              <Route path="/brand-list" element={<BrandList />} />
+              <Route path="/category-list" element={<CategoryList />} />
+              <Route path="/subcategory-list" element={<SubCategoryList />} />
+              <Route path="/banner-list" element={<BannerList />} />
+              <Route path="/coupon-list" element={<CouponList />} />
+              <Route path="/pincode-list" element={<PincodeList />} />
+              <Route path="/create-combo" element={<CreateCombo />} />
             </Routes>
           </div>
         </div>

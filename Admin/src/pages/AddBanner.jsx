@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/pages/add-banner.scss'
 
 const AddBanner = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -52,7 +54,7 @@ const AddBanner = () => {
           <h1>Add Banner</h1>
           <p>Create a new promotional banner</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>

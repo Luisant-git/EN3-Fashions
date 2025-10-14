@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { ArrowLeft, MapPin } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/pages/add-pincode.scss'
 
 const AddPincode = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     pincode: '',
     city: '',
@@ -32,7 +34,7 @@ const AddPincode = () => {
           <h1>Add Pincode</h1>
           <p>Add a new delivery pincode</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>

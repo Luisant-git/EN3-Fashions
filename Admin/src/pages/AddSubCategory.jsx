@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/pages/add-sub-category.scss'
 
 const AddSubCategory = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -29,7 +31,7 @@ const AddSubCategory = () => {
           <h1>Add Sub Category</h1>
           <p>Create a new product sub category</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>

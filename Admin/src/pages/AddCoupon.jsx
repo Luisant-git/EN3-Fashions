@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Percent } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/pages/add-coupon.scss'
 
 const AddCoupon = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     code: '',
     description: '',
@@ -42,7 +44,7 @@ const AddCoupon = () => {
           <h1>Add Coupon</h1>
           <p>Create a new discount coupon</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>

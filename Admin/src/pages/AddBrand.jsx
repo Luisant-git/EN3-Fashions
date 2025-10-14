@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import '../styles/pages/add-brand.scss'
 
 const AddBrand = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -48,7 +50,7 @@ const AddBrand = () => {
           <h1>Add Brand</h1>
           <p>Create a new brand for your products</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>

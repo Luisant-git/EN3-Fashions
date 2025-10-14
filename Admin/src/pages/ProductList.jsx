@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Search, Filter, Plus, Edit, Trash2, Eye, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import DataTable from '../components/DataTable'
 import '../styles/pages/product-list.scss'
 
@@ -65,6 +66,7 @@ const Modal = ({ open, onClose, children }) => {
 }
 
 const ProductList = () => {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [products, setProducts] = useState(productsData)
@@ -200,12 +202,12 @@ const ProductList = () => {
 
   return (
     <div className="product-list">
-      <div className="page-header">
+      <div className="page-header with-actions">
         <div className="header-left">
           <h1>Product List</h1>
           <p>Manage your product inventory</p>
         </div>
-        <button className="btn btn-primary">
+        <button className="btn btn-primary" onClick={() => navigate('/add-product')}>
           <Plus size={20} />
           Add Product
         </button>
@@ -244,14 +246,12 @@ const ProductList = () => {
         </div>
       </div>
 
-      <div className="table-container">
-        <DataTable
-          data={products}
-          columns={columns}
-          searchTerm={searchTerm}
-          searchKey="name"
-        />
-      </div>
+      <DataTable
+        data={products}
+        columns={columns}
+        searchTerm={searchTerm}
+        searchKey="name"
+      />
 
       {/* Modals */}
       <Modal open={modal.type === 'view'} onClose={closeModal}>
