@@ -72,15 +72,18 @@ const HomePage = () => {
         <div className="home-page">
             <section className="hero-section">
                 <div className="hero-slider">
-                    {banners.map((banner, index) => (
-                        <div 
-                            key={banner.id}
-                            className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
-                            style={{ backgroundImage: `url(${banner.image})`, cursor: 'pointer', zIndex: 1 }}
-                            onClick={(e) => handleBannerClick(banner.link, e)}
-                            title={banner.title}
-                        />
-                    ))}
+                    {banners.map((banner, index) => {
+                        const bannerImage = isMobile && banner.mobileImage ? banner.mobileImage : banner.image;
+                        return (
+                            <div 
+                                key={banner.id}
+                                className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
+                                style={{ backgroundImage: `url(${bannerImage})`, cursor: 'pointer', zIndex: 1 }}
+                                onClick={(e) => handleBannerClick(banner.link, e)}
+                                title={banner.title}
+                            />
+                        );
+                    })}
                 </div>
                 {banners.length > 0 && (
                     <div style={{ cursor: 'pointer' }} className="hero-content">

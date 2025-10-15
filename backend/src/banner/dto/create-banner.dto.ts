@@ -19,6 +19,11 @@ export class CreateBannerDto {
   @IsString()
   image: string;
 
+  @ApiPropertyOptional({ description: 'Mobile banner image URL', example: 'https://example.com/mobile-banner.jpg' })
+  @IsString()
+  @IsOptional()
+  mobileImage?: string;
+
   @ApiPropertyOptional({ description: 'Banner display order', example: 1, minimum: 1 })
   @IsInt()
   @IsOptional()

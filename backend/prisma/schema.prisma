@@ -90,12 +90,13 @@ model SubCategory {
 }
 
 model Banner {
-  id        Int     @id   @default(autoincrement())
-  title     String
-  link      String
-  isActive  Boolean @default(false)
-  image     String
-  rowNumber Int     @default(0)
-  createAt  DateTime  @default(now())
-  updatedAt DateTime  @updatedAt 
+  id          Int      @id @default(autoincrement())
+  title       String
+  link        String
+  isActive    Boolean  @default(false)
+  image       String
+  mobileImage String?
+  rowNumber   Int      @default(0)
+  createAt    DateTime @default(now())
+  updatedAt   DateTime @updatedAt 
 }

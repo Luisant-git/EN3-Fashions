@@ -14,6 +14,7 @@ const AddBanner = () => {
     status: 'active'
   })
   const [bannerImage, setBannerImage] = useState(null)
+  const [mobileBannerImage, setMobileBannerImage] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
@@ -23,22 +24,31 @@ const AddBanner = () => {
     }))
   }
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e, isMobile = false) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
-        setBannerImage({
+        const imageData = {
           file,
           url: event.target.result
-        })
+        }
+        if (isMobile) {
+          setMobileBannerImage(imageData)
+        } else {
+          setBannerImage(imageData)
+        }
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const removeImage = () => {
-    setBannerImage(null)
+  const removeImage = (isMobile = false) => {
+    if (isMobile) {
+      setMobileBannerImage(null)
+    } else {
+      setBannerImage(null)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -52,14 +62,22 @@ const AddBanner = () => {
     setIsLoading(true)
     
     try {
-      // Upload image first
+      // Upload desktop image
       const imageResponse = await uploadImage(bannerImage.file)
       
-      // Create banner with uploaded image URL
+      // Upload mobile image if provided
+      let mobileImageUrl = null
+      if (mobileBannerImage) {
+        const mobileImageResponse = await uploadImage(mobileBannerImage.file)
+        mobileImageUrl = mobileImageResponse.url
+      }
+      
+      // Create banner with uploaded image URLs
       const bannerData = {
         title: formData.title,
         link: formData.buttonLink,
         image: imageResponse.url,
+        mobileImage: mobileImageUrl,
         isActive: formData.status === 'active',
         rowNumber: 1
       }
@@ -140,7 +158,7 @@ const AddBanner = () => {
 
           <div className="form-section">
             <div className="section-header">
-              <h3>Banner Image</h3>
+              <h3>Desktop Banner Image</h3>
             </div>
 
             <div className="image-upload-section">
@@ -150,22 +168,56 @@ const AddBanner = () => {
                     type="file"
                     id="banner-upload"
                     accept="image/*"
-                    onChange={handleImageUpload}
+                    onChange={(e) => handleImageUpload(e, false)}
                     className="image-input"
                   />
                   <label htmlFor="banner-upload" className="upload-label">
                     <Upload size={48} />
-                    <p>Click to upload banner image</p>
+                    <p>Click to upload desktop banner</p>
                     <span>PNG, JPG up to 10MB (Recommended: 1920x600px)</span>
                   </label>
                 </div>
               ) : (
                 <div className="image-preview">
-                  <img src={bannerImage.url || "/placeholder.svg"} alt="Banner" />
+                  <img src={bannerImage.url || "/placeholder.svg"} alt="Desktop Banner" />
                   <button
                     type="button"
                     className="remove-image"
-                    onClick={removeImage}
+                    onClick={() => removeImage(false)}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="section-header" style={{ marginTop: '24px' }}>
+              <h3>Mobile Banner Image (Optional)</h3>
+            </div>
+
+            <div className="image-upload-section">
+              {!mobileBannerImage ? (
+                <div className="image-upload-area">
+                  <input
+                    type="file"
+                    id="mobile-banner-upload"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, true)}
+                    className="image-input"
+                  />
+                  <label htmlFor="mobile-banner-upload" className="upload-label">
+                    <Upload size={48} />
+                    <p>Click to upload mobile banner</p>
+                    <span>PNG, JPG up to 10MB (Recommended: 768x400px)</span>
+                  </label>
+                </div>
+              ) : (
+                <div className="image-preview">
+                  <img src={mobileBannerImage.url || "/placeholder.svg"} alt="Mobile Banner" />
+                  <button
+                    type="button"
+                    className="remove-image"
+                    onClick={() => removeImage(true)}
                   >
                     <X size={16} />
                   </button>
