@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  password  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  password  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String?
+  categoryId    Int
+  subCategoryId Int?
+  brandId       Int?
+  basePrice     String
+  tags          String[]
+  gallery       Json[] // Array of {url: string}
+  colors        Json[] // Array of color objects with sizes
+  status        String   @default("active")
+  newArrivals   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category      Category     @relation(fields: [categoryId], references: [id])
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
+  brand         Brand?       @relation(fields: [brandId], references: [id])
+
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([brandId])
+}
+
+model Brand {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products    Product[]
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products      Product[]
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  categoryId  Int
+  description String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category  @relation(fields: [categoryId], references: [id])
+  products    Product[]
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
+}
+
+model Banner {
+  id        Int     @id   @default(autoincrement())
+  title     String
+  link      String
+  isActive  Boolean @default(false)
+  image     String
+  rowNumber Int     @default(0)
+  createAt  DateTime  @default(now())
+  updatedAt DateTime  @updatedAt 
+}

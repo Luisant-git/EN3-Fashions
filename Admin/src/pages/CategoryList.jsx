@@ -1,63 +1,295 @@
-import React, { useState } from 'react'
-import { Search, Filter, Plus, Edit, Trash2, Eye } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import DataTable from '../components/DataTable'
+import React, { useState, useEffect } from "react";
+import { Search, Plus, Edit, Trash2, Eye, X, Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import DataTable from "../components/DataTable";
+import {
+  getCategories,
+  getCategory,
+  updateCategory,
+  deleteCategory,
+  uploadImage,
+} from "../api";
+
+// Modal component
+const Modal = ({ open, onClose, children }) => {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop">
+      <div className="modal">
+        <button className="modal-close" onClick={onClose}>
+          <X size={20} />
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const CategoryList = () => {
-  const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [modal, setModal] = useState({ type: null, category: null });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const categories = [
-    { id: 1, name: 'T-Shirts', description: 'Casual and formal t-shirts', status: 'active', productCount: 25, createdAt: '2024-01-15' },
-    { id: 2, name: 'Trousers', description: 'Formal and casual trousers', status: 'active', productCount: 18, createdAt: '2024-01-10' },
-    { id: 3, name: 'Tracks', description: 'Sports and casual track wear', status: 'active', productCount: 12, createdAt: '2024-01-05' },
-    { id: 4, name: 'Shoes', description: 'Footwear collection', status: 'inactive', productCount: 8, createdAt: '2024-01-01' }
-  ]
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const categoriesData = await getCategories();
+        setCategories(categoriesData);
+      } catch (err) {
+        const errorMsg = `Failed to load categories: ${err.message}`;
+        setError(errorMsg);
+        toast.error(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  const handleEdit = (id) => {
-    console.log('Edit category:', id)
-  }
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      console.log('Delete category:', id)
+  const openModal = async (type, category) => {
+    if (type === "view" || type === "edit") {
+      try {
+        const fullCategory = await getCategory(category.id);
+        setModal({ type, category: fullCategory });
+      } catch (err) {
+        toast.error(`Failed to load category details: ${err.message}`);
+      }
+    } else {
+      setModal({ type, category });
     }
-  }
+  };
+  const closeModal = () => setModal({ type: null, category: null });
+
+  const handleEdit = async (updatedCategory) => {
+    try {
+      await updateCategory(updatedCategory.id, updatedCategory);
+      setCategories(
+        categories.map((c) =>
+          c.id === updatedCategory.id ? { ...c, ...updatedCategory } : c
+        )
+      );
+      toast.success("Category updated successfully!");
+      closeModal();
+    } catch (err) {
+      toast.error(`Failed to update category: ${err.message}`);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteCategory(id);
+      setCategories(categories.filter((c) => c.id !== id));
+      toast.success("Category deleted successfully!");
+      closeModal();
+    } catch (err) {
+      toast.error(`Failed to delete category: ${err.message}`);
+    }
+  };
+
+  const ViewModal = ({ category }) => (
+    <div className="modal-content view-modal">
+      <h2>Category Details</h2>
+      <img
+        src={category.image || "/placeholder.svg"}
+        alt={category.name}
+        className="modal-product-image"
+      />
+      <div className="modal-product-info">
+        <p>
+          <strong>Name:</strong> {category.name}
+        </p>
+        <p>
+          <strong>Description:</strong> {category.description || "N/A"}
+        </p>
+      </div>
+    </div>
+  );
+
+  const EditModal = ({ category, onSave }) => {
+    const [form, setForm] = useState({
+      name: category.name,
+      description: category.description || "",
+      image: category.image || "",
+    });
+    const [saving, setSaving] = useState(false);
+    const [imageUploading, setImageUploading] = useState(false);
+
+    const handleImageUpload = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setImageUploading(true);
+        try {
+          const uploadResult = await uploadImage(file);
+          setForm((f) => ({ ...f, image: uploadResult.url }));
+          toast.success("Image uploaded successfully!");
+        } catch (err) {
+          toast.error("Failed to upload image");
+        } finally {
+          setImageUploading(false);
+        }
+      }
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setSaving(true);
+      try {
+        await onSave({ ...category, ...form });
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    return (
+      <form className="modal-content edit-modal" onSubmit={handleSubmit}>
+        <h2>Edit Category</h2>
+        <label>
+          Category Image
+          <div className="image-edit-section">
+            {form.image && (
+              <img
+                src={form.image}
+                alt="Category"
+                className="current-image"
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "cover",
+                  marginBottom: "10px",
+                }}
+              />
+            )}
+            <div
+              className="image-upload-area"
+              onClick={() =>
+                document.getElementById("edit-image-upload").click()
+              }
+            >
+              <input
+                type="file"
+                id="edit-image-upload"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: "none" }}
+              />
+              <div className="upload-label">
+                <Upload size={24} />
+                <span>{imageUploading ? "Uploading..." : "Change Image"}</span>
+              </div>
+            </div>
+          </div>
+        </label>
+        <label>
+          Name
+          <input
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            required
+          />
+        </label>
+        <label>
+          Description
+          <textarea
+            value={form.description}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, description: e.target.value }))
+            }
+          />
+        </label>
+        <div className="modal-actions">
+          <button
+            type="button"
+            onClick={closeModal}
+            className="btn btn-outline"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={saving || imageUploading}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    );
+  };
+
+  const DeleteModal = ({ category, onDelete }) => (
+    <div className="modal-content delete-modal">
+      <h2>Delete Category</h2>
+      <p>
+        Are you sure you want to delete <strong>{category.name}</strong>?
+      </p>
+      <div className="modal-actions">
+        <button className="btn btn-outline" onClick={closeModal}>
+          Cancel
+        </button>
+        <button
+          className="btn btn-danger"
+          onClick={() => onDelete(category.id)}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
 
   const columns = [
-    { key: 'name', label: 'Category Name' },
-    { key: 'description', label: 'Description' },
-    { 
-      key: 'productCount', 
-      label: 'Products',
-      render: (value) => <span className="product-count">{value}</span>
-    },
-    { 
-      key: 'status', 
-      label: 'Status',
-      render: (value) => (
-        <span className={`status ${value}`}>{value}</span>
-      )
-    },
-    { key: 'createdAt', label: 'Created' },
     {
-      key: 'actions',
-      label: 'Actions',
+      key: "image",
+      label: "Image",
+      render: (value, row) => (
+        <img
+          src={value || "/placeholder.svg"}
+          alt={row.name}
+          className="product-thumbnail"
+        />
+      ),
+    },
+    { key: "name", label: "Category Name" },
+    { key: "description", label: "Description" },
+    {
+      key: "createdAt",
+      label: "Created",
+      render: (value) => new Date(value).toLocaleDateString("en-GB"),
+    },
+    {
+      key: "actions",
+      label: "Actions",
       render: (_, row) => (
         <div className="action-buttons">
-          <button className="action-btn view" title="View">
+          <button
+            className="action-btn view"
+            title="View"
+            onClick={() => openModal("view", row)}
+          >
             <Eye size={16} />
           </button>
-          <button className="action-btn edit" onClick={() => handleEdit(row.id)} title="Edit">
+          <button
+            className="action-btn edit"
+            onClick={() => openModal("edit", row)}
+            title="Edit"
+          >
             <Edit size={16} />
           </button>
-          <button className="action-btn delete" onClick={() => handleDelete(row.id)} title="Delete">
+          <button
+            className="action-btn delete"
+            onClick={() => openModal("delete", row)}
+            title="Delete"
+          >
             <Trash2 size={16} />
           </button>
         </div>
-      )
-    }
-  ]
+      ),
+    },
+  ];
 
   return (
     <div className="category-list">
@@ -66,11 +298,16 @@ const CategoryList = () => {
           <h1>Categories</h1>
           <p>Manage your product categories</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/add-category')}>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate("/add-category")}
+        >
           <Plus size={20} />
           Add Category
         </button>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="filters-section">
         <div className="search-container">
@@ -83,22 +320,36 @@ const CategoryList = () => {
             className="search-input"
           />
         </div>
-        <div className="filter-group">
-          <button className="btn btn-outline">
-            <Filter size={20} />
-            Filters
-          </button>
-        </div>
       </div>
 
-      <DataTable 
-        data={categories}
-        columns={columns}
-        searchTerm={searchTerm}
-        searchKey="name"
-      />
-    </div>
-  )
-}
+      {loading ? (
+        <div className="loading-message">Loading categories...</div>
+      ) : (
+        <>
+          <DataTable
+            data={categories}
+            columns={columns}
+            searchTerm={searchTerm}
+            searchKey="name"
+          />
 
-export default CategoryList
+          <Modal open={modal.type === "view"} onClose={closeModal}>
+            {modal.category && <ViewModal category={modal.category} />}
+          </Modal>
+          <Modal open={modal.type === "edit"} onClose={closeModal}>
+            {modal.category && (
+              <EditModal category={modal.category} onSave={handleEdit} />
+            )}
+          </Modal>
+          <Modal open={modal.type === "delete"} onClose={closeModal}>
+            {modal.category && (
+              <DeleteModal category={modal.category} onDelete={handleDelete} />
+            )}
+          </Modal>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default CategoryList;

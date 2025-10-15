@@ -1,26 +1,59 @@
-import React, { useState, useContext } from 'react';
-import { PRODUCTS } from '../data/mockData';
+import React, { useState, useContext, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { getProductById } from '../api/productApi';
 import { CartContext } from '../contexts/CartContext';
 import { WishlistContext } from '../contexts/WishlistContext';
 import LoadingSpinner from './LoadingSpinner';
 
-const ProductDetailPage = ({ productId, setView }) => {
-    const product = PRODUCTS.find(p => p.id === productId);
+const ProductDetailPage = () => {
+    const { productId } = useParams();
     const { addToCart, loading: cartLoading } = useContext(CartContext);
     const { toggleWishlist, isInWishlist, loadingProductId: wishlistLoadingId } = useContext(WishlistContext);
     
-    const [selectedSize, setSelectedSize] = useState(product?.sizes[0]);
-    const [selectedColor, setSelectedColor] = useState(product?.colors[0]);
-    const [activeImage, setActiveImage] = useState(product?.imageUrl);
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedSize, setSelectedSize] = useState(null);
+    const [activeImage, setActiveImage] = useState(null);
     const [openAccordion, setOpenAccordion] = useState(1);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+                const data = await getProductById(productId);
+                setProduct(data);
+                if (data.colors && data.colors.length > 0) {
+                    setSelectedColor(data.colors[0]);
+                    setActiveImage(data.colors[0].image);
+                    if (data.colors[0].sizes && data.colors[0].sizes.length > 0) {
+                        setSelectedSize(data.colors[0].sizes[0]);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching product:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProduct();
+    }, [productId]);
     
+    if (loading) return <div className="loading-container"><LoadingSpinner /></div>;
     if (!product) return <div>Product not found!</div>;
 
-    const images = product.galleryImages || [product.imageUrl, product.altImageUrl];
+    const images = product.colors?.map(c => c.image) || [];
 
     const handleAddToCart = () => {
-        if (cartLoading) return;
-        addToCart(product, selectedSize, selectedColor);
+        if (cartLoading || !selectedSize) return;
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: selectedSize.price,
+            imageUrl: selectedColor.image,
+            size: selectedSize.size,
+            color: selectedColor.name
+        });
     };
 
     const accordionItems = [
@@ -40,13 +73,19 @@ const ProductDetailPage = ({ productId, setView }) => {
                         <img src={activeImage} alt={product.name} />
                     </div>
                     <div className="pdp-thumbnails">
-                        {images.map((img, index) => (
+                        {product.colors.map((color, index) => (
                             <div 
                                 key={index} 
-                                className={`pdp-thumbnail ${img === activeImage ? 'active' : ''}`}
-                                onClick={() => setActiveImage(img)}
+                                className={`pdp-thumbnail ${color.image === activeImage ? 'active' : ''}`}
+                                onClick={() => {
+                                    setActiveImage(color.image);
+                                    setSelectedColor(color);
+                                    if (color.sizes.length > 0) {
+                                        setSelectedSize(color.sizes[0]);
+                                    }
+                                }}
                             >
-                                <img src={img} alt={`${product.name} thumbnail ${index + 1}`} />
+                                <img src={color.image} alt={`${product.name} ${color.name}`} />
                             </div>
                         ))}
                     </div>
@@ -54,18 +93,25 @@ const ProductDetailPage = ({ productId, setView }) => {
             </div>
             <div className="pdp-details-section">
                 <h1>{product.name}</h1>
-                <p className="pdp-price">₹{product.price}</p>
+                <p className="pdp-price">₹{selectedSize?.price || product.basePrice}</p>
+                <p className="pdp-description">{product.description}</p>
 
                 <div className="pdp-selector-group">
-                    <label className="pdp-selector-label">Color: <strong>{selectedColor}</strong></label>
+                    <label className="pdp-selector-label">Color: <strong>{selectedColor?.name}</strong></label>
                     <div className="pdp-color-options">
                         {product.colors.map(color => (
                             <button 
-                                key={color}
-                                className={`pdp-color-btn ${selectedColor === color ? 'active' : ''}`}
-                                style={{ backgroundColor: color.toLowerCase() }}
-                                onClick={() => setSelectedColor(color)}
-                                aria-label={`Select color ${color}`}
+                                key={color.name}
+                                className={`pdp-color-btn ${selectedColor?.name === color.name ? 'active' : ''}`}
+                                style={{ backgroundColor: color.code }}
+                                onClick={() => {
+                                    setSelectedColor(color);
+                                    setActiveImage(color.image);
+                                    if (color.sizes.length > 0) {
+                                        setSelectedSize(color.sizes[0]);
+                                    }
+                                }}
+                                aria-label={`Select color ${color.name}`}
                             />
                         ))}
                     </div>
@@ -74,25 +120,30 @@ const ProductDetailPage = ({ productId, setView }) => {
                 <div className="pdp-selector-group">
                     <label className="pdp-selector-label">Size:</label>
                     <div className="pdp-size-options">
-                        {product.sizes.map(size => (
+                        {selectedColor?.sizes.map(size => (
                             <button 
-                                key={size}
-                                className={`pdp-size-btn ${selectedSize === size ? 'active' : ''}`}
+                                key={size.size}
+                                className={`pdp-size-btn ${selectedSize?.size === size.size ? 'active' : ''}`}
                                 onClick={() => setSelectedSize(size)}
                             >
-                                {size}
+                                {size.size}
                             </button>
                         ))}
                     </div>
                 </div>
 
                 <div className="pdp-actions">
-                    <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={cartLoading}>
+                    <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={cartLoading || !selectedSize}>
                         {cartLoading ? <LoadingSpinner /> : 'Add to Cart'}
                     </button>
                     <button 
                         className={`wishlist-action-btn ${isInWishlist(product.id) ? 'active' : ''}`}
-                        onClick={() => toggleWishlist(product)}
+                        onClick={() => toggleWishlist({
+                            id: product.id,
+                            name: product.name,
+                            price: selectedSize?.price || product.basePrice,
+                            imageUrl: selectedColor?.image
+                        })}
                         disabled={wishlistLoadingId === product.id}
                     >
                         {wishlistLoadingId === product.id ? <LoadingSpinner /> : (isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist')}

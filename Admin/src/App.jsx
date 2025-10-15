@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
@@ -94,7 +96,7 @@ function App() {
               <Route path="/overview" element={<Overview />} />
               <Route path="/add-product" element={<AddProduct />} />
               <Route path="/product-list" element={<ProductList />} />
-              <Route path="/combo-offers" element={<ComboOffers />} />
+              {/* <Route path="/combo-offers" element={<ComboOffers />} /> */}
               <Route path="/add-brand" element={<AddBrand />} />
               <Route path="/add-category" element={<AddCategory />} />
               <Route path="/add-sub-category" element={<AddSubCategory />} />
@@ -120,6 +122,17 @@ function App() {
           </div>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </Router>
   )
 }

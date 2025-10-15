@@ -1,8 +1,10 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../contexts/CartContext';
 import { getBundlePrice } from '../data/mockData';
 
-const CartPage = ({ setView }) => {
+const CartPage = () => {
+    const navigate = useNavigate();
     const { cart, removeFromCart, updateQuantity } = useContext(CartContext);
 
     const bundleEligibleItems = cart.filter(item => item.price === 499);
@@ -26,7 +28,7 @@ const CartPage = ({ setView }) => {
     const finalTotal = subtotal + deliveryOption.fee;
     
     if (cart.length === 0) {
-        return <div className="cart-page empty-cart"><h2>Your Cart is Empty</h2><button onClick={() => setView({ page: 'home' })}>Continue Shopping</button></div>;
+        return <div className="cart-page empty-cart"><h2>Your Cart is Empty</h2><button onClick={() => navigate('/')}>Continue Shopping</button></div>;
     }
 
     return (
@@ -82,7 +84,7 @@ const CartPage = ({ setView }) => {
                         <span>Total</span>
                         <span>₹{finalTotal.toFixed(2)}</span>
                     </div>
-                    <button className="checkout-btn" onClick={() => setView({ page: 'checkout', deliveryOption })}>Proceed to Checkout</button>
+                    <button className="checkout-btn" onClick={() => navigate('/checkout', { state: { deliveryOption } })}>Proceed to Checkout</button>
                 </div>
             </div>
         </div>

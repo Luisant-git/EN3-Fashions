@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { createBrand, uploadImage } from '../api'
 import '../styles/pages/add-brand.scss'
 
 const AddBrand = () => {
@@ -9,9 +11,9 @@ const AddBrand = () => {
     name: '',
     description: '',
     website: '',
-    status: 'active'
   })
   const [logo, setLogo] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -20,17 +22,20 @@ const AddBrand = () => {
     }))
   }
 
-  const handleLogoUpload = (e) => {
+  const handleLogoUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
+      try {
+        const uploadResult = await uploadImage(file)
         setLogo({
           file,
-          url: event.target.result
+          url: uploadResult.url,
+          filename: uploadResult.filename
         })
+        toast.success('Logo uploaded successfully!')
+      } catch (err) {
+        toast.error('Failed to upload logo')
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -38,9 +43,28 @@ const AddBrand = () => {
     setLogo(null)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Brand data:', formData, logo)
+    setLoading(true)
+    
+    try {
+      const brandData = {
+        name: formData.name,
+        description: formData.description,
+        image: logo ? logo.url : null
+      }
+      
+      await createBrand(brandData)
+      toast.success('Brand created successfully!')
+      
+      // Reset form
+      setFormData({ name: '', description: '' })
+      setLogo(null)
+    } catch (err) {
+      toast.error(err.message || 'Failed to create brand')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -85,29 +109,6 @@ const AddBrand = () => {
                 rows={4}
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">Website</label>
-              <input
-                type="url"
-                className="form-input"
-                value={formData.website}
-                onChange={(e) => handleInputChange('website', e.target.value)}
-                placeholder="https://example.com"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <select
-                className="form-select"
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
           </div>
 
           <div className="form-section">
@@ -148,11 +149,8 @@ const AddBrand = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn btn-outline">
-            Save as Draft
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Create Brand
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating Brand...' : 'Create Brand'}
           </button>
         </div>
       </form>

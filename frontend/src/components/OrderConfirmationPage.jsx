@@ -1,6 +1,10 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const OrderConfirmationPage = ({ order, setView }) => {
+const OrderConfirmationPage = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const order = location.state?.order;
     return (
         <div className="order-confirmation-page">
             <div className="confirmation-box">
@@ -28,7 +32,7 @@ const OrderConfirmationPage = ({ order, setView }) => {
                         <span>₹{order.total.toFixed(2)}</span>
                     </div>
                 </div>
-                <button onClick={() => setView({ page: 'home' })} className="continue-shopping-btn">Continue Shopping</button>
+                <button onClick={() => navigate('/')} className="continue-shopping-btn">Continue Shopping</button>
             </div>
         </div>
     );

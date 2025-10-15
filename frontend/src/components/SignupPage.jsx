@@ -1,8 +1,10 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
-const SignupPage = ({ setView }) => {
+const SignupPage = () => {
+    const navigate = useNavigate();
     const { signup, loading } = useContext(AuthContext);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -11,7 +13,7 @@ const SignupPage = ({ setView }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         await signup(name, email, password);
-        setView({ page: 'home' });
+        navigate('/');
     };
 
     return (
@@ -26,7 +28,7 @@ const SignupPage = ({ setView }) => {
                         {loading ? <LoadingSpinner /> : 'Sign Up'}
                     </button>
                 </form>
-                <p>Already have an account? <a href="#" onClick={(e) => {e.preventDefault(); setView({ page: 'login' });}}>Login</a></p>
+                <p>Already have an account? <a href="#" onClick={(e) => {e.preventDefault(); navigate('/login');}}>Login</a></p>
             </div>
         </div>
     );

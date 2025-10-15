@@ -34,6 +34,16 @@
 }
 
 .login-form {
+  .error-message {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+  }
+  
   .form-group {
     margin-bottom: 20px;
   }
@@ -93,8 +103,13 @@
     cursor: pointer;
     transition: transform 0.2s;
     
-    &:hover {
+    &:hover:not(:disabled) {
       transform: translateY(-1px);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }

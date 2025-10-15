@@ -1,21 +1,20 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { createBanner } from '../api/bannerApi'
+import { uploadImage } from '../api/uploadApi'
 import '../styles/pages/add-banner.scss'
 
 const AddBanner = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
-    buttonText: '',
     buttonLink: '',
-    position: 'hero',
-    status: 'active',
-    startDate: '',
-    endDate: ''
+    status: 'active'
   })
   const [bannerImage, setBannerImage] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -42,9 +41,38 @@ const AddBanner = () => {
     setBannerImage(null)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Banner data:', formData, bannerImage)
+    
+    if (!bannerImage) {
+      toast.error('Please upload a banner image')
+      return
+    }
+
+    setIsLoading(true)
+    
+    try {
+      // Upload image first
+      const imageResponse = await uploadImage(bannerImage.file)
+      
+      // Create banner with uploaded image URL
+      const bannerData = {
+        title: formData.title,
+        link: formData.buttonLink,
+        image: imageResponse.url,
+        isActive: formData.status === 'active',
+        rowNumber: 1
+      }
+      
+      await createBanner(bannerData)
+      toast.success('Banner created successfully!')
+      navigate('/banner-list')
+      
+    } catch (error) {
+      toast.error(error.message || 'Failed to create banner')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -79,28 +107,8 @@ const AddBanner = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-textarea"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Enter banner description"
-                rows={3}
-              />
-            </div>
 
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Button Text</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.buttonText}
-                  onChange={(e) => handleInputChange('buttonText', e.target.value)}
-                  placeholder="Shop Now"
-                />
-              </div>
 
               <div className="form-group">
                 <label className="form-label">Button Link</label>
@@ -115,19 +123,6 @@ const AddBanner = () => {
             </div>
 
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Position</label>
-                <select
-                  className="form-select"
-                  value={formData.position}
-                  onChange={(e) => handleInputChange('position', e.target.value)}
-                >
-                  <option value="hero">Hero Section</option>
-                  <option value="sidebar">Sidebar</option>
-                  <option value="footer">Footer</option>
-                  <option value="popup">Popup</option>
-                </select>
-              </div>
 
               <div className="form-group">
                 <label className="form-label">Status</label>
@@ -138,30 +133,7 @@ const AddBanner = () => {
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                  <option value="scheduled">Scheduled</option>
                 </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Start Date</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">End Date</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                />
               </div>
             </div>
           </div>
@@ -207,8 +179,8 @@ const AddBanner = () => {
           <button type="button" className="btn btn-outline">
             Save as Draft
           </button>
-          <button type="submit" className="btn btn-primary">
-            Create Banner
+          <button type="submit" className="btn btn-primary" disabled={isLoading}>
+            {isLoading ? 'Creating...' : 'Create Banner'}
           </button>
         </div>
       </form>

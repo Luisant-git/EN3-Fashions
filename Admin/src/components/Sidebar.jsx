@@ -31,7 +31,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       children: [
         { key: 'add-product', icon: Plus, label: 'Add Product', path: '/add-product' },
         { key: 'product-list', icon: List, label: 'Product List', path: '/product-list' },
-        { key: 'combo-offers', icon: Gift, label: 'Combo Offers', path: '/combo-offers' },
+        // { key: 'combo-offers', icon: Gift, label: 'Combo Offers', path: '/combo-offers' },
        { key: 'brand-list', icon: Tag, label: 'Brands', path: '/brand-list' },
   { key: 'category-list', icon: FolderKanban, label: 'Categories', path: '/category-list' },
   { key: 'subcategory-list', icon: Layers, label: 'Sub Categories', path: '/subcategory-list' },

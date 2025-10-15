@@ -1,65 +1,345 @@
-import React, { useState } from 'react'
-import { Search, Filter, Plus, Edit, Trash2, Eye } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import DataTable from '../components/DataTable'
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Filter,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  X,
+  Upload,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import DataTable from "../components/DataTable";
+import {
+  getSubCategories,
+  getSubCategory,
+  updateSubCategory,
+  deleteSubCategory,
+  uploadImage,
+  getCategories,
+} from "../api";
+
+// Modal component
+const Modal = ({ open, onClose, children }) => {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop">
+      <div className="modal">
+        <button className="modal-close" onClick={onClose}>
+          <X size={20} />
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const SubCategoryList = () => {
-  const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [subCategories, setSubCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [modal, setModal] = useState({ type: null, subCategory: null });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const subCategories = [
-    { id: 1, name: 'Casual T-Shirts', category: 'T-Shirts', description: 'Everyday casual wear', status: 'active', productCount: 15, createdAt: '2024-01-15' },
-    { id: 2, name: 'Formal T-Shirts', category: 'T-Shirts', description: 'Office and formal wear', status: 'active', productCount: 10, createdAt: '2024-01-12' },
-    { id: 3, name: 'Slim Fit Trousers', category: 'Trousers', description: 'Modern slim fit pants', status: 'active', productCount: 12, createdAt: '2024-01-10' },
-    { id: 4, name: 'Cargo Trousers', category: 'Trousers', description: 'Utility and casual pants', status: 'active', productCount: 6, createdAt: '2024-01-08' },
-    { id: 5, name: 'Sports Tracks', category: 'Tracks', description: 'Athletic wear', status: 'inactive', productCount: 8, createdAt: '2024-01-05' }
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [subCategoriesData, categoriesData] = await Promise.all([
+          getSubCategories(),
+          getCategories(),
+        ]);
+        setSubCategories(subCategoriesData);
+        setCategories(categoriesData);
+      } catch (err) {
+        const errorMsg = `Failed to load data: ${err.message}`;
+        setError(errorMsg);
+        toast.error(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const handleEdit = (id) => {
-    console.log('Edit subcategory:', id)
-  }
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this subcategory?')) {
-      console.log('Delete subcategory:', id)
+  const openModal = async (type, subCategory) => {
+    if (type === "view" || type === "edit") {
+      try {
+        const fullSubCategory = await getSubCategory(subCategory.id);
+        setModal({ type, subCategory: fullSubCategory });
+      } catch (err) {
+        toast.error(`Failed to load subcategory details: ${err.message}`);
+      }
+    } else {
+      setModal({ type, subCategory });
     }
-  }
+  };
+  const closeModal = () => setModal({ type: null, subCategory: null });
+
+  const handleEdit = async (updatedSubCategory) => {
+    try {
+      await updateSubCategory(updatedSubCategory.id, updatedSubCategory);
+      setSubCategories(
+        subCategories.map((sc) =>
+          sc.id === updatedSubCategory.id
+            ? {
+                ...sc,
+                ...updatedSubCategory,
+                category: categories.find(
+                  (c) => c.id === updatedSubCategory.categoryId
+                ),
+              }
+            : sc
+        )
+      );
+      toast.success("Subcategory updated successfully!");
+      closeModal();
+    } catch (err) {
+      toast.error(`Failed to update subcategory: ${err.message}`);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteSubCategory(id);
+      setSubCategories(subCategories.filter((sc) => sc.id !== id));
+      toast.success("Subcategory deleted successfully!");
+      closeModal();
+    } catch (err) {
+      toast.error(`Failed to delete subcategory: ${err.message}`);
+    }
+  };
+
+  const ViewModal = ({ subCategory }) => (
+    <div className="modal-content view-modal">
+      <h2>Subcategory Details</h2>
+      <img
+        src={subCategory.image || "/placeholder.svg"}
+        alt={subCategory.name}
+        className="modal-product-image"
+      />
+      <div className="modal-product-info">
+        <p>
+          <strong>Name:</strong> {subCategory.name}
+        </p>
+        <p>
+          <strong>Parent Category:</strong>{" "}
+          {subCategory.category?.name || "N/A"}
+        </p>
+        <p>
+          <strong>Description:</strong> {subCategory.description || "N/A"}
+        </p>
+      </div>
+    </div>
+  );
+
+  const EditModal = ({ subCategory, onSave }) => {
+    const [form, setForm] = useState({
+      name: subCategory.name,
+      description: subCategory.description || "",
+      image: subCategory.image || "",
+      categoryId: subCategory.categoryId,
+    });
+    const [saving, setSaving] = useState(false);
+    const [imageUploading, setImageUploading] = useState(false);
+
+    const handleImageUpload = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setImageUploading(true);
+        try {
+          const uploadResult = await uploadImage(file);
+          setForm((f) => ({ ...f, image: uploadResult.url }));
+          toast.success("Image uploaded successfully!");
+        } catch (err) {
+          toast.error("Failed to upload image");
+        } finally {
+          setImageUploading(false);
+        }
+      }
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setSaving(true);
+      try {
+        await onSave({ ...subCategory, ...form });
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    return (
+      <form className="modal-content edit-modal" onSubmit={handleSubmit}>
+        <h2>Edit Subcategory</h2>
+        <label>
+          Subcategory Image
+          <div className="image-edit-section">
+            {form.image && (
+              <img
+                src={form.image}
+                alt="Subcategory"
+                className="current-image"
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "cover",
+                  marginBottom: "10px",
+                }}
+              />
+            )}
+            <div
+              className="image-upload-area"
+              onClick={() =>
+                document.getElementById("edit-image-upload").click()
+              }
+            >
+              <input
+                type="file"
+                id="edit-image-upload"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: "none" }}
+              />
+              <div className="upload-label">
+                <Upload size={24} />
+                <span>{imageUploading ? "Uploading..." : "Change Image"}</span>
+              </div>
+            </div>
+          </div>
+        </label>
+        <label>
+          Name
+          <input
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            required
+          />
+        </label>
+        <label>
+          Parent Category
+          <select
+            value={form.categoryId}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, categoryId: parseInt(e.target.value) }))
+            }
+            required
+          >
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Description
+          <textarea
+            value={form.description}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, description: e.target.value }))
+            }
+          />
+        </label>
+        <div className="modal-actions">
+          <button
+            type="button"
+            onClick={closeModal}
+            className="btn btn-outline"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={saving || imageUploading}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    );
+  };
+
+  const DeleteModal = ({ subCategory, onDelete }) => (
+    <div className="modal-content delete-modal">
+      <h2>Delete Subcategory</h2>
+      <p>
+        Are you sure you want to delete <strong>{subCategory.name}</strong>?
+      </p>
+      <div className="modal-actions">
+        <button className="btn btn-outline" onClick={closeModal}>
+          Cancel
+        </button>
+        <button
+          className="btn btn-danger"
+          onClick={() => onDelete(subCategory.id)}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
 
   const columns = [
-    { key: 'name', label: 'Subcategory Name' },
-    { key: 'category', label: 'Parent Category' },
-    { key: 'description', label: 'Description' },
-    { 
-      key: 'productCount', 
-      label: 'Products',
-      render: (value) => <span className="product-count">{value}</span>
-    },
-    { 
-      key: 'status', 
-      label: 'Status',
-      render: (value) => (
-        <span className={`status ${value}`}>{value}</span>
-      )
-    },
-    { key: 'createdAt', label: 'Created' },
     {
-      key: 'actions',
-      label: 'Actions',
+      key: "image",
+      label: "Image",
+      render: (value, row) => (
+        <img
+          src={value || "/placeholder.svg"}
+          alt={row.name}
+          className="product-thumbnail"
+        />
+      ),
+    },
+    { key: "name", label: "Subcategory Name" },
+    {
+      key: "category",
+      label: "Parent Category",
+      render: (value) => value?.name || "N/A",
+    },
+    { key: "description", label: "Description" },
+    {
+      key: "createdAt",
+      label: "Created",
+      render: (value) => new Date(value).toLocaleDateString("en-GB"),
+    },
+    {
+      key: "actions",
+      label: "Actions",
       render: (_, row) => (
         <div className="action-buttons">
-          <button className="action-btn view" title="View">
+          <button
+            className="action-btn view"
+            title="View"
+            onClick={() => openModal("view", row)}
+          >
             <Eye size={16} />
           </button>
-          <button className="action-btn edit" onClick={() => handleEdit(row.id)} title="Edit">
+          <button
+            className="action-btn edit"
+            onClick={() => openModal("edit", row)}
+            title="Edit"
+          >
             <Edit size={16} />
           </button>
-          <button className="action-btn delete" onClick={() => handleDelete(row.id)} title="Delete">
+          <button
+            className="action-btn delete"
+            onClick={() => openModal("delete", row)}
+            title="Delete"
+          >
             <Trash2 size={16} />
           </button>
         </div>
-      )
-    }
-  ]
+      ),
+    },
+  ];
 
   return (
     <div className="subcategory-list">
@@ -68,11 +348,16 @@ const SubCategoryList = () => {
           <h1>Sub Categories</h1>
           <p>Manage your product subcategories</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/add-sub-category')}>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate("/add-sub-category")}
+        >
           <Plus size={20} />
           Add Sub Category
         </button>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="filters-section">
         <div className="search-container">
@@ -85,22 +370,39 @@ const SubCategoryList = () => {
             className="search-input"
           />
         </div>
-        <div className="filter-group">
-          <button className="btn btn-outline">
-            <Filter size={20} />
-            Filters
-          </button>
-        </div>
       </div>
 
-      <DataTable 
-        data={subCategories}
-        columns={columns}
-        searchTerm={searchTerm}
-        searchKey="name"
-      />
-    </div>
-  )
-}
+      {loading ? (
+        <div className="loading-message">Loading subcategories...</div>
+      ) : (
+        <>
+          <DataTable
+            data={subCategories}
+            columns={columns}
+            searchTerm={searchTerm}
+            searchKey="name"
+          />
 
-export default SubCategoryList
+          <Modal open={modal.type === "view"} onClose={closeModal}>
+            {modal.subCategory && <ViewModal subCategory={modal.subCategory} />}
+          </Modal>
+          <Modal open={modal.type === "edit"} onClose={closeModal}>
+            {modal.subCategory && (
+              <EditModal subCategory={modal.subCategory} onSave={handleEdit} />
+            )}
+          </Modal>
+          <Modal open={modal.type === "delete"} onClose={closeModal}>
+            {modal.subCategory && (
+              <DeleteModal
+                subCategory={modal.subCategory}
+                onDelete={handleDelete}
+              />
+            )}
+          </Modal>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default SubCategoryList;

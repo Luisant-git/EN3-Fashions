@@ -1,14 +1,16 @@
 import React, { useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const ProtectedRoute = ({ children, setView }) => {
+const ProtectedRoute = ({ children }) => {
+    const navigate = useNavigate();
     const { user } = useContext(AuthContext);
     
     useEffect(() => {
         if (!user) {
-            setView({ page: 'login' });
+            navigate('/login');
         }
-    }, [user, setView]);
+    }, [user, navigate]);
     
     if (!user) {
         return null;
