@@ -135,6 +135,41 @@ button:disabled {
     height: 16px;
 }
 
+.desktop-header-items {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.mobile-text-slider {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktop-header-items {
+        display: none;
+    }
+    .mobile-text-slider {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    .marquee {
+        display: inline-block;
+        animation: marquee 4s linear infinite;
+    }
+    .marquee span {
+        font-size: 0.85rem;
+    }
+}
+
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
 
 
 /* Header */
@@ -585,6 +620,20 @@ button:disabled {
     transition: opacity 1s ease-in-out;
 }
 
+@media (max-width: 768px) {
+    .hero-slide {
+        background-size: cover;
+        background-position: center top;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-slide {
+        background-size: cover;
+        background-position: center center;
+    }
+}
+
 .hero-slide.active {
     opacity: 1;
 }
@@ -889,12 +938,22 @@ button:disabled {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
+    .subcategory-card img {
+        height: 200px;
+    }
 }
 
 @media (max-width: 480px) {
     .subcategory-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.8rem;
+    }
+    .subcategory-card img {
+        height: 150px;
+    }
+    .subcategory-card p {
+        padding: 0.8rem;
+        font-size: 0.9rem;
     }
 }
 
@@ -1816,6 +1875,9 @@ button:disabled {
         height: 30px;
     }
 
+    .hero-section {
+        min-height: 50vh;
+    }
     .hero-content h1 {
         font-size: 2.8rem;
     }
@@ -1881,9 +1943,9 @@ button:disabled {
         max-width: 100%;
     }
     
-    .cart-summary, .checkout-summary {
+    .cart-summary {
         position: static;
-        width: 100%;
+        width: 90%;
         margin-top: 2rem;
         padding: 1.5rem;
     }
@@ -2157,6 +2219,9 @@ button:disabled {
         grid-template-columns: 1fr;
     }
 
+    .hero-section {
+        min-height: 65vh;
+    }
     .hero-content h1 {
         font-size: 2.2rem;
     }
@@ -2169,9 +2234,82 @@ button:disabled {
     }
 
     .cart-item {
+        flex-direction: row;
+        align-items: flex-start;
+        text-align: left;
+        padding: 1rem;
+        gap: 1rem;
+    }
+    .cart-item img {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+    }
+    .cart-item-details {
+        flex: 1;
+        min-width: 0;
+    }
+    .cart-item-details h3 {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+    .cart-item-actions {
+        display: flex;
         flex-direction: column;
-        align-items: center;
-        text-align: center;
+        align-items: flex-end;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+    .quantity-control {
+        margin: 0;
+        order: 2;
+    }
+    .quantity-control button {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+    .cart-item-price {
+        order: 1;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    .remove-item-btn {
+        order: 3;
+        padding: 0.3rem;
+    }
+    
+    .cart-summary {
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .summary-row {
+        font-size: 0.9rem;
+        margin-bottom: 0.8rem;
+    }
+    .checkout-btn {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+    
+    .checkout-summary {
+        position: static !important;
+        width: 95% !important;
+        max-width: none !important;
+        border-radius: 5px;
+        padding: 1rem;
+        margin-top: 1rem;
+        top: auto !important;
+    }
+    .summary-item {
+        font-size: 0.9rem;
+        margin-bottom: 0.8rem;
+    }
+    .confirm-pay-btn {
+        font-size: 1rem;
+        padding: 0.8rem;
     }
     
     .form-row {
