@@ -82,10 +82,10 @@ const Header = () => {
               onClick={() => setShowProfile(!showProfile)}
             >
               <div className="user-avatar">
-                <span>S</span>
+                <span>A</span>
               </div>
               <div className="user-info">
-                <span className="user-name">Saravana</span>
+                {/* <span className="user-name">En3 Fashion</span> */}
                 <span className="user-role">Admin</span>
               </div>
               <ChevronDown size={16} />

@@ -34,9 +34,12 @@ export class SubCategoryService {
   }
 
   update(id: number, updateSubCategoryDto: UpdateSubCategoryDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { category, products, ...subCategoryData } = updateSubCategoryDto;
+
     return this.prisma.subCategory.update({
       where: { id },
-      data: updateSubCategoryDto,
+      data: subCategoryData,
       include: {
         category: true,
       },

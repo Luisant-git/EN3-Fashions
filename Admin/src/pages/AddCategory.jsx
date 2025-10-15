@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { createCategory, uploadImage } from '../api'
 import '../styles/pages/add-category.scss'
 
 const AddCategory = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -74,7 +76,7 @@ const AddCategory = () => {
           <h1>Add Category</h1>
           <p>Create a new product category</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>

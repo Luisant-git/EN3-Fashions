@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { ArrowLeft, Upload, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { createBrand, uploadImage } from '../api'
 import '../styles/pages/add-brand.scss'
 
 const AddBrand = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -72,7 +74,7 @@ const AddBrand = () => {
           <h1>Add Brand</h1>
           <p>Create a new brand for your products</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>
@@ -147,9 +149,6 @@ const AddBrand = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn btn-outline">
-            Save as Draft
-          </button>
           <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading ? 'Creating Brand...' : 'Create Brand'}
           </button>

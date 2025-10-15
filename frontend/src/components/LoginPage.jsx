@@ -1,8 +1,10 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
-const LoginPage = ({ setView }) => {
+const LoginPage = () => {
+    const navigate = useNavigate();
     const { login, loading } = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -13,7 +15,7 @@ const LoginPage = ({ setView }) => {
         setError('');
         const success = await login(email, password);
         if (success) {
-            setView({ page: 'home' });
+            navigate('/');
         } else {
             setError('Invalid credentials. Please try again.');
         }
@@ -31,7 +33,7 @@ const LoginPage = ({ setView }) => {
                         {loading ? <LoadingSpinner /> : 'Login'}
                     </button>
                 </form>
-                <p>Don't have an account? <a href="#" onClick={(e) => {e.preventDefault(); setView({ page: 'signup' });}}>Sign Up</a></p>
+                <p>Don't have an account? <a href="#" onClick={(e) => {e.preventDefault(); navigate('/signup');}}>Sign Up</a></p>
             </div>
         </div>
     );

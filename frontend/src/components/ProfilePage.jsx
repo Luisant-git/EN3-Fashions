@@ -1,8 +1,10 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
-const ProfilePage = ({ setView }) => {
+const ProfilePage = () => {
+    const navigate = useNavigate();
     const { user, logout, loading } = useContext(AuthContext);
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [addressLoading, setAddressLoading] = useState(false);
@@ -28,7 +30,7 @@ const ProfilePage = ({ setView }) => {
 
     const handleLogout = () => {
         logout();
-        setView({ page: 'home' });
+        navigate('/');
     };
 
     return (
@@ -45,7 +47,7 @@ const ProfilePage = ({ setView }) => {
                     <h2>Profile Information</h2>
                     <p><strong>Name:</strong> {user?.name}</p>
                     <p><strong>Email:</strong> {user?.email}</p>
-                    <button onClick={() => setView({ page: 'orders' })} className="view-orders-btn">View My Orders</button>
+                    <button onClick={() => navigate('/orders')} className="view-orders-btn">View My Orders</button>
                 </div>
 
                 <div className="profile-section">

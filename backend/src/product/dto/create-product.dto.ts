@@ -1,12 +1,44 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsArray, IsBoolean } from 'class-validator';
+
+class GalleryDto {
+  @ApiProperty({ example: 'https://cdn/img/p1-1.jpg' })
+  url: string;
+}
+
+class SizeDto {
+  @ApiProperty({ example: 'S' })
+  size: string;
+
+  @ApiProperty({ example: '499.00' })
+  price: string;
+
+  @ApiProperty({ example: 10 })
+  quantity: number;
+}
+
+class ColorDto {
+  @ApiProperty({ example: 'Red' })
+  name: string;
+
+  @ApiProperty({ example: '#E53935' })
+  code: string;
+
+  @ApiPropertyOptional({ example: 'https://cdn/img/red-1.jpg' })
+  image?: string;
+
+  @ApiProperty({ type: [SizeDto] })
+  sizes: SizeDto[];
+}
+
+export { GalleryDto, SizeDto, ColorDto };
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Classic Cotton T-Shirt' })
   @IsString()
   name: string;
 
-  @ApiPropertyOptional({ example: 'Comfortable 100% cotton t-shirt with modern fit' })
+  @ApiPropertyOptional({ example: '100% cotton' })
   @IsOptional()
   @IsString()
   description?: string;
@@ -20,101 +52,36 @@ export class CreateProductDto {
   @IsNumber()
   subCategoryId?: number;
 
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({ example: 2 })
   @IsOptional()
   @IsNumber()
   brandId?: number;
 
-  @ApiProperty({ example: 29.99 })
-  @IsNumber()
-  price: number;
-
-  @ApiPropertyOptional({ example: 39.99 })
-  @IsOptional()
-  @IsNumber()
-  comparePrice?: number;
-
-  @ApiPropertyOptional({ example: 15.00 })
-  @IsOptional()
-  @IsNumber()
-  costPrice?: number;
-
-  @ApiPropertyOptional({ example: 'TSH-001-BLK-M' })
-  @IsOptional()
+  @ApiProperty({ example: '499.00' })
   @IsString()
-  sku?: string;
+  basePrice: string;
 
-  @ApiPropertyOptional({ example: '1234567890123' })
-  @IsOptional()
-  @IsString()
-  barcode?: string;
-
-  @ApiPropertyOptional({ example: true })
-  @IsOptional()
-  @IsBoolean()
-  trackQuantity?: boolean;
-
-  @ApiPropertyOptional({ example: 50 })
-  @IsOptional()
-  @IsNumber()
-  quantity?: number;
-
-  @ApiPropertyOptional({ example: 0.2 })
-  @IsOptional()
-  @IsNumber()
-  weight?: number;
-
-  @ApiPropertyOptional({ example: 70.0 })
-  @IsOptional()
-  @IsNumber()
-  length?: number;
-
-  @ApiPropertyOptional({ example: 50.0 })
-  @IsOptional()
-  @IsNumber()
-  width?: number;
-
-  @ApiPropertyOptional({ example: 0.5 })
-  @IsOptional()
-  @IsNumber()
-  height?: number;
-
-  @ApiPropertyOptional({ example: ['cotton', 'casual', 'comfortable'] })
+  @ApiPropertyOptional({ example: ['tshirt', 'men'] })
   @IsOptional()
   @IsArray()
   tags?: string[];
 
-  @ApiPropertyOptional({ example: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] })
+  @ApiPropertyOptional({ type: [GalleryDto] })
   @IsOptional()
   @IsArray()
-  sizes?: string[];
+  gallery?: GalleryDto[];
 
-  @ApiPropertyOptional({ example: ['Red', 'Blue', 'Green', 'Black', 'White'] })
-  @IsOptional()
+  @ApiProperty({ type: [ColorDto] })
   @IsArray()
-  colors?: string[];
-
-  @ApiPropertyOptional({ example: 'Classic Cotton T-Shirt - Comfortable & Stylish' })
-  @IsOptional()
-  @IsString()
-  seoTitle?: string;
-
-  @ApiPropertyOptional({ example: 'Shop our premium cotton t-shirt collection. Perfect for everyday wear.' })
-  @IsOptional()
-  @IsString()
-  seoDescription?: string;
-
-  @ApiPropertyOptional({ example: 'https://example.com/image.jpg' })
-  @IsOptional()
-  @IsString()
-  image?: string;
+  colors: ColorDto[];
 
   @ApiPropertyOptional({ example: 'active' })
   @IsOptional()
   @IsString()
   status?: string;
 
-  @ApiPropertyOptional({ example: [{ color: 'Black', size: 'Medium' }] })
+  @ApiPropertyOptional({ example: false })
   @IsOptional()
-  attributes?: any[];
+  @IsBoolean()
+  newArrivals?: boolean;
 }

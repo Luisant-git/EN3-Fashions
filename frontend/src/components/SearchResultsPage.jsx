@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { PRODUCTS } from '../data/mockData';
 import ProductCard from './ProductCard';
 import FiltersComponent from './FiltersComponent';
 import LoadingSpinner from './LoadingSpinner';
 
-const SearchResultsPage = ({ query, setView }) => {
+const SearchResultsPage = () => {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const query = searchParams.get('q') || '';
     const [filters, setFilters] = useState({});
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [gridLoading, setGridLoading] = useState(false);
@@ -87,7 +91,7 @@ const SearchResultsPage = ({ query, setView }) => {
                     {gridLoading && <div className="loading-overlay"><LoadingSpinner /></div>}
                     <div className="product-grid">
                         {filteredProducts.length > 0 ? (
-                            filteredProducts.map(product => <ProductCard key={product.id} product={product} setView={setView} />)
+                            filteredProducts.map(product => <ProductCard key={product.id} product={product} navigate={navigate} />)
                         ) : (
                             <p className="no-results-message">No products found matching your filter criteria.</p>
                         )}

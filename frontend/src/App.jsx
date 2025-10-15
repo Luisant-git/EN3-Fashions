@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import TopHeader from './components/TopHeader';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
 import CategoryPage from './components/CategoryPage';
 import SubcategoryPage from './components/SubcategoryPage';
+import NewArrivalsPage from './components/NewArrivalsPage';
 import ProductDetailPage from './components/ProductDetailPage';
 import CartPage from './components/CartPage';
 import WishlistPage from './components/WishlistPage';
@@ -22,62 +25,38 @@ import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 
 const App = () => {
-    const [view, setView] = useState({ page: 'home' });
-
-    useEffect(() => {
-        if (document.body) {
-            document.body.style.overflow = 'auto';
-        }
-    }, [view]);
-
-    const renderView = () => {
-        switch (view.page) {
-            case 'home':
-                return <HomePage setView={setView} />;
-            case 'category':
-                return <CategoryPage title={view.title} filter={view.filter} setView={setView} />;
-            case 'subcategory':
-                return <SubcategoryPage title={view.title} tag={view.tag} setView={setView} />;
-            case 'product':
-                return <ProductDetailPage productId={view.productId} setView={setView} />;
-            case 'cart':
-                return <CartPage setView={setView} />;
-            case 'wishlist':
-                return <ProtectedRoute setView={setView}><WishlistPage setView={setView} /></ProtectedRoute>;
-            case 'orders':
-                return <ProtectedRoute setView={setView}><OrdersPage /></ProtectedRoute>;
-            case 'checkout':
-                return <CheckoutPage setView={setView} deliveryOption={view.deliveryOption} />;
-            case 'orderConfirmation':
-                return <OrderConfirmationPage order={view.order} setView={setView} />;
-            case 'search':
-                return <SearchResultsPage query={view.query} setView={setView} />;
-            case 'login':
-                return <LoginPage setView={setView} />;
-            case 'signup':
-                return <SignupPage setView={setView} />;
-            case 'profile':
-                return <ProtectedRoute setView={setView}><ProfilePage setView={setView} /></ProtectedRoute>;
-            case 'about':
-                return <AboutUsPage />;
-            case 'returnsPolicy':
-                return <ReturnsPolicyPage />;
-            default:
-                return <HomePage setView={setView} />;
-        }
-    };
 
     return (
         <AuthProvider>
             <WishlistProvider>
                 <CartProvider>
-                    <div className="app-container">
-                        <Header setView={setView} />
-                        <main className="main-content">
-                            {renderView()}
-                        </main>
-                        <Footer setView={setView} />
-                    </div>
+                    <Router>
+                        <div className="app-container">
+                            <TopHeader />
+                            <Header />
+                            <main className="main-content">
+                                <Routes>
+                                    <Route path="/" element={<HomePage />} />
+                                    <Route path="/new-arrivals" element={<NewArrivalsPage />} />
+                                    <Route path="/category/:categoryName" element={<CategoryPage />} />
+                                    <Route path="/subcategory/:tag" element={<SubcategoryPage />} />
+                                    <Route path="/product/:productId" element={<ProductDetailPage />} />
+                                    <Route path="/cart" element={<CartPage />} />
+                                    <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+                                    <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+                                    <Route path="/checkout" element={<CheckoutPage />} />
+                                    <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                                    <Route path="/search" element={<SearchResultsPage />} />
+                                    <Route path="/login" element={<LoginPage />} />
+                                    <Route path="/signup" element={<SignupPage />} />
+                                    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                                    <Route path="/about" element={<AboutUsPage />} />
+                                    <Route path="/returns-policy" element={<ReturnsPolicyPage />} />
+                                </Routes>
+                            </main>
+                            <Footer />
+                        </div>
+                    </Router>
                 </CartProvider>
             </WishlistProvider>
         </AuthProvider>

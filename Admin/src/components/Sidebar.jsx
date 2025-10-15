@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers,} from 'lucide-react'
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [expandedItems, setExpandedItems] = useState({})
@@ -31,13 +31,13 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       children: [
         { key: 'add-product', icon: Plus, label: 'Add Product', path: '/add-product' },
         { key: 'product-list', icon: List, label: 'Product List', path: '/product-list' },
-        { key: 'combo-offers', icon: Gift, label: 'Combo Offers', path: '/combo-offers' },
-        { key: 'add-brand', icon: Tag, label: 'Add Brand', path: '/add-brand' },
-        { key: 'add-category', icon: Tag, label: 'Add Category', path: '/add-category' },
-        { key: 'add-sub-category', icon: Tag, label: 'Add Sub Category', path: '/add-sub-category' },
-        { key: 'add-banner', icon: Image, label: 'Add Banner', path: '/add-banner' },
-        { key: 'add-coupon', icon: Percent, label: 'Add Coupon', path: '/add-coupon' },
-        { key: 'add-pincode', icon: MapPin, label: 'Add Pincode', path: '/add-pincode' }
+        // { key: 'combo-offers', icon: Gift, label: 'Combo Offers', path: '/combo-offers' },
+       { key: 'brand-list', icon: Tag, label: 'Brands', path: '/brand-list' },
+  { key: 'category-list', icon: FolderKanban, label: 'Categories', path: '/category-list' },
+  { key: 'subcategory-list', icon: Layers, label: 'Sub Categories', path: '/subcategory-list' },
+  { key: 'banner-list', icon: Image, label: 'Banners', path: '/banner-list' },
+  { key: 'coupon-list', icon: TicketPercent, label: 'Coupons', path: '/coupon-list' },
+  { key: 'pincode-list', icon: MapPin, label: 'Pincodes', path: '/pincode-list' },
       ]
     },
     {

@@ -31,9 +31,15 @@ export class CategoryService {
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { subCategories, ...categoryData } = updateCategoryDto;
+
     return this.prisma.category.update({
       where: { id },
-      data: updateCategoryDto,
+      data: categoryData,
+      include: {
+        subCategories: true,
+      },
     });
   }
 

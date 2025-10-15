@@ -1,8 +1,12 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CartContext } from '../contexts/CartContext';
 import LoadingSpinner from './LoadingSpinner';
 
-const CheckoutPage = ({ setView, deliveryOption }) => {
+const CheckoutPage = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, clearCart } = useContext(CartContext);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -26,7 +30,7 @@ const CheckoutPage = ({ setView, deliveryOption }) => {
             const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
             localStorage.setItem('orders', JSON.stringify([newOrder, ...existingOrders]));
             clearCart();
-            setView({ page: 'orderConfirmation', order: newOrder });
+            navigate('/order-confirmation', { state: { order: newOrder } });
             setIsPlacingOrder(false);
         }, 1500);
     };

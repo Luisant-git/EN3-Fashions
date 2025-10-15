@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Upload, X, Plus } from 'lucide-react'
 import { toast } from 'react-toastify'
-import ProductAttributes from '../components/ProductAttributes'
 import { createProduct, getCategories, getSubCategories, getBrands, uploadImage } from '../api'
 
 const AddProduct = () => {
@@ -11,33 +10,21 @@ const AddProduct = () => {
     categoryId: '',
     subCategoryId: '',
     brandId: '',
-    price: '',
-    comparePrice: '',
-    costPrice: '',
-    sku: '',
-    barcode: '',
-    trackQuantity: true,
-    quantity: '',
-    weight: '',
-    dimensions: {
-      length: '',
-      width: '',
-      height: ''
-    },
+    basePrice: '',
     tags: [],
-    seoTitle: '',
-    seoDescription: '',
-    status: 'active',
-    attributes: []
+    gallery: [],
+    colors: [],
+    status: 'active'
   })
 
-  const [images, setImages] = useState([])
   const [newTag, setNewTag] = useState('')
   const [categories, setCategories] = useState([])
   const [subCategories, setSubCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [currentColor, setCurrentColor] = useState({ name: '', code: '', images: [], sizes: [] })
+  const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0, image: '' })
 
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
@@ -57,29 +44,75 @@ const AddProduct = () => {
     }
   }
 
-  const handleImageUpload = async (e) => {
+  const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
     
     for (const file of files) {
       try {
         const uploadResult = await uploadImage(file)
-        setImages(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          url: uploadResult.url,
-          filename: uploadResult.filename
-        }])
-        toast.success('Image uploaded successfully!')
+        setFormData(prev => ({
+          ...prev,
+          gallery: [...prev.gallery, { url: uploadResult.url }]
+        }))
+        toast.success('Gallery image uploaded!')
       } catch (err) {
         toast.error('Failed to upload image')
       }
     }
-    
     e.target.value = ''
   }
 
-  const removeImage = (id) => {
-    setImages(prev => prev.filter(img => img.id !== id))
+  const removeGalleryImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleColorImageUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
+    
+    for (const file of files) {
+      try {
+        const uploadResult = await uploadImage(file)
+        setCurrentColor(prev => ({
+          ...prev,
+          images: [...prev.images, uploadResult.url]
+        }))
+        toast.success('Color image uploaded!')
+      } catch (err) {
+        toast.error('Failed to upload image')
+      }
+    }
+    e.target.value = ''
+  }
+
+  const addSize = () => {
+    if (currentSize.size && currentSize.price) {
+      setCurrentColor(prev => ({
+        ...prev,
+        sizes: [...prev.sizes, { ...currentSize, quantity: parseInt(currentSize.quantity) || 0 }]
+      }))
+      setCurrentSize({ size: '', price: '', quantity: 0, image: '' })
+    }
+  }
+
+  const addColor = () => {
+    if (currentColor.name && currentColor.code && currentColor.sizes.length > 0) {
+      const colorData = {
+        name: currentColor.name,
+        code: currentColor.code,
+        image: currentColor.images[0] || '',
+        sizes: currentColor.sizes.map(({ size, price, quantity }) => ({ size, price, quantity }))
+      }
+      setFormData(prev => ({
+        ...prev,
+        colors: [...prev.colors, colorData]
+      }))
+      setCurrentColor({ name: '', code: '', images: [], sizes: [] })
+    }
   }
 
   const addTag = () => {
@@ -99,12 +132,7 @@ const AddProduct = () => {
     }))
   }
 
-  const handleAttributesChange = (attributes) => {
-    setFormData(prev => ({
-      ...prev,
-      attributes
-    }))
-  }
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -136,23 +164,11 @@ const AddProduct = () => {
         categoryId: parseInt(formData.categoryId),
         subCategoryId: formData.subCategoryId ? parseInt(formData.subCategoryId) : null,
         brandId: formData.brandId ? parseInt(formData.brandId) : null,
-        price: parseFloat(formData.price),
-        comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
-        costPrice: formData.costPrice ? parseFloat(formData.costPrice) : null,
-        sku: formData.sku,
-        barcode: formData.barcode,
-        trackQuantity: formData.trackQuantity,
-        quantity: parseInt(formData.quantity) || 0,
-        weight: formData.weight ? parseFloat(formData.weight) : null,
-        length: formData.dimensions.length ? parseFloat(formData.dimensions.length) : null,
-        width: formData.dimensions.width ? parseFloat(formData.dimensions.width) : null,
-        height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : null,
+        basePrice: formData.basePrice,
         tags: formData.tags,
-        seoTitle: formData.seoTitle,
-        seoDescription: formData.seoDescription,
-        image: images.length > 0 ? images[0].url : null,
-        status: formData.status,
-        attributes: formData.attributes
+        gallery: formData.gallery,
+        colors: formData.colors,
+        status: formData.status
       };
       
       await createProduct(productData);
@@ -165,22 +181,14 @@ const AddProduct = () => {
         categoryId: '',
         subCategoryId: '',
         brandId: '',
-        price: '',
-        comparePrice: '',
-        costPrice: '',
-        sku: '',
-        barcode: '',
-        trackQuantity: true,
-        quantity: '',
-        weight: '',
-        dimensions: { length: '', width: '', height: '' },
+        basePrice: '',
         tags: [],
-        seoTitle: '',
-        seoDescription: '',
-        status: 'active',
-        attributes: []
+        gallery: [],
+        colors: [],
+        status: 'active'
       });
-      setImages([]);
+      setCurrentColor({ name: '', code: '', images: [], sizes: [] });
+      setCurrentSize({ size: '', price: '', quantity: 0, image: '' });
     } catch (err) {
       const errorMsg = err.message || 'Failed to create product';
       setError(errorMsg);
@@ -283,46 +291,6 @@ const AddProduct = () => {
             </div>
           </div>
 
-          <div className="form-section">
-            <div className="section-header">
-              <h3>Product Images</h3>
-            </div>
-
-            <div className="image-upload-section">
-              <div className="image-upload-area" onClick={() => document.getElementById('image-upload').click()}>
-                <input
-                  type="file"
-                  id="image-upload"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                />
-                <div className="upload-label">
-                  <Upload size={48} />
-                  <p>Click to upload images</p>
-                  <span>PNG, JPG, GIF up to 10MB</span>
-                </div>
-              </div>
-
-              {images.length > 0 && (
-                <div className="image-preview-grid">
-                  {images.map((image) => (
-                    <div key={image.id} className="image-preview">
-                      <img src={image.url || "/placeholder.svg"} alt="Product" />
-                      <button
-                        type="button"
-                        className="remove-image"
-                        onClick={() => removeImage(image.id)}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         <div className="form-grid">
@@ -331,94 +299,51 @@ const AddProduct = () => {
               <h3>Pricing</h3>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Price *</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Compare at Price</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={formData.comparePrice}
-                  onChange={(e) => handleInputChange('comparePrice', e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-
             <div className="form-group">
-              <label className="form-label">Cost per Item</label>
+              <label className="form-label">Base Price *</label>
               <input
-                type="number"
+                type="text"
                 className="form-input"
-                value={formData.costPrice}
-                onChange={(e) => handleInputChange('costPrice', e.target.value)}
-                placeholder="0.00"
+                value={formData.basePrice}
+                onChange={(e) => handleInputChange('basePrice', e.target.value)}
+                placeholder="499.00"
+                required
               />
             </div>
           </div>
 
           <div className="form-section">
             <div className="section-header">
-              <h3>Inventory</h3>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">SKU</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.sku}
-                  onChange={(e) => handleInputChange('sku', e.target.value)}
-                  placeholder="Enter SKU"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Barcode</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.barcode}
-                  onChange={(e) => handleInputChange('barcode', e.target.value)}
-                  placeholder="Enter barcode"
-                />
-              </div>
+              <h3>Gallery Images</h3>
             </div>
 
             <div className="form-group">
-              <div className="checkbox-group">
-                <input
-                  type="checkbox"
-                  id="track-quantity"
-                  checked={formData.trackQuantity}
-                  onChange={(e) => handleInputChange('trackQuantity', e.target.checked)}
-                />
-                <label htmlFor="track-quantity">Track quantity</label>
-              </div>
+              <label className="form-label">Upload Images</label>
+              <input
+                type="file"
+                id="gallery-upload"
+                multiple
+                accept="image/*"
+                onChange={handleGalleryUpload}
+                className="form-input"
+              />
             </div>
 
-            {formData.trackQuantity && (
-              <div className="form-group">
-                <label className="form-label">Quantity</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={formData.quantity}
-                  onChange={(e) => handleInputChange('quantity', e.target.value)}
-                  placeholder="0"
-                />
+            {formData.gallery.length > 0 && (
+              <div className="image-preview-grid" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                {formData.gallery.map((image, index) => (
+                  <div key={index} className="image-preview" style={{ position: 'relative', width: '80px', height: '80px' }}>
+                    <img src={image.url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                    <button
+                      type="button"
+                      className="remove-image"
+                      onClick={() => removeGalleryImage(index)}
+                      style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -426,67 +351,199 @@ const AddProduct = () => {
 
         <div className="form-section">
           <div className="section-header">
-            <h3>Shipping</h3>
+            <h3>Colors & Sizes</h3>
+            <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>Add product variants with different colors and sizes</p>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Weight</label>
-              <input
-                type="number"
-                className="form-input"
-                value={formData.weight}
-                onChange={(e) => handleInputChange('weight', e.target.value)}
-                placeholder="0.0 kg"
-              />
-            </div>
+          <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Color Information</h4>
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Color Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={currentColor.name}
+                    onChange={(e) => setCurrentColor(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Red, Blue, Black"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Color</label>
+                  <input
+                    type="color"
+                    className="form-input"
+                    value={currentColor.code}
+                    onChange={(e) => setCurrentColor(prev => ({ ...prev, code: e.target.value }))}
+                    style={{ height: '42px', padding: '4px' }}
+                  />
+                </div>
+              </div>
 
-            <div className="form-group">
-              <label className="form-label">Dimensions (L × W × H)</label>
-              <div className="dimensions-input">
+              <div className="form-group" style={{ marginTop: '12px' }}>
+                <label className="form-label">Color Images (Optional)</label>
                 <input
-                  type="number"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleColorImageUpload}
                   className="form-input"
-                  value={formData.dimensions.length}
-                  onChange={(e) => handleInputChange('dimensions.length', e.target.value)}
-                  placeholder="Length"
                 />
-                <span>×</span>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={formData.dimensions.width}
-                  onChange={(e) => handleInputChange('dimensions.width', e.target.value)}
-                  placeholder="Width"
-                />
-                <span>×</span>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={formData.dimensions.height}
-                  onChange={(e) => handleInputChange('dimensions.height', e.target.value)}
-                  placeholder="Height"
-                />
+                {currentColor.images.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                    {currentColor.images.map((img, i) => (
+                      <div key={i} style={{ position: 'relative', width: '80px', height: '80px' }}>
+                        <img 
+                          src={img} 
+                          alt={`Color ${i + 1}`} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCurrentColor(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                          style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
+
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Add Sizes</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px auto', gap: '12px', alignItems: 'end' }}>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '13px' }}>Size</label>
+                  <select
+                    className="form-select"
+                    value={currentSize.size}
+                    onChange={(e) => setCurrentSize(prev => ({ ...prev, size: e.target.value }))}
+                    style={{ height: '42px' }}
+                  >
+                    <option value="">Select Size</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                    <option value="XXXL">XXXL</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '13px' }}>Price</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={currentSize.price}
+                    onChange={(e) => setCurrentSize(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="499.00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '13px' }}>Quantity</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={currentSize.quantity}
+                    onChange={(e) => setCurrentSize(prev => ({ ...prev, quantity: e.target.value }))}
+                    placeholder="10"
+                  />
+                </div>
+                <button type="button" onClick={addSize} className="btn btn-secondary" style={{ height: '42px' }}>
+                  <Plus size={16} /> Add
+                </button>
+              </div>
+
+              {currentColor.sizes.length > 0 && (
+                <div style={{ marginTop: '16px', padding: '12px', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#374151' }}>Added Sizes:</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {currentColor.sizes.map((size, i) => (
+                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f3f4f6', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #e5e7eb' }}>
+                        <strong>{size.size}</strong> - ${size.price} <span style={{ color: '#6b7280' }}>(Qty: {size.quantity})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+              <button 
+                type="button" 
+                onClick={addColor} 
+                className="btn btn-primary"
+                disabled={!currentColor.name || !currentColor.code || currentColor.sizes.length === 0}
+                style={{ width: '100%' }}
+              >
+                <Plus size={16} /> Add Color Variant
+              </button>
+            </div>
           </div>
+
+          {formData.colors.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#111827' }}>Added Color Variants ({formData.colors.length})</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                {formData.colors.map((color, i) => (
+                  <div key={i} style={{ position: 'relative', background: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setFormData(prev => ({ ...prev, colors: prev.colors.filter((_, idx) => idx !== i) }))}
+                      style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10, width: '28px', height: '28px', background: 'rgba(239, 68, 68, 0.95)', color: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+                    >
+                      <X size={16} />
+                    </button>
+                    
+                    {color.image ? (
+                      <img 
+                        src={color.image} 
+                        alt={color.name} 
+                        style={{ width: '100%', height: '180px', objectFit: 'cover' }} 
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '180px', background: 'linear-gradient(135deg, ' + color.code + ' 0%, ' + color.code + 'dd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '48px', fontWeight: 'bold' }}>
+                        {color.name.charAt(0)}
+                      </div>
+                    )}
+                    
+                    <div style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: color.code, border: '2px solid #e5e7eb' }}></div>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '16px', color: '#111827' }}>{color.name}</div>
+                          <div style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>{color.code}</div>
+                        </div>
+                      </div>
+                      
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Available Sizes:</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {color.sizes.map((size, sIdx) => (
+                          <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f9fafb', borderRadius: '6px', fontSize: '13px' }}>
+                            <span style={{ fontWeight: '600', color: '#111827' }}>{size.size}</span>
+                            <div style={{ display: 'flex', gap: '12px', color: '#6b7280' }}>
+                              <span>${size.price}</span>
+                              <span>Qty: {size.quantity}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="form-section">
           <div className="section-header">
-            <h3>Product Attributes</h3>
-            <p>Add size, color, and other product variations</p>
-          </div>
-
-          <ProductAttributes 
-            attributes={formData.attributes}
-            onAttributesChange={handleAttributesChange}
-          />
-        </div>
-
-        <div className="form-section">
-          <div className="section-header">
-            <h3>SEO & Tags</h3>
+            <h3>Tags</h3>
           </div>
 
           <div className="form-group">
@@ -519,28 +576,6 @@ const AddProduct = () => {
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">SEO Title</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.seoTitle}
-              onChange={(e) => handleInputChange('seoTitle', e.target.value)}
-              placeholder="Enter SEO title"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">SEO Description</label>
-            <textarea
-              className="form-textarea"
-              value={formData.seoDescription}
-              onChange={(e) => handleInputChange('seoDescription', e.target.value)}
-              placeholder="Enter SEO description"
-              rows={3}
-            />
           </div>
         </div>
 

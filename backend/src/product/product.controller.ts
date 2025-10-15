@@ -26,6 +26,13 @@ export class ProductController {
     return this.productService.findAll();
   }
 
+  @Get('active')
+  @ApiOperation({ summary: 'Get all active products' })
+  @ApiResponse({ status: 200, description: 'List of active products' })
+  findAllActive() {
+    return this.productService.findAllActive();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get product by ID' })
   @ApiResponse({ status: 200, description: 'Product details' })

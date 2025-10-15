@@ -9,12 +9,29 @@ export class ProductService {
 
   create(createProductDto: CreateProductDto) {
     return this.prisma.product.create({
-      data: createProductDto,
+      data: {
+        ...createProductDto,
+        gallery: createProductDto.gallery as any,
+        colors: createProductDto.colors as any,
+      },
     });
   }
 
   findAll() {
     return this.prisma.product.findMany({
+      include: {
+        category: true,
+        subCategory: true,
+        brand: true,
+      },
+    });
+  }
+
+  findAllActive() {
+    return this.prisma.product.findMany({
+      where: {
+        status: 'active',
+      },
       include: {
         category: true,
         subCategory: true,
@@ -38,7 +55,11 @@ export class ProductService {
     const { id: _, createdAt, updatedAt, category, subCategory, brand, ...data } = updateProductDto as any;
     return this.prisma.product.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        gallery: data.gallery as any,
+        colors: data.colors as any,
+      },
     });
   }
 

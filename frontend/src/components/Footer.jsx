@@ -1,10 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Footer = ({ setView }) => (
+const Footer = () => {
+    const navigate = useNavigate();
+    
+    return (
     <footer className="footer">
         <div className="footer-content">
             <div className="footer-column brand-info">
-                <div className="logo-container" onClick={() => setView({ page: 'home' })}>
+                <div className="logo-container" onClick={() => navigate('/')}>
                     <span className="logo-text">EN3 Fashion</span>
                 </div>
                 <p>Elevate your style with our curated collection of men's and boys' fashion.</p>
@@ -12,19 +16,19 @@ const Footer = ({ setView }) => (
             <div className="footer-column">
                 <h4>Shop</h4>
                 <ul>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); setView({ page: 'subcategory', title: "Men's Collection", tag: 'men' }); }}>Men's Wear</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); setView({ page: 'subcategory', title: "Boys' Collection", tag: 'boys' }); }}>Boys' Wear</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); setView({ page: 'category', title: 'Sale', filter: { type: 'tag', value: 'sale' } }); }}>Sale</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); setView({ page: 'category', title: 'New Arrivals', filter: { type: 'tag', value: 'new' } }); }}>New Arrivals</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/subcategory/men'); }}>Men's Wear</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/subcategory/boys'); }}>Boys' Wear</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/category/sale'); }}>Sale</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/category/new-arrivals'); }}>New Arrivals</a></li>
                 </ul>
             </div>
             <div className="footer-column">
                 <h4>Information</h4>
                 <ul>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); setView({ page: 'about' }); }}>About Us</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>About Us</a></li>
                     <li><a href="#">Contact Us</a></li>
                     <li><a href="#">FAQs</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); setView({ page: 'returnsPolicy' }); }}>Returns & Policies</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/returns-policy'); }}>Returns & Policies</a></li>
                 </ul>
             </div>
             <div className="footer-column">
@@ -45,6 +49,7 @@ const Footer = ({ setView }) => (
             <p>© 2024 EN3 Fashion Trends. All rights reserved.</p>
         </div>
     </footer>
-);
+    );
+};
 
 export default Footer;

@@ -91,61 +91,6 @@ const ProductAttributes = ({ attributes, onAttributesChange }) => {
           ))}
         </div>
       )}
-
-      {/* Add Custom Attribute */}
-      <div className="add-attribute">
-        <div className="form-group">
-          <label className="form-label">Custom Attribute Name</label>
-          <input
-            type="text"
-            className="form-input"
-            value={newAttribute.name}
-            onChange={(e) => setNewAttribute(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="e.g., Material, Style, Pattern"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Attribute Values</label>
-          <div className="attribute-values-input">
-            {newAttribute.values.map((value, index) => (
-              <div key={index} className="value-input-row">
-                <input
-                  type="text"
-                  className="form-input"
-                  value={value}
-                  onChange={(e) => updateAttributeValue(index, e.target.value)}
-                  placeholder={`Value ${index + 1}`}
-                />
-                {newAttribute.values.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeAttributeValue(index)}
-                    className="remove-value"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addAttributeValue}
-              className="add-value-btn"
-            >
-              <Plus size={16} /> Add Value
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={addAttribute}
-          className="btn btn-outline add-attribute-btn"
-        >
-          <Plus size={16} /> Add Custom Attribute
-        </button>
-      </div>
     </div>
   )
 }

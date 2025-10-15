@@ -32,25 +32,12 @@ model Product {
   categoryId    Int
   subCategoryId Int?
   brandId       Int?
-  price         Float
-  comparePrice  Float?
-  costPrice     Float?
-  sku           String?  @unique
-  barcode       String?
-  trackQuantity Boolean  @default(true)
-  quantity      Int      @default(0)
-  weight        Float?
-  length        Float?
-  width         Float?
-  height        Float?
+  basePrice     String
   tags          String[]
-  sizes         String[]
-  colors        String[]
-  seoTitle      String?
-  seoDescription String?
-  image         String?
+  gallery       Json[] // Array of {url: string}
+  colors        Json[] // Array of color objects with sizes
   status        String   @default("active")
-  attributes    Json?
+  newArrivals   Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -100,4 +87,15 @@ model SubCategory {
 
   @@unique([name, categoryId])
   @@index([categoryId])
+}
+
+model Banner {
+  id        Int     @id   @default(autoincrement())
+  title     String
+  link      String
+  isActive  Boolean @default(false)
+  image     String
+  rowNumber Int     @default(0)
+  createAt  DateTime  @default(now())
+  updatedAt DateTime  @updatedAt 
 }

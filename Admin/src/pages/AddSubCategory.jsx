@@ -1,14 +1,20 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { createSubCategory, getCategories } from '../api'
 import '../styles/pages/add-sub-category.scss'
 
 const AddSubCategory = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    parentCategory: '',
+    categoryId: '',
     status: 'active'
   })
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -17,9 +23,39 @@ const AddSubCategory = () => {
     }))
   }
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await getCategories()
+        setCategories(categoriesData)
+      } catch (err) {
+        toast.error('Failed to load categories')
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Sub Category data:', formData)
+    setLoading(true)
+    
+    try {
+      const subcategoryData = {
+        name: formData.name,
+        description: formData.description,
+        categoryId: parseInt(formData.categoryId)
+      }
+      
+      await createSubCategory(subcategoryData)
+      toast.success('Sub category created successfully!')
+      
+      // Reset form
+      setFormData({ name: '', description: '', categoryId: '', status: 'active' })
+    } catch (err) {
+      toast.error(err.message || 'Failed to create sub category')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -29,7 +65,7 @@ const AddSubCategory = () => {
           <h1>Add Sub Category</h1>
           <p>Create a new product sub category</p>
         </div>
-        <button className="btn btn-outline">
+        <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
           Back
         </button>
@@ -57,16 +93,16 @@ const AddSubCategory = () => {
             <label className="form-label">Parent Category *</label>
             <select
               className="form-select"
-              value={formData.parentCategory}
-              onChange={(e) => handleInputChange('parentCategory', e.target.value)}
+              value={formData.categoryId}
+              onChange={(e) => handleInputChange('categoryId', e.target.value)}
               required
             >
               <option value="">Select Parent Category</option>
-              <option value="electronics">Electronics</option>
-              <option value="clothing">Clothing</option>
-              <option value="footwear">Footwear</option>
-              <option value="accessories">Accessories</option>
-              <option value="home-kitchen">Home & Kitchen</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -80,26 +116,14 @@ const AddSubCategory = () => {
               rows={4}
             />
           </div>
-
-          <div className="form-group">
-            <label className="form-label">Status</label>
-            <select
-              className="form-select"
-              value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
         </div>
 
         <div className="form-actions">
           <button type="button" className="btn btn-outline">
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary">
-            Create Sub Category
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating Sub Category...' : 'Create Sub Category'}
           </button>
         </div>
       </form>
