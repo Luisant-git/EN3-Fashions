@@ -21,18 +21,24 @@ const Header = () => {
     const [searchRecommendations, setSearchRecommendations] = useState([]);
     const [desktopSearchRecommendations, setDesktopSearchRecommendations] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [newArrivals, setNewArrivals] = useState([]);
+    
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getCategories();
-                setCategories(data);
+                const [categoriesData, productsData] = await Promise.all([
+                    getCategories(),
+                    fetch(`${import.meta.env.VITE_API_BASE_URL}/products/active`).then(r => r.json())
+                ]);
+                setCategories(categoriesData);
+                setNewArrivals(productsData.filter(p => p.newArrivals).slice(0, 4));
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.error('Error fetching data:', error);
             }
         };
-        fetchCategories();
+        fetchData();
     }, []);
 
     const handleLogout = () => {
@@ -91,14 +97,30 @@ const Header = () => {
             <div className="header-center">
                 <nav className="navigation">
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Home</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/new-arrivals'); }}>New Arrivals</a>
+                    <div className="nav-item">
+                        <a href="#" onClick={(e) => { e.preventDefault(); navigate('/new-arrivals'); }}>New Arrivals</a>
+                        {newArrivals.length > 0 && (
+                            <div className="dropdown-menu products-dropdown">
+                                {newArrivals.map((product) => {
+                                    const firstColor = product.colors?.[0];
+                                    const imageUrl = firstColor?.image || product.gallery?.[0]?.url;
+                                    return (
+                                        <a key={product.id} href="#" onClick={(e) => { e.preventDefault(); navigate(`/product/${product.id}`); }}>
+                                            <img src={imageUrl} alt={product.name} />
+                                            {product.name}
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                     {categories.map((category) => (
                         <div key={category.id} className="nav-item">
                             <a href="#" onClick={(e) => { e.preventDefault(); navigate(`/category/${category.id}`); }}>{category.name}</a>
                             {category.subCategories && category.subCategories.length > 0 && (
                                 <div className="dropdown-menu">
                                     {category.subCategories.map((subcat) => (
-                                        <a key={subcat.id} href="#" onClick={(e) => { e.preventDefault(); navigate(`/category/${category.id}?sub=${subcat.id}`); }}>
+                                        <a key={subcat.id} href="#" onClick={(e) => { e.preventDefault(); navigate(`/category/${category.id}/products?sub=${subcat.id}`); }}>
                                             <img src={subcat.image} alt={subcat.name} />
                                             {subcat.name}
                                         </a>

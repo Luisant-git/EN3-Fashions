@@ -107,7 +107,7 @@ const HomePage = () => {
                 <h2>Shop by Category</h2>
                 <div className="category-display">
                     {categories.map((category) => (
-                        <div key={category.id} className="category-card" onClick={() => navigate(`/subcategory/${category.name.toLowerCase()}`)}>
+                        <div key={category.id} className="category-card" onClick={() => navigate(`/category/${category.id}`)}>
                             <img src={category.image} alt={category.name}/>
                             <p>{category.name}</p>
                         </div>
