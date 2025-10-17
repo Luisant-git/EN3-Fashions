@@ -1,42 +1,97 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { addToCart as addToCartAPI, getCart, removeFromCart as removeFromCartAPI, updateCartQuantity } from '../api/cartApi';
+import { AuthContext } from './AuthContext';
+import { toast } from 'react-toastify';
 
 export const CartContext = createContext(null);
 
-export const CartProvider = ({ children }) => {
+const CartProviderInner = ({ children }) => {
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { user, token } = useContext(AuthContext);
 
-    const addToCart = (product, size, color) => {
-        setLoading(true);
-        setTimeout(() => {
-            setCart(prevCart => {
-                const existing = prevCart.find(item => item.id === product.id && item.size === size && item.color === color);
-                if (existing) {
-                    return prevCart.map(item => item.id === product.id && item.size === size && item.color === color ? { ...item, quantity: item.quantity + 1 } : item);
-                }
-                return [...prevCart, { ...product, quantity: 1, size, color }];
-            });
-            setLoading(false);
-        }, 500);
-    };
-
-    const removeFromCart = (productId, size, color) => {
-        setCart(prevCart => prevCart.filter(item => !(item.id === productId && item.size === size && item.color === color)));
-    };
-
-    const updateQuantity = (productId, size, color, newQuantity) => {
-        if (newQuantity <= 0) {
-            removeFromCart(productId, size, color);
+    // Load cart from API when user is logged in
+    useEffect(() => {
+        if (user && token) {
+            fetchCart();
         } else {
-            setCart(prevCart => prevCart.map(item => item.id === productId && item.size === size && item.color === color ? { ...item, quantity: newQuantity } : item));
+            setCart([]);
+        }
+    }, [user, token]);
+
+    const fetchCart = async () => {
+        try {
+            const cartData = await getCart();
+            setCart(cartData);
+        } catch (error) {
+            console.error('Error fetching cart:', error);
         }
     };
 
-    const clearCart = () => setCart([]);
+    const addToCart = async (product) => {
+        if (!user) {
+            toast.error('Please login to add items to cart');
+            return;
+        }
+        
+        setLoading(true);
+        try {
+            await addToCartAPI(product);
+            await fetchCart();
+            toast.success('Item added to cart!');
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            toast.error('Failed to add item to cart');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const removeFromCart = async (itemId) => {
+        try {
+            await removeFromCartAPI(itemId);
+            await fetchCart();
+            toast.success('Item removed from cart');
+        } catch (error) {
+            console.error('Error removing from cart:', error);
+            toast.error('Failed to remove item');
+        }
+    };
+
+    const updateQuantity = async (itemId, newQuantity) => {
+        if (newQuantity <= 0) {
+            removeFromCart(itemId);
+        } else {
+            try {
+                await updateCartQuantity(itemId, newQuantity);
+                await fetchCart();
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                toast.error('Failed to update quantity');
+            }
+        }
+    };
+
+    const clearCart = async () => {
+        try {
+            // Clear cart on backend if needed
+            setCart([]);
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+        }
+    };
 
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, loading }}>
+        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, loading, fetchCart }}>
             {children}
         </CartContext.Provider>
+    );
+};
+
+export const CartProvider = ({ children }) => {
+    return (
+        <CartProviderInner>
+            {children}
+        </CartProviderInner>
     );
 };

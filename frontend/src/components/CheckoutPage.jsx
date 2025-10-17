@@ -1,6 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { CartContext } from '../contexts/CartContext';
+import { createOrder } from '../api/orderApi';
 import LoadingSpinner from './LoadingSpinner';
 
 const CheckoutPage = () => {
@@ -10,29 +12,42 @@ const CheckoutPage = () => {
     const { cart, clearCart } = useContext(CartContext);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        pincode: '',
+        mobile: ''
+    });
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const finalTotal = subtotal + deliveryOption.fee;
 
-    const handlePlaceOrder = (e) => {
+    const handlePlaceOrder = async (e) => {
         e.preventDefault();
         if (isPlacingOrder) return;
 
         setIsPlacingOrder(true);
-        setTimeout(() => {
-            const newOrder = {
-                id: `STYLO-${Date.now()}`,
-                date: new Date().toISOString(),
-                items: cart,
-                total: finalTotal,
-                deliveryOption: deliveryOption
+        try {
+            const orderData = {
+                subtotal: subtotal.toString(),
+                deliveryFee: deliveryOption.fee.toString(),
+                total: finalTotal.toString(),
+                paymentMethod,
+                shippingAddress: formData,
+                deliveryOption
             };
-            const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-            localStorage.setItem('orders', JSON.stringify([newOrder, ...existingOrders]));
-            clearCart();
-            navigate('/order-confirmation', { state: { order: newOrder } });
+            
+            const order = await createOrder(orderData);
+            toast.success('Order placed successfully!');
+            navigate('/order-confirmation', { state: { order } });
+        } catch (error) {
+            console.error('Error placing order:', error);
+            toast.error('Failed to place order. Please try again.');
+        } finally {
             setIsPlacingOrder(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -43,14 +58,14 @@ const CheckoutPage = () => {
                     <form onSubmit={handlePlaceOrder}>
                         <section>
                             <h2>Shipping Address</h2>
-                            <input type="text" placeholder="Full Name" required />
-                            <input type="text" placeholder="Address Line 1" required />
-                            <input type="text" placeholder="Address Line 2" />
+                            <input type="text" placeholder="Full Name" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} required />
+                            <input type="text" placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} required />
+                            <input type="text" placeholder="Address Line 2" value={formData.addressLine2} onChange={(e) => setFormData({...formData, addressLine2: e.target.value})} />
                             <div className="form-row">
-                                <input type="text" placeholder="City" required />
-                                <input type="text" placeholder="Pincode" required />
+                                <input type="text" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
+                                <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} required />
                             </div>
-                             <input type="tel" placeholder="Mobile Number" required />
+                             <input type="tel" placeholder="Mobile Number" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} required />
                         </section>
                         <section>
                             <h2>Payment Method</h2>

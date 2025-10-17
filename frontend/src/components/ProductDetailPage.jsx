@@ -1,9 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { getProductById } from '../api/productApi';
 import { CartContext } from '../contexts/CartContext';
 import { WishlistContext } from '../contexts/WishlistContext';
 import LoadingSpinner from './LoadingSpinner';
+import '../styles/BundleOffers.css';
 
 const ProductDetailPage = () => {
     const { productId } = useParams();
@@ -16,6 +18,8 @@ const ProductDetailPage = () => {
     const [selectedSize, setSelectedSize] = useState(null);
     const [activeImage, setActiveImage] = useState(null);
     const [openAccordion, setOpenAccordion] = useState(1);
+    const [bundleSelections, setBundleSelections] = useState([]);
+    const [bundlePrice, setBundlePrice] = useState(null);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -63,6 +67,66 @@ const ProductDetailPage = () => {
 
     const toggleAccordion = (id) => {
         setOpenAccordion(openAccordion === id ? null : id);
+    };
+
+    const handleBundleSelection = (colorName, size) => {
+        const newSelections = [...bundleSelections];
+        const existingIndex = newSelections.findIndex(item => item.color === colorName);
+        
+        if (size) {
+            const color = product.colors.find(c => c.name === colorName);
+            const sizeInfo = color.sizes.find(s => s.size === size);
+            
+            if (existingIndex >= 0) {
+                newSelections[existingIndex] = { color: colorName, size, price: sizeInfo.price };
+            } else {
+                newSelections.push({ color: colorName, size, price: sizeInfo.price });
+            }
+        } else {
+            if (existingIndex >= 0) {
+                newSelections.splice(existingIndex, 1);
+            }
+        }
+        
+        setBundleSelections(newSelections);
+        
+        // Calculate bundle price
+        if (newSelections.length >= 2 && product.bundleOffers) {
+            const bundleOffer = product.bundleOffers.find(offer => offer.colorCount === newSelections.length);
+            setBundlePrice(bundleOffer ? bundleOffer.price : null);
+        } else {
+            setBundlePrice(null);
+        }
+    };
+
+    const handleBundleAddToCart = () => {
+        if (bundleSelections.length < 2 || !bundlePrice) return;
+        
+        const bundleItem = {
+            id: `bundle-${product.id}-${Date.now()}`,
+            name: `${product.name} Bundle (${bundleSelections.length} colors)`,
+            price: bundlePrice,
+            imageUrl: product.gallery?.[0]?.url || product.colors[0]?.image,
+            type: 'bundle',
+            items: bundleSelections.map(sel => {
+                const color = product.colors.find(c => c.name === sel.color);
+                return {
+                    color: sel.color,
+                    size: sel.size,
+                    originalPrice: sel.price,
+                    colorImage: color?.image || product.colors[0]?.image
+                };
+            })
+        };
+        
+        // Add using CartContext
+        addToCart(bundleItem);
+        
+        // Reset bundle selections
+        setBundleSelections([]);
+        setBundlePrice(null);
+        
+        toast.success('Bundle added to cart!');
     };
 
     return (
@@ -150,11 +214,71 @@ const ProductDetailPage = () => {
                     </button>
                 </div>
                 
-                <div className="bundle-promo-card">
-                    <h3>Bundle Offer!</h3>
-                    <p>Pick any 2 for <strong>₹799</strong></p>
-                    <p>Pick any 3 for <strong>₹999</strong></p>
-                </div>
+                {product.bundleOffers && product.bundleOffers.length > 0 && (
+                    <div className="bundle-promo-card">
+                        <h3>Bundle Offer!</h3>
+                        <p>Select multiple colors for special pricing:</p>
+                        
+                        <div className="bundle-selection">
+                            {product.colors.map(color => (
+                                <div key={color.name} className="color-bundle-item">
+                                    <div className="color-info">
+                                        <div 
+                                            className="color-circle"
+                                            style={{ backgroundColor: color.code }}
+                                        ></div>
+                                        <span className="color-name">{color.name}</span>
+                                    </div>
+                                    <select 
+                                        className="size-dropdown"
+                                        value={bundleSelections.find(item => item.color === color.name)?.size || ''}
+                                        onChange={(e) => handleBundleSelection(color.name, e.target.value)}
+                                    >
+                                        <option value="">Select Size</option>
+                                        {color.sizes.map(size => (
+                                            <option key={size.size} value={size.size}>
+                                                {size.size} - ₹{size.price}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ))}
+                        </div>
+
+                        {bundleSelections.length >= 2 && bundlePrice && (
+                            <div className="bundle-summary">
+                                <div className="bundle-details">
+                                    <h4>{bundleSelections.length} Items Selected</h4>
+                                    <div className="selected-items">
+                                        {bundleSelections.map((item, index) => (
+                                            <span key={index} className="bundle-item">
+                                                {item.color} ({item.size})
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="bundle-pricing">
+                                        <span className="bundle-total">Bundle Price: ₹{bundlePrice}</span>
+                                        <span className="savings">You save ₹{bundleSelections.reduce((sum, item) => sum + parseInt(item.price), 0) - parseInt(bundlePrice)}</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    className="bundle-add-btn"
+                                    onClick={handleBundleAddToCart}
+                                >
+                                    Add Bundle to Cart
+                                </button>
+                            </div>
+                        )}
+                        
+                        <div className="bundle-offers-list">
+                            {product.bundleOffers.map(offer => (
+                                <p key={offer.colorCount}>
+                                    Pick any {offer.colorCount} color{offer.colorCount > 1 ? 's' : ''} for <strong>₹{offer.price}</strong>
+                                </p>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="pdp-accordion">
                     {accordionItems.map(item => (

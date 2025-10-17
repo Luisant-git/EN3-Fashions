@@ -14,6 +14,9 @@ model User {
   password  String
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  
+  cart      Cart?
+  orders    Order[]
 }
 
 model Admin {
@@ -33,9 +36,10 @@ model Product {
   subCategoryId Int?
   brandId       Int?
   basePrice     String
+  bundleOffers  Json[] // [{colorCount: 1, price: "499"}, {colorCount: 2, price: "800"}, {colorCount: 3, price: "1000"}]
   tags          String[]
-  gallery       Json[] // Array of {url: string}
-  colors        Json[] // Array of color objects with sizes
+  gallery       Json[]
+  colors        Json[] // [{name: "Red", code: "#FF0000", sizes: ["S", "M", "L"]}]
   status        String   @default("active")
   newArrivals   Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -44,6 +48,8 @@ model Product {
   category      Category     @relation(fields: [categoryId], references: [id])
   subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
   brand         Brand?       @relation(fields: [brandId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
 
   @@index([categoryId])
   @@index([subCategoryId])
@@ -99,4 +105,69 @@ model Banner {
   rowNumber   Int      @default(0)
   createAt    DateTime @default(now())
   updatedAt   DateTime @updatedAt 
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+model CartItem {
+  id           Int   @id @default(autoincrement())
+  cartId       Int
+  productId    Int?
+  name         String
+  price        String
+  imageUrl     String
+  size         String?
+  color        String?
+  quantity     Int      @default(1)
+  type         String   @default("single") // "single" or "bundle"
+  bundleItems  Json?    // For bundle items: [{color, size, originalPrice, colorImage}]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cart         Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product      Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  status          String      @default("pending")
+  subtotal        String
+  deliveryFee     String
+  total           String
+  paymentMethod   String
+  shippingAddress Json
+  deliveryOption  Json
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OrderItem {
+  id          Int     @id @default(autoincrement())
+  orderId     Int
+  productId   Int?
+  name        String
+  price       String
+  imageUrl    String
+  size        String?
+  color       String?
+  quantity    Int
+  type        String  @default("single")
+  bundleItems Json?
+
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 }

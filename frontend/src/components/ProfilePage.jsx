@@ -51,18 +51,6 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="profile-section">
-                    <h2>Change Password</h2>
-                    <form className="profile-form" onSubmit={handlePasswordChange}>
-                        <input type="password" placeholder="Current Password" required />
-                        <input type="password" placeholder="New Password" required />
-                        <input type="password" placeholder="Confirm New Password" required />
-                        <button type="submit" disabled={passwordLoading}>
-                            {passwordLoading ? <LoadingSpinner /> : 'Update Password'}
-                        </button>
-                    </form>
-                </div>
-
-                <div className="profile-section">
                     <h2>Shipping Address</h2>
                     <form className="profile-form" onSubmit={handleAddressUpdate}>
                         <input type="text" placeholder="Full Name" defaultValue={user?.name} required />

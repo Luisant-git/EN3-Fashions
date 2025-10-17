@@ -15,7 +15,7 @@ const OrderConfirmationPage = () => {
                 </div>
                 <div className="confirmation-summary">
                     <h3>Order Summary</h3>
-                    <p><strong>Order ID:</strong> #{order.id.slice(0, 8)}</p>
+                    <p><strong>Order ID:</strong> #{order.id}</p>
                     {order.items.map(item => (
                         <div key={item.id} className="summary-item">
                             <span>{item.name} x {item.quantity}</span>
@@ -25,11 +25,11 @@ const OrderConfirmationPage = () => {
                     <hr/>
                     <div className="summary-row">
                         <span>Delivery</span>
-                        <span>₹{order.deliveryOption.fee.toFixed(2)}</span>
+                        <span>₹{parseFloat(order.deliveryFee).toFixed(2)}</span>
                     </div>
                     <div className="summary-row total">
                         <span>Total Paid</span>
-                        <span>₹{order.total.toFixed(2)}</span>
+                        <span>₹{parseFloat(order.total).toFixed(2)}</span>
                     </div>
                 </div>
                 <button onClick={() => navigate('/')} className="continue-shopping-btn">Continue Shopping</button>

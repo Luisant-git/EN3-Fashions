@@ -205,7 +205,7 @@ const ProductList = () => {
           </button>
           <button
             className="action-btn edit"
-            onClick={() => openModal("edit", row)}
+            onClick={() => navigate(`/edit-product/${row.id}`)}
           >
             <Edit size={16} />
           </button>

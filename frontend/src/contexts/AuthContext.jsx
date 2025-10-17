@@ -1,51 +1,76 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
+import { loginUser, registerUser } from '../api/authApi';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [token, setToken] = useState(localStorage.getItem('token'));
 
-    const login = (email, password) => {
+    useEffect(() => {
+        if (token) {
+            // Decode token to get user info (simplified)
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setUser({ id: payload.sub, email: payload.email });
+            } catch (error) {
+                localStorage.removeItem('token');
+                setToken(null);
+            }
+        }
+    }, [token]);
+
+    const login = async (email, password) => {
         setLoading(true);
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (email && password) {
-                    setUser({ name: 'Test User', email: email });
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
-                setLoading(false);
-            }, 1000);
-        });
+        try {
+            const response = await loginUser({ email, password });
+            const { access_token } = response;
+            
+            localStorage.setItem('token', access_token);
+            setToken(access_token);
+            
+            const payload = JSON.parse(atob(access_token.split('.')[1]));
+            setUser({ id: payload.sub, email: payload.email });
+            
+            setLoading(false);
+            return true;
+        } catch (error) {
+            console.error('Login error:', error);
+            setLoading(false);
+            return false;
+        }
     };
 
-    const signup = (name, email, password) => {
+    const signup = async (name, email, password) => {
         setLoading(true);
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (name && email && password) {
-                    setUser({ name, email });
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
-                setLoading(false);
-            }, 1000);
-        });
+        try {
+            const response = await registerUser({ name, email, password });
+            const { access_token } = response;
+            
+            localStorage.setItem('token', access_token);
+            setToken(access_token);
+            
+            const payload = JSON.parse(atob(access_token.split('.')[1]));
+            setUser({ id: payload.sub, email: payload.email });
+            
+            setLoading(false);
+            return true;
+        } catch (error) {
+            console.error('Signup error:', error);
+            setLoading(false);
+            return false;
+        }
     };
     
     const logout = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setUser(null);
-            setLoading(false);
-        }, 500);
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, loading, token }}>
             {children}
         </AuthContext.Provider>
     );

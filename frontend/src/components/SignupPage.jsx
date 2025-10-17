@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { AuthContext } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -12,8 +13,13 @@ const SignupPage = () => {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await signup(name, email, password);
-        navigate('/');
+        const success = await signup(name, email, password);
+        if (success) {
+            toast.success('Account created successfully!');
+            navigate('/');
+        } else {
+            toast.error('Failed to create account. Please try again.');
+        }
     };
 
     return (

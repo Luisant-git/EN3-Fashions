@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -15,9 +16,10 @@ const LoginPage = () => {
         setError('');
         const success = await login(email, password);
         if (success) {
+            toast.success('Login successful!');
             navigate('/');
         } else {
-            setError('Invalid credentials. Please try again.');
+            toast.error('Invalid credentials. Please try again.');
         }
     };
     

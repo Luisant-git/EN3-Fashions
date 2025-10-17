@@ -11,6 +11,7 @@ const AddProduct = () => {
     subCategoryId: '',
     brandId: '',
     basePrice: '',
+    bundleOffers: [],
     tags: [],
     gallery: [],
     colors: [],
@@ -165,6 +166,7 @@ const AddProduct = () => {
         subCategoryId: formData.subCategoryId ? parseInt(formData.subCategoryId) : null,
         brandId: formData.brandId ? parseInt(formData.brandId) : null,
         basePrice: formData.basePrice,
+        bundleOffers: formData.bundleOffers,
         tags: formData.tags,
         gallery: formData.gallery,
         colors: formData.colors,
@@ -182,6 +184,7 @@ const AddProduct = () => {
         subCategoryId: '',
         brandId: '',
         basePrice: '',
+        bundleOffers: [],
         tags: [],
         gallery: [],
         colors: [],
@@ -309,6 +312,50 @@ const AddProduct = () => {
                 placeholder="499.00"
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Bundle Offers</label>
+              <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <div style={{ marginBottom: '12px', fontSize: '14px', color: '#6b7280' }}>Set special prices for multiple color selections</div>
+                {(formData.bundleOffers || []).map((offer, index) => (
+                  <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ minWidth: '80px', fontSize: '14px' }}>{offer.colorCount} Color{offer.colorCount > 1 ? 's' : ''}:</span>
+                    <input
+                      type="text"
+                      value={offer.price}
+                      onChange={(e) => {
+                        const newOffers = [...(formData.bundleOffers || [])]
+                        newOffers[index].price = e.target.value
+                        handleInputChange('bundleOffers', newOffers)
+                      }}
+                      placeholder="Price"
+                      style={{ flex: 1, padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newOffers = (formData.bundleOffers || []).filter((_, i) => i !== index)
+                        handleInputChange('bundleOffers', newOffers)
+                      }}
+                      style={{ padding: '8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentOffers = formData.bundleOffers || []
+                    const nextColorCount = currentOffers.length + 2
+                    handleInputChange('bundleOffers', [...currentOffers, { colorCount: nextColorCount, price: '' }])
+                  }}
+                  style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '14px' }}
+                >
+                  <Plus size={16} /> Add Bundle Offer
+                </button>
+              </div>
             </div>
           </div>
 

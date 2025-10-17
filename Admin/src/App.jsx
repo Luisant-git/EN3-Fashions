@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Analytics from './pages/Analytics'
 import Overview from './pages/Overview'
 import AddProduct from './pages/AddProduct'
+import EditProduct from './pages/EditProduct'
 import ProductList from './pages/ProductList'
 import ComboOffers from './pages/ComboOffers'
 import AddBrand from './pages/AddBrand'
@@ -95,6 +96,7 @@ function App() {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/overview" element={<Overview />} />
               <Route path="/add-product" element={<AddProduct />} />
+              <Route path="/edit-product/:id" element={<EditProduct />} />
               <Route path="/product-list" element={<ProductList />} />
               {/* <Route path="/combo-offers" element={<ComboOffers />} /> */}
               <Route path="/add-brand" element={<AddBrand />} />

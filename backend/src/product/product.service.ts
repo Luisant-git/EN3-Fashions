@@ -68,4 +68,35 @@ export class ProductService {
       where: { id },
     });
   }
+
+  updateBundleOffers(id: number, bundleOffers: any[]) {
+    return this.prisma.product.update({
+      where: { id },
+      data: { bundleOffers },
+    });
+  }
+
+  async calculatePrice(id: number, selectedColors: string[]) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    const colorCount = selectedColors.length;
+    const bundleOffer = (product.bundleOffers as any[])?.find(
+      offer => offer.colorCount === colorCount
+    );
+    
+    const price = bundleOffer ? bundleOffer.price : product.basePrice;
+
+    return {
+      colorCount,
+      price,
+      selectedColors,
+      availableColors: product.colors
+    };
+  }
 }
