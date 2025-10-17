@@ -24,6 +24,9 @@ export class ProductService {
         subCategory: true,
         brand: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 
