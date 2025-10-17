@@ -9,7 +9,7 @@ const CheckoutPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
-    const { cart, clearCart } = useContext(CartContext);
+    const { cart, fetchCart } = useContext(CartContext);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [formData, setFormData] = useState({
@@ -40,6 +40,7 @@ const CheckoutPage = () => {
             };
             
             const order = await createOrder(orderData);
+            await fetchCart(); // Refresh cart to show it's empty
             toast.success('Order placed successfully!');
             navigate('/order-confirmation', { state: { order } });
         } catch (error) {
