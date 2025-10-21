@@ -36,6 +36,7 @@ import PincodeList from './pages/PincodeList'
 import CreateCombo from './pages/CreateCombo'
 
 // Import all SCSS files
+import './styles/App.scss'
 import './styles/base.scss'
 import './styles/components/buttons.scss'
 import './styles/components/cards.scss'

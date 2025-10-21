@@ -66,4 +66,19 @@ export class OrderService {
       include: { items: true }
     });
   }
+
+  async getAllOrders() {
+    return this.prisma.order.findMany({
+      include: { items: true, user: { select: { id: true, email: true, name: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async updateOrderStatus(orderId: number, status: string) {
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: { items: true }
+    });
+  }
 }
