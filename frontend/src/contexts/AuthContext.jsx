@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { loginUser, registerUser } from '../api/authApi';
+import { loginUser, registerUser, getUserProfile } from '../api/authApi';
 
 export const AuthContext = createContext(null);
 
@@ -10,13 +10,7 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (token) {
-            fetch('http://localhost:4062/user/profile/me', {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch');
-                return res.json();
-            })
+            getUserProfile(token)
             .then(data => {
                 const { password, ...userData } = data;
                 setUser(userData);

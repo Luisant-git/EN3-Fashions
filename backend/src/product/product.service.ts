@@ -102,4 +102,34 @@ export class ProductService {
       availableColors: product.colors
     };
   }
+
+  async search(query: string) {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+
+    const products = await this.prisma.product.findMany({
+      where: {
+        status: 'active',
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { tags: { has: query.toLowerCase() } },
+        ],
+      },
+      include: { category: true, subCategory: true, brand: true },
+      take: 10,
+    });
+
+    return products.map(product => {
+      const firstColor = product.colors[0] as any;
+      const firstSize = firstColor?.sizes?.[0];
+      const firstGallery = product.gallery[0] as any;
+      return {
+        id: product.id,
+        name: product.name,
+        price: firstSize?.price || product.basePrice,
+        image: firstColor?.image || firstGallery?.url,
+      };
+    });
+  }
 }

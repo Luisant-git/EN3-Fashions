@@ -11,9 +11,10 @@ import { SubCategoryModule } from './subcategory/subcategory.module';
 import { BannerModule } from './banner/banner.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule],
+  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule],
   controllers: [AppController],
   providers: [AppService],
 })

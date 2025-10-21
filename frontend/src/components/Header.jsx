@@ -4,10 +4,7 @@ import { CartContext } from '../contexts/CartContext';
 import { WishlistContext } from '../contexts/WishlistContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { getCategories } from '../api/categoryApi';
-import p1 from '/p1.png';
-import p2 from '/p2.png';
-import p3 from '/p3.png';
-import p4 from '/p4.png';
+import { searchProducts } from '../api/productApi';
 import logo from '/EN3 TRENDS-LOGO.png';
 
 const Header = () => {
@@ -63,22 +60,18 @@ const Header = () => {
         }
     };
     
-    const handleSearchInput = (e) => {
+    const handleSearchInput = async (e) => {
         const query = e.target.value;
         setSearchQuery(query);
         
         if (query.trim() && isMobileSearchOpen) {
-            const mockProducts = [
-                { id: 1, name: 'Polo T-Shirt', price: '₹999', image: p1 },
-                { id: 2, name: 'Round Neck T-Shirt', price: '₹799', image: p2 },
-                { id: 3, name: 'Long Sleeve Shirt', price: '₹1299', image: p3 },
-                { id: 4, name: 'Track Pants', price: '₹1199', image: p4 }
-            ];
-            
-            const filtered = mockProducts.filter(product => 
-                product.name.toLowerCase().includes(query.toLowerCase())
-            );
-            setSearchRecommendations(filtered.slice(0, 5));
+            try {
+                const results = await searchProducts(query);
+                setSearchRecommendations(results.slice(0, 5));
+            } catch (error) {
+                console.error('Search error:', error);
+                setSearchRecommendations([]);
+            }
         } else {
             setSearchRecommendations([]);
         }
@@ -139,22 +132,18 @@ const Header = () => {
                         type="text" 
                         placeholder="Search for products"
                         value={searchQuery}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                             const query = e.target.value;
                             setSearchQuery(query);
                             
                             if (query.trim()) {
-                                const mockProducts = [
-                                    { id: 1, name: 'Polo T-Shirt', price: '₹999', image: p1 },
-                                    { id: 2, name: 'Round Neck T-Shirt', price: '₹799', image: p2 },
-                                    { id: 3, name: 'Long Sleeve Shirt', price: '₹1299', image: p3 },
-                                    { id: 4, name: 'Track Pants', price: '₹1199', image: p4 }
-                                ];
-                                
-                                const filtered = mockProducts.filter(product => 
-                                    product.name.toLowerCase().includes(query.toLowerCase())
-                                );
-                                setDesktopSearchRecommendations(filtered.slice(0, 4));
+                                try {
+                                    const results = await searchProducts(query);
+                                    setDesktopSearchRecommendations(results.slice(0, 4));
+                                } catch (error) {
+                                    console.error('Search error:', error);
+                                    setDesktopSearchRecommendations([]);
+                                }
                             } else {
                                 setDesktopSearchRecommendations([]);
                             }
@@ -171,7 +160,7 @@ const Header = () => {
                                     <img src={product.image} alt={product.name} />
                                     <div className="desktop-search-recommendation-info">
                                         <p className="desktop-search-recommendation-name">{product.name}</p>
-                                        <p className="desktop-search-recommendation-price">{product.price}</p>
+                                        <p className="desktop-search-recommendation-price">₹{product.price}</p>
                                     </div>
                                 </div>
                             ))}
@@ -245,7 +234,7 @@ const Header = () => {
                                     <img src={product.image} alt={product.name} />
                                     <div className="search-recommendation-info">
                                         <p className="search-recommendation-name">{product.name}</p>
-                                        <p className="search-recommendation-price">{product.price}</p>
+                                        <p className="search-recommendation-price">₹{product.price}</p>
                                     </div>
                                 </div>
                             ))}

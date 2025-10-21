@@ -64,11 +64,12 @@ export class AuthService {
  
   async verifyOtpAndLogin(phone: string, otp: string, name?: string, email?: string) {
     const otpRecord = await this.prisma.otp.findFirst({
-      where: { phone, otp, verified: false, expiresAt: { gt: new Date() } },
+      where: { phone, otp, verified: false },
       orderBy: { createdAt: 'desc' }
     });
  
-    if (!otpRecord) throw new UnauthorizedException('Invalid or expired OTP');
+    if (!otpRecord) throw new UnauthorizedException('Invalid OTP');
+    if (otpRecord.expiresAt < new Date()) throw new UnauthorizedException('OTP expired');
  
     await this.prisma.otp.update({ where: { id: otpRecord.id }, data: { verified: true } });
  

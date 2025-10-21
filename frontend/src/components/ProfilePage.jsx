@@ -1,31 +1,52 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { updateShippingAddress, updateProfile } from '../api/authApi';
 import LoadingSpinner from './LoadingSpinner';
+import { toast } from 'react-toastify';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
     const { user, logout, loading } = useContext(AuthContext);
-    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [profileLoading, setProfileLoading] = useState(false);
     const [addressLoading, setAddressLoading] = useState(false);
 
-    const handlePasswordChange = (e) => {
+    const handleProfileUpdate = async (e) => {
         e.preventDefault();
-        setPasswordLoading(true);
-        setTimeout(() => {
-            alert('Password changed successfully! (mock)');
-            e.target.reset();
-            setPasswordLoading(false);
-        }, 1000);
+        setProfileLoading(true);
+        const formData = new FormData(e.target);
+        const profile = {
+            name: formData.get('name'),
+            email: formData.get('email')
+        };
+        try {
+            await updateProfile(localStorage.getItem('token'), profile);
+            toast.success('Profile updated successfully!');
+            window.location.reload();
+        } catch (error) {
+            toast.error('Failed to update profile');
+        }
+        setProfileLoading(false);
     };
 
-    const handleAddressUpdate = (e) => {
+    const handleAddressUpdate = async (e) => {
         e.preventDefault();
         setAddressLoading(true);
-        setTimeout(() => {
-            alert('Shipping address updated! (mock)');
-            setAddressLoading(false);
-        }, 1000);
+        const formData = new FormData(e.target);
+        const address = {
+            name: formData.get('name'),
+            addressLine: formData.get('addressLine'),
+            city: formData.get('city'),
+            pincode: formData.get('pincode'),
+            mobile: formData.get('mobile')
+        };
+        try {
+            await updateShippingAddress(localStorage.getItem('token'), address);
+            toast.success('Shipping address updated successfully!');
+        } catch (error) {
+            toast.error('Failed to update address');
+        }
+        setAddressLoading(false);
     };
 
     const handleLogout = () => {
@@ -43,24 +64,29 @@ const ProfilePage = () => {
                     </button>
                 </div>
 
-                <div className="profile-section user-info">
+                <div className="profile-section">
                     <h2>Profile Information</h2>
-                    <p><strong>Name:</strong> {user?.name}</p>
-                    <p><strong>Phone:</strong> {user?.phone}</p>
-                    <p><strong>Email:</strong> {user?.email}</p>
-                    <button onClick={() => navigate('/orders')} className="view-orders-btn">View My Orders</button>
+                    <form className="profile-form" onSubmit={handleProfileUpdate}>
+                        <input type="text" name="name" placeholder="Name" defaultValue={user?.name} required />
+                        <input type="email" name="email" placeholder="Email" defaultValue={user?.email} />
+                        <input type="tel" placeholder="Phone" value={user?.phone} disabled />
+                        <button type="submit" disabled={profileLoading}>
+                            {profileLoading ? <LoadingSpinner /> : 'Update Profile'}
+                        </button>
+                    </form>
+                    <button onClick={() => navigate('/orders')} className="view-orders-btn" style={{marginTop: '10px'}}>View My Orders</button>
                 </div>
 
                 <div className="profile-section">
                     <h2>Shipping Address</h2>
                     <form className="profile-form" onSubmit={handleAddressUpdate}>
-                        <input type="text" placeholder="Full Name" defaultValue={user?.name} required />
-                        <input type="text" placeholder="Address Line 1" required />
+                        <input type="text" name="name" placeholder="Full Name" defaultValue={user?.shippingAddress?.name || user?.name} required />
+                        <input type="text" name="addressLine" placeholder="Address Line 1" defaultValue={user?.shippingAddress?.addressLine} required />
                         <div className="form-row">
-                           <input type="text" placeholder="City" required />
-                           <input type="text" placeholder="Pincode" required />
+                           <input type="text" name="city" placeholder="City" defaultValue={user?.shippingAddress?.city} required />
+                           <input type="text" name="pincode" placeholder="Pincode" defaultValue={user?.shippingAddress?.pincode} required />
                         </div>
-                        <input type="tel" placeholder="Mobile Number" required />
+                        <input type="tel" name="mobile" placeholder="Mobile Number" defaultValue={user?.shippingAddress?.mobile || user?.phone} required />
                         <button type="submit" disabled={addressLoading}>
                             {addressLoading ? <LoadingSpinner /> : 'Save Address'}
                         </button>

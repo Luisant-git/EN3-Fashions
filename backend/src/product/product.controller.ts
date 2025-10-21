@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -31,6 +31,13 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'List of active products' })
   findAllActive() {
     return this.productService.findAllActive();
+  }
+
+  @Get('search/query')
+  @ApiOperation({ summary: 'Search products' })
+  @ApiResponse({ status: 200, description: 'Search results' })
+  search(@Query('q') query: string) {
+    return this.productService.search(query);
   }
 
   @Get(':id')

@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { CartContext } from '../contexts/CartContext';
+import { AuthContext } from '../contexts/AuthContext';
 import { createOrder } from '../api/orderApi';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -10,6 +11,7 @@ const CheckoutPage = () => {
     const location = useLocation();
     const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
+    const { user } = useContext(AuthContext);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [formData, setFormData] = useState({
@@ -20,6 +22,25 @@ const CheckoutPage = () => {
         pincode: '',
         mobile: ''
     });
+
+    useEffect(() => {
+        if (user?.shippingAddress) {
+            setFormData({
+                fullName: user.shippingAddress.name || user.name || '',
+                addressLine1: user.shippingAddress.addressLine || '',
+                addressLine2: '',
+                city: user.shippingAddress.city || '',
+                pincode: user.shippingAddress.pincode || '',
+                mobile: user.shippingAddress.mobile || user.phone || ''
+            });
+        } else if (user) {
+            setFormData(prev => ({
+                ...prev,
+                fullName: user.name || '',
+                mobile: user.phone || ''
+            }));
+        }
+    }, [user]);
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const finalTotal = subtotal + deliveryOption.fee;

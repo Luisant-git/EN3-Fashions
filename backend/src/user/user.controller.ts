@@ -23,6 +23,18 @@ export class UserController {
   async getProfile(@Request() req) {
     return this.userService.findOne(req.user.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile')
+  async updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(req.user.id, updateUserDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile/address')
+  async updateAddress(@Request() req, @Body() address: any) {
+    return this.userService.updateAddress(req.user.id, address);
+  }
  
   @Get(':id')
   findOne(@Param('id') id: string) {
