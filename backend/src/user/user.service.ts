@@ -35,6 +35,14 @@ export class UserService {
     });
   }
 
+  async updateAddress(id: number, address: any) {
+    await this.findOne(id);
+    return this.prisma.user.update({
+      where: { id },
+      data: { shippingAddress: address },
+    });
+  }
+
   async remove(id: number) {
     await this.findOne(id);
     return this.prisma.user.delete({

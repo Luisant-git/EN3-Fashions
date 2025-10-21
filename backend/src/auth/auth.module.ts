@@ -5,8 +5,9 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { ProtectedController } from './protected.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { WhatsAppService } from './whatsapp.service';
 import { PrismaService } from '../prisma.service';
-
+ 
 @Module({
   imports: [
     PassportModule,
@@ -16,7 +17,8 @@ import { PrismaService } from '../prisma.service';
     }),
   ],
   controllers: [AuthController, ProtectedController],
-  providers: [AuthService, JwtStrategy, PrismaService],
+  providers: [AuthService, JwtStrategy, WhatsAppService, PrismaService],
   exports: [AuthService],
 })
 export class AuthModule {}
+ 

@@ -9,14 +9,28 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
+  email     String?  @unique
+  phone     String?  @unique
   name      String?
-  password  String
+  password  String?
   isActive  Boolean  @default(true)
+  shippingAddress Json?
   createdAt DateTime @default(now())
-  
   cart      Cart?
   orders    Order[]
+  otps      Otp[]
+}
+ 
+model Otp {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  phone     String
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([phone])
 }
 
 model Admin {
