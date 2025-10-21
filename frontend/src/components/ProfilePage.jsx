@@ -46,6 +46,7 @@ const ProfilePage = () => {
                 <div className="profile-section user-info">
                     <h2>Profile Information</h2>
                     <p><strong>Name:</strong> {user?.name}</p>
+                    <p><strong>Phone:</strong> {user?.phone}</p>
                     <p><strong>Email:</strong> {user?.email}</p>
                     <button onClick={() => navigate('/orders')} className="view-orders-btn">View My Orders</button>
                 </div>

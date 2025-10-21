@@ -10,14 +10,25 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (token) {
-            // Decode token to get user info (simplified)
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                setUser({ id: payload.sub, email: payload.email });
-            } catch (error) {
+            fetch('http://localhost:4062/user/profile/me', {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch');
+                return res.json();
+            })
+            .then(data => {
+                const { password, ...userData } = data;
+                setUser(userData);
+            })
+            .catch((err) => {
+                console.error('Profile fetch error:', err);
                 localStorage.removeItem('token');
                 setToken(null);
-            }
+                setUser(null);
+            });
+        } else {
+            setUser(null);
         }
     }, [token]);
 
@@ -29,9 +40,6 @@ export const AuthProvider = ({ children }) => {
             
             localStorage.setItem('token', access_token);
             setToken(access_token);
-            
-            const payload = JSON.parse(atob(access_token.split('.')[1]));
-            setUser({ id: payload.sub, email: payload.email });
             
             setLoading(false);
             return true;
@@ -50,9 +58,6 @@ export const AuthProvider = ({ children }) => {
             
             localStorage.setItem('token', access_token);
             setToken(access_token);
-            
-            const payload = JSON.parse(atob(access_token.split('.')[1]));
-            setUser({ id: payload.sub, email: payload.email });
             
             setLoading(false);
             return true;

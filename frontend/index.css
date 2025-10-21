@@ -807,9 +807,10 @@ button:disabled {
 /* Product Card */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
     flex: 1;
+    max-width: 100%;
 }
 
 .product-card {
@@ -1188,13 +1189,7 @@ button:disabled {
     color: white;
 }
 
-.bundle-promo-card {
-    background-color: #fff0f0;
-    border-left: 5px solid var(--primary-color);
-    padding: 1rem 1.5rem;
-    border-radius: 5px;
-    margin-bottom: 2rem;
-}
+
 
 .pdp-accordion {
     border-top: 1px solid var(--border-color);
@@ -1273,43 +1268,140 @@ button:disabled {
 
 .cart-item {
     display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    position: relative;
+    transition: box-shadow 0.2s;
+}
+
+.cart-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .cart-item img {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
-    border-radius: 5px;
+    border-radius: 8px;
+    background: var(--light-grey);
+}
+
+.bundle-images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 180px;
+}
+
+.bundle-images img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
 }
 
 .cart-item-details {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
+
 .cart-item-details h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1rem;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.cart-item-details > div {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.cart-item-details > div span {
+    display: inline-block;
+}
+
+.bundle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.product-price {
+    font-size: 1.25rem;
+    color: var(--secondary-color);
+    font-weight: 700;
+    margin: 0;
 }
 
 .quantity-control {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-.quantity-control button {
-    width: 30px;
-    height: 30px;
+    gap: 0;
     border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: fit-content;
+    overflow: hidden;
+}
+
+.quantity-control button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: white;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.quantity-control button:hover {
+    background: var(--light-grey);
+}
+
+.quantity-control span {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
 }
 
 .remove-item {
-    background: transparent;
-    border: none;
-    color: var(--primary-color);
-    font-weight: 700;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: white;
+    color: #999;
+    border: 1px solid #e8e8e8;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1.4rem;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-item:hover {
+    background: #fee;
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.remove-item::before {
+    content: '×';
 }
 
 .cart-summary {
@@ -1329,6 +1421,17 @@ button:disabled {
 .summary-row.savings {
     color: var(--green-color);
     font-weight: 700;
+}
+
+.simple-savings {
+    color: var(--green-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba(76, 175, 80, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    display: inline-block;
+    margin-top: 0.5rem;
 }
 .summary-row.total {
     font-size: 1.2rem;
@@ -1924,6 +2027,41 @@ button:disabled {
     .category-content, .cart-content, .checkout-content {
         flex-direction: column;
     }
+    
+    .cart-item {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .cart-item img {
+        width: 100%;
+        height: auto;
+        max-height: 250px;
+    }
+    
+    .cart-item-details {
+        width: 100%;
+    }
+    
+    .cart-item-details h3 {
+        font-size: 1.05rem;
+        padding-right: 2.5rem;
+    }
+    
+    .quantity-control {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .quantity-control button {
+        flex: 1;
+        height: 42px;
+    }
+    
+    .quantity-control span {
+        flex: 1;
+    }
 
     .product-detail-page {
         flex-direction: column;
@@ -2234,50 +2372,42 @@ button:disabled {
     }
 
     .cart-item {
-        flex-direction: row;
-        align-items: flex-start;
-        text-align: left;
-        padding: 1rem;
         gap: 1rem;
+        padding: 1rem;
     }
+    
     .cart-item img {
-        width: 70px;
-        height: 70px;
-        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
     }
-    .cart-item-details {
-        flex: 1;
-        min-width: 0;
-    }
+    
     .cart-item-details h3 {
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-        line-height: 1.3;
+        font-size: 0.95rem;
     }
-    .cart-item-actions {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 0.5rem;
-        flex-shrink: 0;
+    
+    .cart-item-details > div {
+        font-size: 0.85rem;
+        flex-wrap: wrap;
     }
-    .quantity-control {
-        margin: 0;
-        order: 2;
+    
+    .product-price {
+        font-size: 1.1rem;
     }
+    
     .quantity-control button {
         width: 32px;
         height: 32px;
-        font-size: 0.9rem;
     }
-    .cart-item-price {
-        order: 1;
-        font-weight: 600;
-        color: var(--primary-color);
+    
+    .quantity-control span {
+        min-width: 36px;
     }
-    .remove-item-btn {
-        order: 3;
-        padding: 0.3rem;
+    
+    .remove-item {
+        width: 28px;
+        height: 28px;
+        top: 0.75rem;
+        right: 0.75rem;
     }
     
     .cart-summary {
@@ -2329,5 +2459,23 @@ button:disabled {
 
     .static-page-container {
         padding: 1rem;
+    }
+    
+    .bundle-images {
+        gap: 0.4rem;
+    }
+    
+    .bundle-images img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .bundle-info {
+        font-size: 0.8rem;
+    }
+    
+    .bundle-tag {
+        padding: 3px 8px;
+        font-size: 0.7rem;
     }
 }

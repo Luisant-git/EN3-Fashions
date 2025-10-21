@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../contexts/CartContext';
 import { getBundlePrice } from '../data/mockData';
-import '../styles/CartPage.css';
 
 const CartPage = () => {
     const navigate = useNavigate();
@@ -20,7 +19,14 @@ const CartPage = () => {
     const regularTotal = regularItems.reduce((sum, item) => sum + (parseInt(item.price) * (item.quantity || 1)), 0);
     
     const subtotal = bundleTotal + regularTotal;
-    const totalSavings = 0; // Calculate savings if needed
+    const totalSavings = bundleItems.reduce((sum, item) => {
+        if (item.bundleItems) {
+            const originalTotal = item.bundleItems.reduce((bundleSum, bundleItem) => 
+                bundleSum + parseInt(bundleItem.originalPrice || 0), 0);
+            return sum + (originalTotal - parseInt(item.price));
+        }
+        return sum;
+    }, 0);
     const deliveryOptions = [
         { fee: 50, name: 'Standard Delivery', duration: '3-5 days' },
         { fee: 150, name: 'Express Delivery', duration: '1-2 days' },
@@ -38,88 +44,57 @@ const CartPage = () => {
             <div className="cart-content">
                 <div className="cart-items">
                     {cart.map(item => (
-                        <div key={item.id} className="cart-item-card">
-                            <div className="item-image-section">
-                                {item.type === 'bundle' ? (
-                                    <div className="bundle-images-grid">
-                                        {item.bundleItems?.map((bundleItem, idx) => (
-                                            <div key={idx} className="bundle-color-item">
-                                                <img 
-                                                    src={bundleItem.colorImage || item.imageUrl} 
-                                                    alt={`${bundleItem.color}`}
-                                                    className="color-image"
-                                                />
-                                                <span className="color-label">{bundleItem.color}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <img src={item.imageUrl} alt={item.name} className="single-item-image" />
-                                )}
-                            </div>
+                        <div key={item.id} className="cart-item">
+                            {item.type === 'bundle' ? (
+                                <div className="bundle-images">
+                                    {item.bundleItems?.map((bundleItem, idx) => (
+                                        <img 
+                                            key={idx}
+                                            src={bundleItem.colorImage || item.imageUrl} 
+                                            alt={`${bundleItem.color}`}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <img src={item.imageUrl} alt={item.name} />
+                            )}
                             
-                            <div className="item-details-section">
-                                <div className="item-header">
-                                    <h3 className="item-title">{item.name}</h3>
-                                    {item.type === 'bundle' && (
-                                        <span className="bundle-badge">Bundle</span>
-                                    )}
-                                </div>
+                            <div className="cart-item-details">
+                                <h3>{item.name}</h3>
+                                {item.type === 'bundle' && (
+                                    <span className="bundle-tag">Bundle</span>
+                                )}
                                 
                                 {item.type === 'bundle' ? (
-                                    <div className="bundle-details">
+                                    <div className="bundle-info">
                                         {item.bundleItems?.map((bundleItem, idx) => (
-                                            <div key={idx} className="bundle-item-detail">
-                                                <span className="detail-color">{bundleItem.color}</span>
-                                                <span className="detail-size">Size: {bundleItem.size}</span>
+                                            <div key={idx}>
+                                                <span>{bundleItem.color} - Size: {bundleItem.size}</span>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="regular-item-details">
-                                        <span className="item-color">Color: {item.color}</span>
-                                        <span className="item-size">Size: {item.size}</span>
+                                    <div>
+                                        <span>Color: {item.color}</span>
+                                        <span>Size: {item.size}</span>
                                     </div>
                                 )}
                                 
-                                <div className="item-price-section">
-                                    <span className="current-price">₹{item.price}</span>
-                                    {item.type === 'bundle' && item.bundleItems && (
-                                        <span className="savings-text">
-                                            Save ₹{item.bundleItems.reduce((sum, i) => sum + parseInt(i.originalPrice), 0) - parseInt(item.price)}
-                                        </span>
-                                    )}
-                                </div>
+                                <p className="product-price">₹{item.price}</p>
+                                {item.type === 'bundle' && item.bundleItems && (
+                                    <span className="simple-savings">Save ₹{item.bundleItems.reduce((sum, i) => sum + parseInt(i.originalPrice), 0) - parseInt(item.price)}</span>
+                                )}
                                 
                                 {item.type !== 'bundle' && (
-                                    <div className="quantity-section">
-                                        <label>Quantity:</label>
-                                        <div className="quantity-controls">
-                                            <button 
-                                                className="qty-btn"
-                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                            >
-                                                -
-                                            </button>
-                                            <span className="qty-display">{item.quantity}</span>
-                                            <button 
-                                                className="qty-btn"
-                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                            >
-                                                +
-                                            </button>
-                                        </div>
+                                    <div className="quantity-control">
+                                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                                        <span>{item.quantity}</span>
+                                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
                                     </div>
                                 )}
                             </div>
                             
-                            <button 
-                                className="remove-btn" 
-                                onClick={() => removeFromCart(item.id)}
-                                title="Remove item"
-                            >
-                                ×
-                            </button>
+                            <button className="remove-item" onClick={() => removeFromCart(item.id)}></button>
                         </div>
                     ))}
                 </div>

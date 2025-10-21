@@ -1,25 +1,55 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner';
 import { toast } from 'react-toastify';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4062';
+
 const LoginPage = () => {
     const navigate = useNavigate();
-    const { login, loading } = useContext(AuthContext);
+    const [phone, setPhone] = useState('');
+    const [otp, setOtp] = useState('');
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [timer, setTimer] = useState(0);
 
-    const handleSubmit = async (e) => {
+    React.useEffect(() => {
+        if (timer > 0) {
+            const interval = setInterval(() => setTimer(t => t - 1), 1000);
+            return () => clearInterval(interval);
+        }
+    }, [timer]);
+
+    const requestOtp = async (e) => {
         e.preventDefault();
-        setError('');
-        const success = await login(email, password);
-        if (success) {
+        setLoading(true);
+        try {
+            await axios.post(`${API_URL}/auth/otp/request`, { phone });
+            toast.success('OTP sent to WhatsApp!');
+            setTimer(180);
+            setStep(2);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to send OTP');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const verifyOtp = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const { data } = await axios.post(`${API_URL}/auth/otp/verify`, { phone, otp, name, email });
+            localStorage.setItem('token', data.access_token);
             toast.success('Login successful!');
-            navigate('/');
-        } else {
-            toast.error('Invalid credentials. Please try again.');
+            window.location.href = '/';
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Invalid OTP');
+        } finally {
+            setLoading(false);
         }
     };
     
@@ -27,15 +57,31 @@ const LoginPage = () => {
         <div className="auth-page">
             <div className="auth-container">
                 <h2>Login</h2>
-                <form onSubmit={handleSubmit}>
-                    <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required/>
-                    <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required/>
-                    {error && <p className="error-message">{error}</p>}
-                    <button type="submit" disabled={loading}>
-                        {loading ? <LoadingSpinner /> : 'Login'}
-                    </button>
-                </form>
-                <p>Don't have an account? <a href="#" onClick={(e) => {e.preventDefault(); navigate('/signup');}}>Sign Up</a></p>
+                {step === 1 ? (
+                    <form onSubmit={requestOtp}>
+                        <input type="tel" placeholder="Enter Mobile Number" value={phone} onChange={e => setPhone(e.target.value)} required/>
+                        <button type="submit" disabled={loading}>
+                            {loading ? <LoadingSpinner /> : 'Send OTP'}
+                        </button>
+                    </form>
+                ) : (
+                    <form onSubmit={verifyOtp}>
+                        <input type="text" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} maxLength={6} required/>
+                        <input type="text" placeholder="Name (optional)" value={name} onChange={e => setName(e.target.value)}/>
+                        <input type="email" placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)}/>
+                        <button type="submit" disabled={loading}>
+                            {loading ? <LoadingSpinner /> : 'Verify & Login'}
+                        </button>
+                        <p style={{ marginTop: '10px' }}>
+                            {timer > 0 ? (
+                                <span>Resend OTP in {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
+                            ) : (
+                                <a href="#" onClick={(e) => { e.preventDefault(); setStep(1); setOtp(''); }}>Resend OTP</a>
+                            )}
+                        </p>
+                    </form>
+                )}
+
             </div>
         </div>
     );
