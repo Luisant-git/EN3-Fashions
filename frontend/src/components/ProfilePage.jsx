@@ -70,11 +70,13 @@ const ProfilePage = () => {
                         <input type="text" name="name" placeholder="Name" defaultValue={user?.name} required />
                         <input type="email" name="email" placeholder="Email" defaultValue={user?.email} />
                         <input type="tel" placeholder="Phone" value={user?.phone} disabled />
-                        <button type="submit" disabled={profileLoading}>
-                            {profileLoading ? <LoadingSpinner /> : 'Update Profile'}
-                        </button>
+                        <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                            <button type="submit" className="btn btn-primary" disabled={profileLoading}>
+                                {profileLoading ? <LoadingSpinner /> : 'Update Profile'}
+                            </button>
+                            <button type="button" onClick={() => navigate('/orders')} className="btn btn-secondary">View My Orders</button>
+                        </div>
                     </form>
-                    <button onClick={() => navigate('/orders')} className="view-orders-btn" style={{marginTop: '10px'}}>View My Orders</button>
                 </div>
 
                 <div className="profile-section">
