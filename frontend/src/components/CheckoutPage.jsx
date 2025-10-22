@@ -52,14 +52,14 @@ const CheckoutPage = () => {
     useEffect(() => {
         const fetchCoupons = async () => {
             try {
-                const coupons = await getActiveCoupons();
+                const coupons = await getActiveCoupons(token);
                 setAvailableCoupons(coupons);
             } catch (error) {
                 console.error('Failed to fetch coupons:', error);
             }
         };
         fetchCoupons();
-    }, []);
+    }, [token]);
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const finalTotal = subtotal - discount + deliveryOption.fee;

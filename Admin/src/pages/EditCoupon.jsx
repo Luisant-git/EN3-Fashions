@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { ArrowLeft, Percent } from 'lucide-react'
+import { ArrowLeft, Percent, X } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { getCoupon, updateCoupon } from '../api/couponApi'
+import { getCoupon, updateCoupon, searchCustomersByPhone } from '../api/couponApi'
 import '../styles/pages/add-coupon.scss'
 
 const EditCoupon = () => {
@@ -17,13 +17,29 @@ const EditCoupon = () => {
     usageLimit: '',
     perUserLimit: '1',
     expiryDate: '',
-    isActive: true
+    isActive: true,
+    specificUserId: null
   })
   const [loading, setLoading] = useState(true)
+  const [phoneSearch, setPhoneSearch] = useState('')
+  const [customerResults, setCustomerResults] = useState([])
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
     fetchCoupon()
   }, [id])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (phoneSearch.length >= 3 && !selectedCustomer) {
+        searchCustomers()
+      } else if (phoneSearch.length < 3) {
+        setCustomerResults([])
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [phoneSearch])
 
   const fetchCoupon = async () => {
     try {
@@ -37,13 +53,42 @@ const EditCoupon = () => {
         usageLimit: data.usageLimit?.toString() || '',
         perUserLimit: data.perUserLimit.toString(),
         expiryDate: data.expiryDate ? new Date(data.expiryDate).toISOString().split('T')[0] : '',
-        isActive: data.isActive
+        isActive: data.isActive,
+        specificUserId: data.specificUserId
       })
+      if (data.specificUser) {
+        setSelectedCustomer(data.specificUser)
+        setPhoneSearch(data.specificUser.phone)
+      }
     } catch (error) {
       toast.error('Failed to fetch coupon: ' + error.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  const searchCustomers = async () => {
+    try {
+      const results = await searchCustomersByPhone(phoneSearch)
+      setCustomerResults(results)
+      setShowDropdown(true)
+    } catch (error) {
+      console.error('Failed to search customers:', error)
+    }
+  }
+
+  const selectCustomer = (customer) => {
+    setSelectedCustomer(customer)
+    setPhoneSearch(customer.phone)
+    handleInputChange('specificUserId', customer.id)
+    setShowDropdown(false)
+  }
+
+  const clearCustomer = () => {
+    setSelectedCustomer(null)
+    setPhoneSearch('')
+    handleInputChange('specificUserId', null)
+    setCustomerResults([])
   }
 
   const handleInputChange = (field, value) => {
@@ -65,7 +110,8 @@ const EditCoupon = () => {
         usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
         perUserLimit: parseInt(formData.perUserLimit) || 1,
         expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : null,
-        isActive: formData.isActive
+        isActive: formData.isActive,
+        specificUserId: formData.specificUserId
       }
       await updateCoupon(id, data)
       toast.success('Coupon updated successfully!')
@@ -107,6 +153,50 @@ const EditCoupon = () => {
                 placeholder="Enter coupon code"
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Customer Specific (Optional)</label>
+              <div className="customer-search-wrapper">
+                <input
+                  type="text"
+                  className="form-input"
+                  value={phoneSearch}
+                  onChange={(e) => setPhoneSearch(e.target.value)}
+                  onFocus={() => phoneSearch.length >= 3 && setShowDropdown(true)}
+                  placeholder="Search by phone number"
+                  disabled={selectedCustomer}
+                />
+                {selectedCustomer && (
+                  <button
+                    type="button"
+                    className="clear-customer-btn"
+                    onClick={clearCustomer}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+                {showDropdown && customerResults.length > 0 && (
+                  <div className="customer-dropdown">
+                    {customerResults.map((customer) => (
+                      <div
+                        key={customer.id}
+                        className="customer-option"
+                        onClick={() => selectCustomer(customer)}
+                      >
+                        <div className="customer-name">{customer.name || 'N/A'}</div>
+                        <div className="customer-phone">{customer.phone}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedCustomer && (
+                <div className="selected-customer-info">
+                  Selected: {selectedCustomer.name || 'N/A'} ({selectedCustomer.phone})
+                </div>
+              )}
+              <small className="form-hint">Leave empty for general coupon available to all users</small>
             </div>
 
             <div className="form-row">

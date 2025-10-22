@@ -73,4 +73,27 @@ export class CustomerService {
   remove(id: number) {
     return `This action removes a #${id} customer`;
   }
+
+  async searchByPhone(phone: string) {
+    if (!phone || phone.length < 3) {
+      return [];
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        phone: {
+          contains: phone,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+      },
+      take: 10,
+    });
+
+    return users;
+  }
 }

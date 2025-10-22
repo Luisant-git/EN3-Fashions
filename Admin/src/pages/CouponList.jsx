@@ -46,10 +46,13 @@ const CouponList = () => {
     { 
       key: 'code', 
       label: 'Coupon Code',
-      render: (value) => (
+      render: (value, row) => (
         <div className="coupon-code">
           <Percent size={16} className="coupon-icon" />
           <span className="code">{value}</span>
+          {row.specificUser && (
+            <span className="customer-badge" title={`For: ${row.specificUser.name || row.specificUser.phone}`}>👤</span>
+          )}
         </div>
       )
     },
@@ -72,6 +75,11 @@ const CouponList = () => {
       key: 'maxDiscount', 
       label: 'Max Discount',
       render: (value) => value ? `₹${value}` : 'No limit'
+    },
+    { 
+      key: 'specificUser', 
+      label: 'Customer',
+      render: (value) => value ? `${value.name || 'N/A'} (${value.phone})` : 'All'
     },
     { 
       key: 'usageCount', 

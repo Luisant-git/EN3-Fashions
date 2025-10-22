@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { ArrowLeft, Percent } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { ArrowLeft, Percent, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { createCoupon } from '../api/couponApi'
+import { createCoupon, searchCustomersByPhone } from '../api/couponApi'
 import '../styles/pages/add-coupon.scss'
 
 const AddCoupon = () => {
@@ -16,14 +16,54 @@ const AddCoupon = () => {
     usageLimit: '',
     perUserLimit: '1',
     expiryDate: '',
-    isActive: true
+    isActive: true,
+    specificUserId: null
   })
+  const [phoneSearch, setPhoneSearch] = useState('')
+  const [customerResults, setCustomerResults] = useState([])
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (phoneSearch.length >= 3) {
+        searchCustomers()
+      } else {
+        setCustomerResults([])
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [phoneSearch])
+
+  const searchCustomers = async () => {
+    try {
+      const results = await searchCustomersByPhone(phoneSearch)
+      setCustomerResults(results)
+      setShowDropdown(true)
+    } catch (error) {
+      console.error('Failed to search customers:', error)
+    }
+  }
+
+  const selectCustomer = (customer) => {
+    setSelectedCustomer(customer)
+    setPhoneSearch(customer.phone)
+    handleInputChange('specificUserId', customer.id)
+    setShowDropdown(false)
+  }
+
+  const clearCustomer = () => {
+    setSelectedCustomer(null)
+    setPhoneSearch('')
+    handleInputChange('specificUserId', null)
+    setCustomerResults([])
   }
 
   const generateCouponCode = () => {
@@ -43,7 +83,8 @@ const AddCoupon = () => {
         usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
         perUserLimit: parseInt(formData.perUserLimit) || 1,
         expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : null,
-        isActive: formData.isActive
+        isActive: formData.isActive,
+        specificUserId: formData.specificUserId
       }
       await createCoupon(data)
       toast.success('Coupon created successfully!')
@@ -92,6 +133,50 @@ const AddCoupon = () => {
                   Generate
                 </button>
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Customer Specific (Optional)</label>
+              <div className="customer-search-wrapper">
+                <input
+                  type="text"
+                  className="form-input"
+                  value={phoneSearch}
+                  onChange={(e) => setPhoneSearch(e.target.value)}
+                  onFocus={() => phoneSearch.length >= 3 && setShowDropdown(true)}
+                  placeholder="Search by phone number"
+                  disabled={selectedCustomer}
+                />
+                {selectedCustomer && (
+                  <button
+                    type="button"
+                    className="clear-customer-btn"
+                    onClick={clearCustomer}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+                {showDropdown && customerResults.length > 0 && (
+                  <div className="customer-dropdown">
+                    {customerResults.map((customer) => (
+                      <div
+                        key={customer.id}
+                        className="customer-option"
+                        onClick={() => selectCustomer(customer)}
+                      >
+                        <div className="customer-name">{customer.name || 'N/A'}</div>
+                        <div className="customer-phone">{customer.phone}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedCustomer && (
+                <div className="selected-customer-info">
+                  Selected: {selectedCustomer.name || 'N/A'} ({selectedCustomer.phone})
+                </div>
+              )}
+              <small className="form-hint">Leave empty for general coupon available to all users</small>
             </div>
 
 

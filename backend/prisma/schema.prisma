@@ -21,6 +21,7 @@ model User {
   otps      Otp[]
   wishlistItems WishlistItem[]
   couponUsages CouponUsage[]
+  specificCoupons Coupon[] @relation("UserSpecificCoupons")
 }
  
 model Otp {
@@ -214,10 +215,14 @@ model Coupon {
   perUserLimit    Int      @default(1)
   isActive        Boolean  @default(true)
   expiryDate      DateTime?
+  specificUserId  Int?     // Optional: for customer-specific coupons
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  specificUser    User?    @relation("UserSpecificCoupons", fields: [specificUserId], references: [id], onDelete: Cascade)
   usages          CouponUsage[]
+
+  @@index([specificUserId])
 }
 
 model CouponUsage {

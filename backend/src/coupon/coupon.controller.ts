@@ -2,14 +2,17 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/optional-auth.guard';
 
 @Controller('coupons')
 export class CouponController {
   constructor(private readonly couponService: CouponService) {}
 
   @Get('active')
-  getActiveCoupons() {
-    return this.couponService.getActiveCoupons();
+  @UseGuards(OptionalJwtAuthGuard)
+  getActiveCoupons(@Request() req) {
+    const userId = req.user?.userId;
+    return this.couponService.getActiveCoupons(userId);
   }
 
   @Post('validate')

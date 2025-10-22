@@ -16,12 +16,16 @@ export const validateCoupon = async (code, orderAmount, token) => {
   return response.json();
 };
 
-export const getActiveCoupons = async () => {
+export const getActiveCoupons = async (token) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   const response = await fetch(`${API_BASE_URL}/coupons/active`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
   if (!response.ok) throw new Error('Failed to fetch coupons');
   return response.json();

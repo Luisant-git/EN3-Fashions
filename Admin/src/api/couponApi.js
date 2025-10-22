@@ -60,3 +60,14 @@ export const deleteCoupon = async (id) => {
   if (!response.ok) throw new Error('Failed to delete coupon');
   return response.json();
 };
+
+export const searchCustomersByPhone = async (phone) => {
+  const response = await fetch(`${API_BASE_URL}/customer/search/phone?phone=${phone}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${getToken()}`,
+    },
+  });
+  if (!response.ok) throw new Error('Failed to search customers');
+  return response.json();
+};

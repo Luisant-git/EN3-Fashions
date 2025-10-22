@@ -8,4 +8,5 @@ export class CreateCouponDto {
   perUserLimit?: number;
   isActive?: boolean;
   expiryDate?: Date;
+  specificUserId?: number;
 }

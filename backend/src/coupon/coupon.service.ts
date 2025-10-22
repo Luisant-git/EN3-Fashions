@@ -17,7 +17,12 @@ export class CouponService {
 
   async findAll() {
     return this.prisma.coupon.findMany({
-      include: { usages: true },
+      include: { 
+        usages: true,
+        specificUser: {
+          select: { id: true, name: true, phone: true, email: true }
+        }
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -51,6 +56,10 @@ export class CouponService {
 
     if (!coupon) {
       throw new BadRequestException('Invalid coupon code');
+    }
+
+    if (coupon.specificUserId && coupon.specificUserId !== userId) {
+      throw new BadRequestException('This coupon is not available for your account');
     }
 
     if (!coupon.isActive) {
@@ -98,15 +107,30 @@ export class CouponService {
     ]);
   }
 
-  async getActiveCoupons() {
+  async getActiveCoupons(userId?: number) {
+    const whereCondition: any = {
+      isActive: true,
+      OR: [
+        { expiryDate: null },
+        { expiryDate: { gte: new Date() } },
+      ],
+    };
+
+    if (userId) {
+      whereCondition.AND = [
+        {
+          OR: [
+            { specificUserId: null },
+            { specificUserId: userId },
+          ],
+        },
+      ];
+    } else {
+      whereCondition.specificUserId = null;
+    }
+
     const coupons = await this.prisma.coupon.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          { expiryDate: null },
-          { expiryDate: { gte: new Date() } },
-        ],
-      },
+      where: whereCondition,
       orderBy: { createdAt: 'desc' },
     });
 
