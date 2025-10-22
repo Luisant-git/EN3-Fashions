@@ -122,7 +122,6 @@ const Header = () => {
                             )}
                         </div>
                     ))}
-                    <a href="#" className="sale-link" onClick={(e) => { e.preventDefault(); navigate('/category/sale'); }}>Sale</a>
                 </nav>
             </div>
             <div className="header-right">
@@ -200,7 +199,7 @@ const Header = () => {
                             {categories.map((category) => (
                                 <a key={category.id} href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick(`/category/${category.id}`); }}>{category.name}</a>
                             ))}
-                            <a href="#" className="sale-link" onClick={(e) => { e.preventDefault(); handleMobileLinkClick('/category/sale'); }}>Sale</a>
+                          
                             <a href="#" className="login-btn" onClick={(e) => { e.preventDefault(); handleMobileLinkClick(user ? '/profile' : '/login'); }}>{user ? 'Profile' : 'Login'}</a>
                         </nav>
                     </div>
