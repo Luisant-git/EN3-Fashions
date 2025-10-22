@@ -26,55 +26,10 @@ const Header = () => {
           </div>
         </div>
         
+        <di className="header-right">
+          </di>
+
         <div className="header-right">
-          {/* <div className="stats-item">
-            <span className="currency">₹</span>
-            <span className="amount">38,535.41</span>
-            <span className="country">IN</span>
-          </div> */}
-          
-          <button className="icon-btn">
-            <Maximize2 size={18} />
-          </button>
-          
-          <div className="notification-container">
-            <button 
-              className="icon-btn"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <Bell size={18} />
-              <span className="notification-badge">3</span>
-            </button>
-            
-            {showNotifications && (
-              <div className="notification-dropdown">
-                <div className="notification-header">
-                  <h3>Notifications</h3>
-                  <span className="notification-count">3 new</span>
-                </div>
-                <div className="notification-list">
-                  <div className="notification-item">
-                    <div className="notification-content">
-                      <p>New order received</p>
-                      <span className="notification-time">2 minutes ago</span>
-                    </div>
-                  </div>
-                  <div className="notification-item">
-                    <div className="notification-content">
-                      <p>Low stock alert for Product A</p>
-                      <span className="notification-time">1 hour ago</span>
-                    </div>
-                  </div>
-                  <div className="notification-item">
-                    <div className="notification-content">
-                      <p>Customer review submitted</p>
-                      <span className="notification-time">3 hours ago</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
           
           <div className="profile-container">
             <div 
