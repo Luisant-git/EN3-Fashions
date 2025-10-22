@@ -3,8 +3,8 @@ import axios from 'axios';
  
 @Injectable()
 export class WhatsAppService {
-  private readonly phoneNumberId = '803957376127788';
-  private readonly token = 'EAAcMSpblosgBPTKtrvvphW8d8LeaTmookQekua5EzRtuMdOXZC7C7PMZCjeK740u6AaquUYUf7JBtFa0h0y8dXnCdShKlCkG9otefSx1xGNCOG1aCZBIzNI5STmlMYuFu9LrWRIPZCXSQDvdQxrp0V4dJRYuIylhas1VO14OZAbYHzAgrH2WjhqcJcPNSWwOyEwZDZD';
+  private readonly phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  private readonly token = process.env.WHATSAPP_TOKEN;
  
   async sendOtp(phone: string, otp: string): Promise<boolean> {
     try {

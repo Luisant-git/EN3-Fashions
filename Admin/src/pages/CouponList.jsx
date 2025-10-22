@@ -1,26 +1,44 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Search, Filter, Plus, Edit, Trash2, Eye, Percent } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { getCoupons, deleteCoupon } from '../api/couponApi'
 import DataTable from '../components/DataTable'
 
 const CouponList = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
+  const [coupons, setCoupons] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const coupons = [
-    { id: 1, code: 'SUMMER20', type: 'Percentage', value: '20%', minOrder: '₹500', maxDiscount: '₹200', status: 'active', used: 45, limit: 100, expiryDate: '2024-02-15' },
-    { id: 2, code: 'FLAT100', type: 'Fixed', value: '₹100', minOrder: '₹1000', maxDiscount: '₹100', status: 'active', used: 23, limit: 50, expiryDate: '2024-02-20' },
-    { id: 3, code: 'NEWUSER', type: 'Percentage', value: '15%', minOrder: '₹300', maxDiscount: '₹150', status: 'active', used: 78, limit: 200, expiryDate: '2024-03-01' },
-    { id: 4, code: 'EXPIRED10', type: 'Percentage', value: '10%', minOrder: '₹250', maxDiscount: '₹100', status: 'expired', used: 150, limit: 150, expiryDate: '2024-01-01' }
-  ]
+  useEffect(() => {
+    fetchCoupons()
+  }, [])
 
-  const handleEdit = (id) => {
-    console.log('Edit coupon:', id)
+  const fetchCoupons = async () => {
+    try {
+      const data = await getCoupons()
+      setCoupons(data)
+    } catch (error) {
+      console.error('Failed to fetch coupons:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleDelete = (id) => {
+  const handleEdit = (id) => {
+    navigate(`/edit-coupon/${id}`)
+  }
+
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this coupon?')) {
-      console.log('Delete coupon:', id)
+      try {
+        await deleteCoupon(id)
+        fetchCoupons()
+        toast.success('Coupon deleted successfully')
+      } catch (error) {
+        toast.error('Failed to delete coupon: ' + error.message)
+      }
     }
   }
 
@@ -28,40 +46,67 @@ const CouponList = () => {
     { 
       key: 'code', 
       label: 'Coupon Code',
-      render: (value) => (
+      render: (value, row) => (
         <div className="coupon-code">
           <Percent size={16} className="coupon-icon" />
           <span className="code">{value}</span>
+          {row.specificUser && (
+            <span className="customer-badge" title={`For: ${row.specificUser.name || row.specificUser.phone}`}>👤</span>
+          )}
         </div>
       )
     },
-    { key: 'type', label: 'Type' },
-    { key: 'value', label: 'Discount' },
-    { key: 'minOrder', label: 'Min Order' },
-    { key: 'maxDiscount', label: 'Max Discount' },
     { 
-      key: 'used', 
+      key: 'type', 
+      label: 'Type',
+      render: (value) => value === 'percentage' ? 'Percentage' : 'Fixed'
+    },
+    { 
+      key: 'value', 
+      label: 'Discount',
+      render: (value, row) => row.type === 'percentage' ? `${value}%` : `₹${value}`
+    },
+    { 
+      key: 'minOrderAmount', 
+      label: 'Min Order',
+      render: (value) => `₹${value}`
+    },
+    { 
+      key: 'maxDiscount', 
+      label: 'Max Discount',
+      render: (value) => value ? `₹${value}` : 'No limit'
+    },
+    { 
+      key: 'specificUser', 
+      label: 'Customer',
+      render: (value) => value ? `${value.name || 'N/A'} (${value.phone})` : 'All'
+    },
+    { 
+      key: 'usageCount', 
       label: 'Usage',
       render: (value, row) => (
-        <span className="usage-info">{value}/{row.limit}</span>
+        <span className="usage-info">{value}/{row.usageLimit || '∞'}</span>
       )
     },
     { 
-      key: 'status', 
+      key: 'isActive', 
       label: 'Status',
-      render: (value) => (
-        <span className={`status ${value}`}>{value}</span>
-      )
+      render: (value, row) => {
+        const isExpired = row.expiryDate && new Date(row.expiryDate) < new Date()
+        const status = isExpired ? 'expired' : (value ? 'active' : 'inactive')
+        return <span className={`status ${status}`}>{status}</span>
+      }
     },
-    { key: 'expiryDate', label: 'Expires' },
+    { 
+      key: 'expiryDate', 
+      label: 'Expires',
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'No expiry'
+    },
     {
       key: 'actions',
       label: 'Actions',
       render: (_, row) => (
         <div className="action-buttons">
-          <button className="action-btn view" title="View">
-            <Eye size={16} />
-          </button>
           <button className="action-btn edit" onClick={() => handleEdit(row.id)} title="Edit">
             <Edit size={16} />
           </button>
@@ -97,20 +142,18 @@ const CouponList = () => {
             className="search-input"
           />
         </div>
-        <div className="filter-group">
-          <button className="btn btn-outline">
-            <Filter size={20} />
-            Filters
-          </button>
-        </div>
       </div>
 
-      <DataTable 
-        data={coupons}
-        columns={columns}
-        searchTerm={searchTerm}
-        searchKey="code"
-      />
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <DataTable 
+          data={coupons}
+          columns={columns}
+          searchTerm={searchTerm}
+          searchKey="code"
+        />
+      )}
     </div>
   )
 }

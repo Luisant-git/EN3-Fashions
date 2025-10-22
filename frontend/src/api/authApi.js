@@ -29,3 +29,49 @@ export const loginUser = async (credentials) => {
   
   return response.json();
 };
+
+export const getUserProfile = async (token) => {
+  const response = await fetch(`${API_BASE_URL}/user/profile/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch profile');
+  }
+  
+  return response.json();
+};
+
+export const updateShippingAddress = async (token, address) => {
+  const response = await fetch(`${API_BASE_URL}/user/profile/address`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(address)
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update address');
+  }
+  
+  return response.json();
+};
+
+export const updateProfile = async (token, profile) => {
+  const response = await fetch(`${API_BASE_URL}/user/profile`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(profile)
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update profile');
+  }
+  
+  return response.json();
+};

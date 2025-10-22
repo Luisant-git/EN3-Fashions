@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { checkTokenExpiry, logout } from './utils/tokenManager';
 
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
@@ -17,6 +18,7 @@ import AddCategory from './pages/AddCategory'
 import AddSubCategory from './pages/AddSubCategory'
 import AddBanner from './pages/AddBanner'
 import AddCoupon from './pages/AddCoupon'
+import EditCoupon from './pages/EditCoupon'
 import AddPincode from './pages/AddPincode'
 import OrdersList from './pages/OrdersList'
 import CustomerList from './pages/CustomerList'
@@ -68,9 +70,21 @@ function App() {
       setIsAuthenticated(localStorage.getItem('isAuthenticated') === 'true')
     }
     
+    const checkAuth = () => {
+      if (isAuthenticated && !checkTokenExpiry()) {
+        logout();
+      }
+    };
+    
+    checkAuth();
+    const interval = setInterval(checkAuth, 60000);
+    
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [])
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
+    }
+  }, [isAuthenticated])
 
   if (!isAuthenticated) {
     return (
@@ -105,6 +119,7 @@ function App() {
               <Route path="/add-sub-category" element={<AddSubCategory />} />
               <Route path="/add-banner" element={<AddBanner />} />
               <Route path="/add-coupon" element={<AddCoupon />} />
+              <Route path="/edit-coupon/:id" element={<EditCoupon />} />
               <Route path="/add-pincode" element={<AddPincode />} />
               <Route path="/orders" element={<OrdersList />} />
               <Route path="/customer-list" element={<CustomerList />} />

@@ -1633,6 +1633,109 @@ button:disabled {
     justify-content: space-between;
     margin-bottom: 0.5rem;
 }
+.summary-row.discount {
+    color: var(--green-color);
+    font-weight: 600;
+}
+
+/* Coupon Styles */
+.available-coupons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.coupon-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    transition: all 0.3s ease;
+}
+.coupon-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.1);
+}
+.coupon-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.coupon-code-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+.coupon-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.coupon-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    margin: 0;
+}
+.coupon-min, .coupon-max {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0;
+}
+.apply-coupon-card-btn {
+    padding: 0.6rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.apply-coupon-card-btn:hover:not(:disabled) {
+    background: #d32f2f;
+}
+.apply-coupon-card-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+.coupon-section {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.coupon-section input {
+    flex: 1;
+}
+.apply-coupon-btn, .remove-coupon-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.apply-coupon-btn {
+    background: var(--primary-color);
+    color: white;
+}
+.remove-coupon-btn {
+    background: var(--secondary-color);
+    color: white;
+}
+.coupon-applied {
+    color: var(--green-color);
+    font-weight: 600;
+    padding: 0.5rem;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 5px;
+    margin-top: 0.5rem;
+}
 
 /* Order Confirmation Page */
 .order-confirmation-page {

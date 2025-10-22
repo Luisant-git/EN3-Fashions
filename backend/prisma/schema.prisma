@@ -19,6 +19,9 @@ model User {
   cart      Cart?
   orders    Order[]
   otps      Otp[]
+  wishlistItems WishlistItem[]
+  couponUsages CouponUsage[]
+  specificCoupons Coupon[] @relation("UserSpecificCoupons")
 }
  
 model Otp {
@@ -158,6 +161,8 @@ model Order {
   status          String      @default("pending")
   subtotal        String
   deliveryFee     String
+  discount        String?     @default("0")
+  couponCode      String?
   total           String
   paymentMethod   String
   shippingAddress Json
@@ -184,4 +189,51 @@ model OrderItem {
 
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model Coupon {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
+  type            String   // "percentage" or "fixed"
+  value           Float
+  minOrderAmount  Float    @default(0)
+  maxDiscount     Float?
+  usageLimit      Int?
+  usageCount      Int      @default(0)
+  perUserLimit    Int      @default(1)
+  isActive        Boolean  @default(true)
+  expiryDate      DateTime?
+  specificUserId  Int?     // Optional: for customer-specific coupons
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  specificUser    User?    @relation("UserSpecificCoupons", fields: [specificUserId], references: [id], onDelete: Cascade)
+  usages          CouponUsage[]
+
+  @@index([specificUserId])
+}
+
+model CouponUsage {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  couponId  Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([couponId])
 }

@@ -41,6 +41,10 @@ export class CreateOrderDto {
   @IsString()
   total: string;
 
+  @ApiProperty({ example: 'SAVE20', required: false })
+  @IsString()
+  couponCode?: string;
+
   @ApiProperty({ example: 'card', enum: ['card', 'upi', 'cod'] })
   @IsString()
   paymentMethod: string;

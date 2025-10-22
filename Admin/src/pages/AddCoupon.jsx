@@ -1,24 +1,28 @@
-import React, { useState } from 'react'
-import { ArrowLeft, Percent } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { ArrowLeft, Percent, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { createCoupon, searchCustomersByPhone } from '../api/couponApi'
 import '../styles/pages/add-coupon.scss'
 
 const AddCoupon = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     code: '',
-    description: '',
-    discountType: 'percentage',
-    discountValue: '',
-    minimumAmount: '',
-    maximumDiscount: '',
+    type: 'percentage',
+    value: '',
+    minOrderAmount: '',
+    maxDiscount: '',
     usageLimit: '',
-    usagePerCustomer: '',
-    startDate: '',
-    endDate: '',
-    status: 'active',
-    applicableProducts: 'all'
+    perUserLimit: '1',
+    expiryDate: '',
+    isActive: true,
+    specificUserId: null
   })
+  const [phoneSearch, setPhoneSearch] = useState('')
+  const [customerResults, setCustomerResults] = useState([])
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -27,14 +31,67 @@ const AddCoupon = () => {
     }))
   }
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (phoneSearch.length >= 3) {
+        searchCustomers()
+      } else {
+        setCustomerResults([])
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [phoneSearch])
+
+  const searchCustomers = async () => {
+    try {
+      const results = await searchCustomersByPhone(phoneSearch)
+      setCustomerResults(results)
+      setShowDropdown(true)
+    } catch (error) {
+      console.error('Failed to search customers:', error)
+    }
+  }
+
+  const selectCustomer = (customer) => {
+    setSelectedCustomer(customer)
+    setPhoneSearch(customer.phone)
+    handleInputChange('specificUserId', customer.id)
+    setShowDropdown(false)
+  }
+
+  const clearCustomer = () => {
+    setSelectedCustomer(null)
+    setPhoneSearch('')
+    handleInputChange('specificUserId', null)
+    setCustomerResults([])
+  }
+
   const generateCouponCode = () => {
     const code = 'SAVE' + Math.random().toString(36).substr(2, 6).toUpperCase()
     handleInputChange('code', code)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Coupon data:', formData)
+    try {
+      const data = {
+        code: formData.code,
+        type: formData.type,
+        value: parseFloat(formData.value),
+        minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : 0,
+        maxDiscount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : null,
+        usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
+        perUserLimit: parseInt(formData.perUserLimit) || 1,
+        expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : null,
+        isActive: formData.isActive,
+        specificUserId: formData.specificUserId
+      }
+      await createCoupon(data)
+      toast.success('Coupon created successfully!')
+      navigate('/coupon-list')
+    } catch (error) {
+      toast.error('Failed to create coupon: ' + error.message)
+    }
   }
 
   return (
@@ -79,23 +136,58 @@ const AddCoupon = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-textarea"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Enter coupon description"
-                rows={3}
-              />
+              <label className="form-label">Customer Specific (Optional)</label>
+              <div className="customer-search-wrapper">
+                <input
+                  type="text"
+                  className="form-input"
+                  value={phoneSearch}
+                  onChange={(e) => setPhoneSearch(e.target.value)}
+                  onFocus={() => phoneSearch.length >= 3 && setShowDropdown(true)}
+                  placeholder="Search by phone number"
+                  disabled={selectedCustomer}
+                />
+                {selectedCustomer && (
+                  <button
+                    type="button"
+                    className="clear-customer-btn"
+                    onClick={clearCustomer}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+                {showDropdown && customerResults.length > 0 && (
+                  <div className="customer-dropdown">
+                    {customerResults.map((customer) => (
+                      <div
+                        key={customer.id}
+                        className="customer-option"
+                        onClick={() => selectCustomer(customer)}
+                      >
+                        <div className="customer-name">{customer.name || 'N/A'}</div>
+                        <div className="customer-phone">{customer.phone}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedCustomer && (
+                <div className="selected-customer-info">
+                  Selected: {selectedCustomer.name || 'N/A'} ({selectedCustomer.phone})
+                </div>
+              )}
+              <small className="form-hint">Leave empty for general coupon available to all users</small>
             </div>
+
+
 
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Discount Type *</label>
                 <select
                   className="form-select"
-                  value={formData.discountType}
-                  onChange={(e) => handleInputChange('discountType', e.target.value)}
+                  value={formData.type}
+                  onChange={(e) => handleInputChange('type', e.target.value)}
                   required
                 >
                   <option value="percentage">Percentage</option>
@@ -106,7 +198,7 @@ const AddCoupon = () => {
               <div className="form-group">
                 <label className="form-label">Discount Value *</label>
                 <div className="input-with-icon">
-                  {formData.discountType === 'percentage' ? (
+                  {formData.type === 'percentage' ? (
                     <Percent className="input-icon" size={16} />
                   ) : (
                     <span className="input-icon">₹</span>
@@ -114,9 +206,9 @@ const AddCoupon = () => {
                   <input
                     type="number"
                     className="form-input"
-                    value={formData.discountValue}
-                    onChange={(e) => handleInputChange('discountValue', e.target.value)}
-                    placeholder={formData.discountType === 'percentage' ? '10' : '100'}
+                    value={formData.value}
+                    onChange={(e) => handleInputChange('value', e.target.value)}
+                    placeholder={formData.type === 'percentage' ? '10' : '100'}
                     required
                   />
                 </div>
@@ -129,8 +221,8 @@ const AddCoupon = () => {
                 <input
                   type="number"
                   className="form-input"
-                  value={formData.minimumAmount}
-                  onChange={(e) => handleInputChange('minimumAmount', e.target.value)}
+                  value={formData.minOrderAmount}
+                  onChange={(e) => handleInputChange('minOrderAmount', e.target.value)}
                   placeholder="0"
                 />
               </div>
@@ -140,8 +232,8 @@ const AddCoupon = () => {
                 <input
                   type="number"
                   className="form-input"
-                  value={formData.maximumDiscount}
-                  onChange={(e) => handleInputChange('maximumDiscount', e.target.value)}
+                  value={formData.maxDiscount}
+                  onChange={(e) => handleInputChange('maxDiscount', e.target.value)}
                   placeholder="No limit"
                 />
               </div>
@@ -170,68 +262,40 @@ const AddCoupon = () => {
                 <input
                   type="number"
                   className="form-input"
-                  value={formData.usagePerCustomer}
-                  onChange={(e) => handleInputChange('usagePerCustomer', e.target.value)}
+                  value={formData.perUserLimit}
+                  onChange={(e) => handleInputChange('perUserLimit', e.target.value)}
                   placeholder="1"
                 />
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Start Date *</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">End Date *</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
             <div className="form-group">
-              <label className="form-label">Applicable Products</label>
-              <select
-                className="form-select"
-                value={formData.applicableProducts}
-                onChange={(e) => handleInputChange('applicableProducts', e.target.value)}
-              >
-                <option value="all">All Products</option>
-                <option value="specific">Specific Products</option>
-                <option value="category">Specific Categories</option>
-              </select>
+              <label className="form-label">Expiry Date</label>
+              <input
+                type="date"
+                className="form-input"
+                value={formData.expiryDate}
+                onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+              />
             </div>
 
             <div className="form-group">
               <label className="form-label">Status</label>
               <select
                 className="form-select"
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
+                value={formData.isActive ? 'active' : 'inactive'}
+                onChange={(e) => handleInputChange('isActive', e.target.value === 'active')}
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="scheduled">Scheduled</option>
               </select>
             </div>
           </div>
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn btn-outline">
-            Save as Draft
+          <button type="button" className="btn btn-outline" onClick={() => navigate('/coupon-list')}>
+            Cancel
           </button>
           <button type="submit" className="btn btn-primary">
             Create Coupon
