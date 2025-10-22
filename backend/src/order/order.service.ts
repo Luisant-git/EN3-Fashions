@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CouponService } from '../coupon/coupon.service';
 
 @Injectable()
 export class OrderService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private couponService: CouponService
+  ) {}
 
   async createOrder(userId: number, createOrderDto: CreateOrderDto) {
     // Get user's cart
@@ -17,12 +21,32 @@ export class OrderService {
       throw new Error('Cart is empty');
     }
 
+    // Apply coupon if provided
+    let discount = '0';
+    let couponCode: string | null = null;
+    if (createOrderDto.couponCode) {
+      try {
+        const result = await this.couponService.validateCoupon(
+          createOrderDto.couponCode,
+          userId,
+          parseFloat(createOrderDto.subtotal)
+        );
+        discount = result.discount.toString();
+        couponCode = createOrderDto.couponCode;
+        await this.couponService.applyCoupon(result.coupon.id, userId);
+      } catch (error) {
+        throw new Error('Invalid coupon: ' + error.message);
+      }
+    }
+
     // Create order with items
     const order = await this.prisma.order.create({
       data: {
         userId,
         subtotal: createOrderDto.subtotal,
         deliveryFee: createOrderDto.deliveryFee,
+        discount,
+        couponCode,
         total: createOrderDto.total,
         paymentMethod: createOrderDto.paymentMethod,
         shippingAddress: JSON.parse(JSON.stringify(createOrderDto.shippingAddress)),

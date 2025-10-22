@@ -103,12 +103,6 @@ const PincodeList = () => {
             className="search-input"
           />
         </div>
-        <div className="filter-group">
-          <button className="btn btn-outline">
-            <Filter size={20} />
-            Filters
-          </button>
-        </div>
       </div>
 
       <DataTable 

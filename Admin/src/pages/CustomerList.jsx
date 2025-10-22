@@ -94,10 +94,6 @@ const CustomerList = () => {
             <Phone size={14} />
             {value}
           </div>
-          <div className="location">
-            <MapPin size={14} />
-            {row.location}
-          </div>
         </div>
       )
     },
@@ -140,41 +136,6 @@ const CustomerList = () => {
           <h1>Customers</h1>
           <p>Manage your customer database</p>
         </div>
-        <button className="btn btn-primary">
-          <UserPlus size={20} />
-          Add Customer
-        </button>
-      </div>
-
-      <div className="customer-stats">
-        <div className="stat-card">
-          <div className="stat-content">
-            <h3>1,234</h3>
-            <p>Total Customers</p>
-          </div>
-          <div className="stat-trend positive">+12.5%</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-content">
-            <h3>856</h3>
-            <p>Active Customers</p>
-          </div>
-          <div className="stat-trend positive">+8.3%</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-content">
-            <h3>45</h3>
-            <p>VIP Customers</p>
-          </div>
-          <div className="stat-trend positive">+15.2%</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-content">
-            <h3>₹2,456</h3>
-            <p>Avg. Order Value</p>
-          </div>
-          <div className="stat-trend negative">-3.1%</div>
-        </div>
       </div>
 
       <div className="filters-section">
@@ -187,24 +148,6 @@ const CustomerList = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-        </div>
-
-        <div className="filter-group">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="vip">VIP</option>
-          </select>
-
-          <button className="btn btn-outline">
-            <Filter size={20} />
-            More Filters
-          </button>
         </div>
       </div>
 

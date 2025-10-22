@@ -1,9 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { CartContext } from '../contexts/CartContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { createOrder } from '../api/orderApi';
+import { validateCoupon, getActiveCoupons } from '../api/couponApi';
 import LoadingSpinner from './LoadingSpinner';
 
 const CheckoutPage = () => {
@@ -11,9 +12,15 @@ const CheckoutPage = () => {
     const location = useLocation();
     const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
-    const { user } = useContext(AuthContext);
+    const { user, token } = useContext(AuthContext);
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [discount, setDiscount] = useState(0);
+    const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+    const [availableCoupons, setAvailableCoupons] = useState([]);
+    const couponInputRef = useRef(null);
     const [formData, setFormData] = useState({
         fullName: '',
         addressLine1: '',
@@ -42,8 +49,20 @@ const CheckoutPage = () => {
         }
     }, [user]);
 
+    useEffect(() => {
+        const fetchCoupons = async () => {
+            try {
+                const coupons = await getActiveCoupons();
+                setAvailableCoupons(coupons);
+            } catch (error) {
+                console.error('Failed to fetch coupons:', error);
+            }
+        };
+        fetchCoupons();
+    }, []);
+
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const finalTotal = subtotal + deliveryOption.fee;
+    const finalTotal = subtotal - discount + deliveryOption.fee;
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
@@ -55,6 +74,7 @@ const CheckoutPage = () => {
                 subtotal: subtotal.toString(),
                 deliveryFee: deliveryOption.fee.toString(),
                 total: finalTotal.toString(),
+                couponCode: appliedCoupon?.code || undefined,
                 paymentMethod,
                 shippingAddress: formData,
                 deliveryOption
@@ -110,6 +130,93 @@ const CheckoutPage = () => {
                                 </div>
                             )}
                         </section>
+                        <section>
+                            <h2>Available Coupons</h2>
+                            {availableCoupons.length > 0 && (
+                                <div className="available-coupons">
+                                    {availableCoupons.map(coupon => (
+                                        <div key={coupon.id} className="coupon-card">
+                                            <div className="coupon-info">
+                                                <div className="coupon-code-badge">{coupon.code}</div>
+                                                <div className="coupon-details">
+                                                    <p className="coupon-value">
+                                                        {coupon.type === 'percentage' 
+                                                            ? `${coupon.value}% OFF` 
+                                                            : `₹${coupon.value} OFF`}
+                                                    </p>
+                                                    <p className="coupon-min">Min order: ₹{coupon.minOrderAmount}</p>
+                                                    {coupon.maxDiscount && (
+                                                        <p className="coupon-max">Max discount: ₹{coupon.maxDiscount}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                className="apply-coupon-card-btn"
+                                                onClick={() => {
+                                                    setCouponCode(coupon.code);
+                                                    couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    setTimeout(() => couponInputRef.current?.focus(), 300);
+                                                }}
+                                                disabled={appliedCoupon?.code === coupon.code}
+                                            >
+                                                {appliedCoupon?.code === coupon.code ? 'Applied' : 'Apply'}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <h3 style={{ marginTop: '20px' }}>Enter Coupon Code</h3>
+                            <div className="coupon-section" ref={couponInputRef}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter coupon code" 
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    disabled={appliedCoupon}
+                                />
+                                {appliedCoupon ? (
+                                    <button 
+                                        type="button" 
+                                        className="remove-coupon-btn"
+                                        onClick={() => {
+                                            setAppliedCoupon(null);
+                                            setDiscount(0);
+                                            setCouponCode('');
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                ) : (
+                                    <button 
+                                        type="button" 
+                                        className="apply-coupon-btn"
+                                        onClick={async () => {
+                                            if (!couponCode.trim()) return;
+                                            setIsValidatingCoupon(true);
+                                            try {
+                                                const result = await validateCoupon(couponCode, subtotal, token);
+                                                setAppliedCoupon(result.coupon);
+                                                setDiscount(result.discount);
+                                                toast.success(`Coupon applied! You saved ₹${result.discount}`);
+                                            } catch (error) {
+                                                toast.error(error.message);
+                                            } finally {
+                                                setIsValidatingCoupon(false);
+                                            }
+                                        }}
+                                        disabled={isValidatingCoupon}
+                                    >
+                                        {isValidatingCoupon ? 'Validating...' : 'Apply'}
+                                    </button>
+                                )}
+                            </div>
+                            {appliedCoupon && (
+                                <div className="coupon-applied">
+                                    ✓ Coupon "{appliedCoupon.code}" applied
+                                </div>
+                            )}
+                        </section>
                         <button type="submit" className="confirm-pay-btn" disabled={isPlacingOrder}>
                             {isPlacingOrder ? <LoadingSpinner /> : 'Confirm & Pay'}
                         </button>
@@ -128,6 +235,12 @@ const CheckoutPage = () => {
                         <span>Subtotal</span>
                         <span>₹{subtotal.toFixed(2)}</span>
                     </div>
+                    {discount > 0 && (
+                        <div className="summary-row discount">
+                            <span>Discount</span>
+                            <span>-₹{discount.toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="summary-row">
                         <span>Delivery Fee</span>
                         <span>₹{deliveryOption.fee.toFixed(2)}</span>

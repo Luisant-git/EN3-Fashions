@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ArrowLeft, Percent } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { createCoupon } from '../api/couponApi'
+import { getCoupon, updateCoupon } from '../api/couponApi'
 import '../styles/pages/add-coupon.scss'
 
-const AddCoupon = () => {
+const EditCoupon = () => {
   const navigate = useNavigate()
+  const { id } = useParams()
   const [formData, setFormData] = useState({
     code: '',
     type: 'percentage',
@@ -18,17 +19,38 @@ const AddCoupon = () => {
     expiryDate: '',
     isActive: true
   })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchCoupon()
+  }, [id])
+
+  const fetchCoupon = async () => {
+    try {
+      const data = await getCoupon(id)
+      setFormData({
+        code: data.code,
+        type: data.type,
+        value: data.value.toString(),
+        minOrderAmount: data.minOrderAmount.toString(),
+        maxDiscount: data.maxDiscount?.toString() || '',
+        usageLimit: data.usageLimit?.toString() || '',
+        perUserLimit: data.perUserLimit.toString(),
+        expiryDate: data.expiryDate ? new Date(data.expiryDate).toISOString().split('T')[0] : '',
+        isActive: data.isActive
+      })
+    } catch (error) {
+      toast.error('Failed to fetch coupon: ' + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
-  }
-
-  const generateCouponCode = () => {
-    const code = 'SAVE' + Math.random().toString(36).substr(2, 6).toUpperCase()
-    handleInputChange('code', code)
   }
 
   const handleSubmit = async (e) => {
@@ -45,20 +67,22 @@ const AddCoupon = () => {
         expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : null,
         isActive: formData.isActive
       }
-      await createCoupon(data)
-      toast.success('Coupon created successfully!')
+      await updateCoupon(id, data)
+      toast.success('Coupon updated successfully!')
       navigate('/coupon-list')
     } catch (error) {
-      toast.error('Failed to create coupon: ' + error.message)
+      toast.error('Failed to update coupon: ' + error.message)
     }
   }
+
+  if (loading) return <div>Loading...</div>
 
   return (
     <div className="add-coupon">
       <div className="page-header with-actions">
         <div className="header-left">
-          <h1>Add Coupon</h1>
-          <p>Create a new discount coupon</p>
+          <h1>Edit Coupon</h1>
+          <p>Update coupon details</p>
         </div>
         <button className="btn btn-outline" onClick={() => navigate(-1)}>
           <ArrowLeft size={20} />
@@ -75,26 +99,15 @@ const AddCoupon = () => {
 
             <div className="form-group">
               <label className="form-label">Coupon Code *</label>
-              <div className="input-with-button">
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.code}
-                  onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())}
-                  placeholder="Enter coupon code"
-                  required
-                />
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={generateCouponCode}
-                >
-                  Generate
-                </button>
-              </div>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.code}
+                onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())}
+                placeholder="Enter coupon code"
+                required
+              />
             </div>
-
-
 
             <div className="form-row">
               <div className="form-group">
@@ -213,7 +226,7 @@ const AddCoupon = () => {
             Cancel
           </button>
           <button type="submit" className="btn btn-primary">
-            Create Coupon
+            Update Coupon
           </button>
         </div>
       </form>
@@ -221,4 +234,4 @@ const AddCoupon = () => {
   )
 }
 
-export default AddCoupon
+export default EditCoupon
