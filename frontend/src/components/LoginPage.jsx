@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner';
 import { toast } from 'react-toastify';
+import API_BASE_URL from '../config/api';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://195.35.22.221:4062';
+const API_URL = API_BASE_URL || 'http://195.35.22.221:4062';
 
 const LoginPage = () => {
     const navigate = useNavigate();
