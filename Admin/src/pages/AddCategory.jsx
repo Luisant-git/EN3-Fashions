@@ -58,6 +58,7 @@ const AddCategory = () => {
       
       await createCategory(categoryData)
       toast.success('Category created successfully!')
+      navigate('/category-list')
       
       // Reset form
       setFormData({ name: '', description: '', parentCategory: '', status: 'active', featured: false })

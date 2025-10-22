@@ -56,6 +56,7 @@ const AddBrand = () => {
       
       await createBrand(brandData)
       toast.success('Brand created successfully!')
+      navigate('/brand-list')
       
       // Reset form
       setFormData({ name: '', description: '' })

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Upload, X, Plus } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { createProduct, getCategories, getSubCategories, getBrands, uploadImage } from '../api'
 
 const AddProduct = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -175,6 +177,7 @@ const AddProduct = () => {
       
       await createProduct(productData);
       toast.success('Product created successfully!');
+      navigate('/product-list');
       
       // Reset form
       setFormData({

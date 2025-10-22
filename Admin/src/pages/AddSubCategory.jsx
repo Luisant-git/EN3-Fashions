@@ -71,6 +71,7 @@ const AddSubCategory = () => {
       
       await createSubCategory(subcategoryData)
       toast.success('Sub category created successfully!')
+      navigate('/subcategory-list')
       
       // Reset form
       setFormData({ name: '', description: '', categoryId: '', status: 'active' })
