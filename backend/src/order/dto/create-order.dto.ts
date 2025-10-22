@@ -1,4 +1,4 @@
-import { IsString, IsObject, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsObject, IsArray, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -42,6 +42,7 @@ export class CreateOrderDto {
   total: string;
 
   @ApiProperty({ example: 'SAVE20', required: false })
+  @IsOptional()
   @IsString()
   couponCode?: string;
 
