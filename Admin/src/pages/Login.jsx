@@ -19,6 +19,7 @@ const Login = () => {
       const response = await adminLogin(credentials.email, credentials.password)
       localStorage.setItem('isAuthenticated', 'true')
       localStorage.setItem('adminToken', response.access_token)
+      localStorage.setItem('loginTime', Date.now().toString())
       window.location.href = '/dashboard'
     } catch (err) {
       setError(err.message || 'Login failed')

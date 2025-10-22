@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { checkTokenExpiry, logout } from './utils/tokenManager';
 
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
@@ -69,9 +70,21 @@ function App() {
       setIsAuthenticated(localStorage.getItem('isAuthenticated') === 'true')
     }
     
+    const checkAuth = () => {
+      if (isAuthenticated && !checkTokenExpiry()) {
+        logout();
+      }
+    };
+    
+    checkAuth();
+    const interval = setInterval(checkAuth, 60000);
+    
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [])
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
+    }
+  }, [isAuthenticated])
 
   if (!isAuthenticated) {
     return (
