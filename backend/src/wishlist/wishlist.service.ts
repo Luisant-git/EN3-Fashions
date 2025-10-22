@@ -30,14 +30,22 @@ export class WishlistService {
     });
 
     return products.map(product => {
-      const firstColor = product.colors[0] as any;
+      const colors = (product.colors || []) as any[];
+      const gallery = (product.gallery || []) as any[];
+      const firstColor = colors[0];
       const firstSize = firstColor?.sizes?.[0];
-      const firstGallery = product.gallery[0] as any;
+      
+      // Get first image from gallery
+      const imageUrl = gallery[0]?.url || firstColor?.image || '';
+      // Get second image from gallery for hover effect
+      const altImageUrl = gallery[1]?.url || gallery[0]?.url || firstColor?.image || imageUrl;
+      
       return {
         id: product.id,
         name: product.name,
         price: firstSize?.price || product.basePrice,
-        imageUrl: firstColor?.image || firstGallery?.url,
+        imageUrl,
+        altImageUrl,
       };
     });
   }

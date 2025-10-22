@@ -12,7 +12,7 @@ const ProductCard = ({ product, navigate }) => {
                  onMouseEnter={() => setHover(true)} 
                  onMouseLeave={() => setHover(false)}
                  onClick={() => navigate(`/product/${product.id}`)}>
-                <img src={hover ? product.altImageUrl : product.imageUrl} alt={product.name} />
+                <img src={hover && product.altImageUrl ? product.altImageUrl : product.imageUrl} alt={product.name} />
                 <div className="bundle-tag">Bundle Available</div>
                  <button 
                     className={`wishlist-toggle ${isInWishlist(product.id) ? 'active' : ''}`}
