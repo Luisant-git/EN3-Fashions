@@ -160,6 +160,11 @@ const Header = () => {
                             }
                         }}
                     />
+                    {searchQuery && (
+                        <button type="button" className="clear-desktop-search-btn" onClick={() => { setSearchQuery(''); setDesktopSearchRecommendations([]); }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    )}
                     {desktopSearchRecommendations.length > 0 && (
                         <div className="desktop-search-recommendations">
                             {desktopSearchRecommendations.map(product => (
@@ -231,6 +236,11 @@ const Header = () => {
                                 onChange={handleSearchInput}
                                 autoFocus
                             />
+                            {searchQuery && (
+                                <button type="button" className="clear-search-btn" onClick={() => { setSearchQuery(''); setSearchRecommendations([]); }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            )}
                         </form>
                     </div>
                     {searchRecommendations.length > 0 && (

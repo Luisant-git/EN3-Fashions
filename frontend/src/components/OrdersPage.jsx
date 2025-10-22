@@ -46,12 +46,10 @@ const OrdersPage = () => {
                                             </div>
                                         </>
                                     ) : (
-                                        <>
-                                            <div>
-                                                <p>{item.name}</p>
-                                                <p>Bundle | Qty: {item.quantity} | ₹{item.price}</p>
-                                            </div>
-                                            <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                                        <div style={{width: '100%'}}>
+                                            <p>{item.name}</p>
+                                            <p>Bundle | Qty: {item.quantity} | ₹{item.price}</p>
+                                            <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap'}}>
                                                 {item.bundleItems?.map((bundle, idx) => (
                                                     <div key={idx} style={{textAlign: 'center'}}>
                                                         <img src={bundle.colorImage} alt={bundle.color} style={{width: '60px', height: '60px', objectFit: 'cover'}}/>
@@ -59,7 +57,7 @@ const OrdersPage = () => {
                                                     </div>
                                                 ))}
                                             </div>
-                                        </>
+                                        </div>
                                     )}
                                 </div>
                             ))}

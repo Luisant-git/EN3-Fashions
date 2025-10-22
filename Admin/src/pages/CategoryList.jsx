@@ -148,59 +148,59 @@ const CategoryList = () => {
     return (
       <form className="modal-content edit-modal" onSubmit={handleSubmit}>
         <h2>Edit Category</h2>
-        <label>
-          Category Image
+        <div className="form-group">
+          <label className="form-label">Image</label>
           <div className="image-edit-section">
-            {form.image && (
-              <img
-                src={form.image}
-                alt="Category"
-                className="current-image"
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  objectFit: "cover",
-                  marginBottom: "10px",
-                }}
-              />
-            )}
-            <div
-              className="image-upload-area"
-              onClick={() =>
-                document.getElementById("edit-image-upload").click()
-              }
-            >
-              <input
-                type="file"
-                id="edit-image-upload"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: "none" }}
-              />
-              <div className="upload-label">
-                <Upload size={24} />
-                <span>{imageUploading ? "Uploading..." : "Change Image"}</span>
+            {form.image ? (
+              <div className="image-preview-wrapper">
+                <img src={form.image} alt="Category" className="current-image" />
+                <button
+                  type="button"
+                  className="change-image-btn"
+                  onClick={() => document.getElementById("edit-image-upload").click()}
+                  disabled={imageUploading}
+                >
+                  <Upload size={14} />
+                  {imageUploading ? "Uploading..." : "Change"}
+                </button>
               </div>
-            </div>
+            ) : (
+              <div className="image-upload-area" onClick={() => document.getElementById("edit-image-upload").click()}>
+                <Upload size={28} />
+                <p>{imageUploading ? "Uploading..." : "Upload image"}</p>
+                <span>PNG, JPG</span>
+              </div>
+            )}
+            <input
+              type="file"
+              id="edit-image-upload"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: "none" }}
+              disabled={imageUploading}
+            />
           </div>
-        </label>
-        <label>
-          Name
+        </div>
+        <div className="form-group">
+          <label className="form-label">Name *</label>
           <input
+            className="form-input"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
           />
-        </label>
-        <label>
-          Description
+        </div>
+        <div className="form-group">
+          <label className="form-label">Description</label>
           <textarea
+            className="form-textarea"
             value={form.description}
             onChange={(e) =>
               setForm((f) => ({ ...f, description: e.target.value }))
             }
+            rows={3}
           />
-        </label>
+        </div>
         <div className="modal-actions">
           <button
             type="button"

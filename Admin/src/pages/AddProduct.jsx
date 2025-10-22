@@ -364,35 +364,40 @@ const AddProduct = () => {
               <h3>Gallery Images</h3>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Upload Images</label>
-              <input
-                type="file"
-                id="gallery-upload"
-                multiple
-                accept="image/*"
-                onChange={handleGalleryUpload}
-                className="form-input"
-              />
-            </div>
-
-            {formData.gallery.length > 0 && (
-              <div className="image-preview-grid" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                {formData.gallery.map((image, index) => (
-                  <div key={index} className="image-preview" style={{ position: 'relative', width: '80px', height: '80px' }}>
-                    <img src={image.url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
-                    <button
-                      type="button"
-                      className="remove-image"
-                      onClick={() => removeGalleryImage(index)}
-                      style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
+            <div className="image-upload-section">
+              <div className="image-upload-area" onClick={() => document.getElementById('gallery-upload').click()}>
+                <input
+                  type="file"
+                  id="gallery-upload"
+                  multiple
+                  accept="image/*"
+                  onChange={handleGalleryUpload}
+                  className="image-input"
+                />
+                <label htmlFor="gallery-upload" className="upload-label">
+                  <Upload size={48} />
+                  <p>Click to upload gallery images</p>
+                  <span>PNG, JPG up to 5MB (Multiple files)</span>
+                </label>
               </div>
-            )}
+
+              {formData.gallery.length > 0 && (
+                <div className="image-preview-grid">
+                  {formData.gallery.map((image, index) => (
+                    <div key={index} className="image-preview">
+                      <img src={image.url} alt="Gallery" />
+                      <button
+                        type="button"
+                        className="remove-image"
+                        onClick={() => removeGalleryImage(index)}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -430,39 +435,42 @@ const AddProduct = () => {
 
               <div className="form-group" style={{ marginTop: '12px' }}>
                 <label className="form-label">Color Images (Optional)</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleColorImageUpload}
-                  className="form-input"
-                />
-                {currentColor.images.length > 0 && (
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                    {currentColor.images.map((img, i) => (
-                      <div key={i} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                        <img 
-                          src={img} 
-                          alt={`Color ${i + 1}`} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} 
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setCurrentColor(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
-                          style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ))}
+                <div className="color-image-upload">
+                  <div className="color-upload-area" onClick={() => document.getElementById('color-image-upload').click()}>
+                    <input
+                      type="file"
+                      id="color-image-upload"
+                      multiple
+                      accept="image/*"
+                      onChange={handleColorImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <Upload size={32} />
+                    <span style={{ fontSize: '13px', color: '#6b7280' }}>Upload color images</span>
                   </div>
-                )}
+                  {currentColor.images.length > 0 && (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                      {currentColor.images.map((img, i) => (
+                        <div key={i} className="color-image-preview">
+                          <img src={img} alt={`Color ${i + 1}`} />
+                          <button
+                            type="button"
+                            onClick={() => setCurrentColor(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                            className="remove-color-image"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Add Sizes</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px auto', gap: '12px', alignItems: 'end' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 70px', gap: '12px', alignItems: 'end' }}>
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '13px' }}>Size</label>
                   <select
@@ -501,9 +509,11 @@ const AddProduct = () => {
                     placeholder="10"
                   />
                 </div>
-                <button type="button" onClick={addSize} className="btn btn-secondary" style={{ height: '42px' }}>
-                  <Plus size={16} /> Add
-                </button>
+                <div style={{ marginBottom: '18px' }}>
+                  <button type="button" onClick={addSize} className="btn btn-secondary" style={{ height: '42px', padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' }}>
+                    <Plus size={16} /> Add
+                  </button>
+                </div>
               </div>
 
               {currentColor.sizes.length > 0 && (
@@ -526,7 +536,7 @@ const AddProduct = () => {
                 onClick={addColor} 
                 className="btn btn-primary"
                 disabled={!currentColor.name || !currentColor.code || currentColor.sizes.length === 0}
-                style={{ width: '100%' }}
+                style={{ padding: '10px 20px', fontSize: '14px' }}
               >
                 <Plus size={16} /> Add Color Variant
               </button>

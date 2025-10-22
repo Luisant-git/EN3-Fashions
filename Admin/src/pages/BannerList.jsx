@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Filter, Plus, Edit, Trash2, Eye, Image } from 'lucide-react'
+import { Search, Filter, Plus, Edit, Trash2, Eye, X, Upload } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import DataTable from '../components/DataTable'
 import { getBanners, getBannerById, updateBanner, deleteBanner } from '../api/bannerApi'
 import { uploadImage } from '../api/uploadApi'
+
+// Modal component
+const Modal = ({ open, onClose, children }) => {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop">
+      <div className="modal">
+        <button className="modal-close" onClick={onClose}>
+          <X size={20} />
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const BannerList = () => {
   const navigate = useNavigate()
@@ -199,145 +214,102 @@ const BannerList = () => {
       )}
 
       {/* View Modal */}
-      {viewModal.show && (
-        <div className="modal-overlay" onClick={() => setViewModal({ show: false, banner: null })}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Banner Details</h3>
-            <div className="banner-details">
-              <img src={viewModal.banner.image} alt={viewModal.banner.title} style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px'}} />
-              <p><strong>Title:</strong> {viewModal.banner.title}</p>
-              <p><strong>Link:</strong> {viewModal.banner.link}</p>
-              <p><strong>Status:</strong> {viewModal.banner.isActive ? 'Active' : 'Inactive'}</p>
-              <p><strong>Order:</strong> {viewModal.banner.rowNumber}</p>
-            </div>
-            <button onClick={() => setViewModal({ show: false, banner: null })}>Close</button>
+      <Modal open={viewModal.show} onClose={() => setViewModal({ show: false, banner: null })}>
+        <div className="modal-content view-modal">
+          <h2>Banner Details</h2>
+          <img src={viewModal.banner?.image} alt={viewModal.banner?.title} className="modal-product-image" />
+          <div className="modal-product-info">
+            <p><strong>Title:</strong> {viewModal.banner?.title}</p>
+            <p><strong>Link:</strong> {viewModal.banner?.link}</p>
+            <p><strong>Status:</strong> {viewModal.banner?.isActive ? 'Active' : 'Inactive'}</p>
+            <p><strong>Order:</strong> {viewModal.banner?.rowNumber}</p>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* Edit Modal */}
-      {editModal.show && (
-        <div className="modal-overlay" onClick={() => setEditModal({ show: false, banner: null })}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Edit Banner</h3>
-            <form onSubmit={handleUpdate}>
-              <div className="form-group">
-                <label>Title</label>
-                <input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Link</label>
-                <input
-                  type="url"
-                  value={editForm.link}
-                  onChange={(e) => setEditForm({...editForm, link: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Status</label>
-                <select
-                  value={editForm.isActive}
-                  onChange={(e) => setEditForm({...editForm, isActive: e.target.value === 'true'})}
-                >
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Order</label>
-                <input
-                  type="number"
-                  value={editForm.rowNumber}
-                  onChange={(e) => setEditForm({...editForm, rowNumber: parseInt(e.target.value)})}
-                  min="1"
-                />
-              </div>
-              <div className="form-group">
-                <label>Image</label>
-                <input type="file" accept="image/*" onChange={handleImageUpload} />
-                {editImage && <img src={editImage.url} alt="Preview" style={{width: '100px', height: '60px', objectFit: 'cover', marginTop: '8px'}} />}
-              </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => setEditModal({ show: false, banner: null })}>Cancel</button>
-                <button type="submit" disabled={updating}>{updating ? 'Updating...' : 'Update'}</button>
-              </div>
-            </form>
+      <Modal open={editModal.show} onClose={() => setEditModal({ show: false, banner: null })}>
+        <form className="modal-content edit-modal" onSubmit={handleUpdate}>
+          <h2>Edit Banner</h2>
+          <div className="form-group">
+            <label className="form-label">Image</label>
+            <div className="image-edit-section">
+              {(editImage?.url || editModal.banner?.image) ? (
+                <div className="image-preview-wrapper">
+                  <img src={editImage?.url || editModal.banner?.image} alt="Banner" className="current-image" />
+                  <button
+                    type="button"
+                    className="change-image-btn"
+                    onClick={() => document.getElementById('edit-banner-image').click()}
+                  >
+                    <Upload size={14} />
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <div className="image-upload-area" onClick={() => document.getElementById('edit-banner-image').click()}>
+                  <Upload size={28} />
+                  <p>Upload image</p>
+                  <span>PNG, JPG</span>
+                </div>
+              )}
+              <input
+                type="file"
+                id="edit-banner-image"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+          <div className="form-group">
+            <label className="form-label">Title *</label>
+            <input
+              className="form-input"
+              type="text"
+              value={editForm.title}
+              onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Link</label>
+            <input
+              className="form-input"
+              type="url"
+              value={editForm.link}
+              onChange={(e) => setEditForm({...editForm, link: e.target.value})}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select
+              className="form-select"
+              value={editForm.isActive}
+              onChange={(e) => setEditForm({...editForm, isActive: e.target.value === 'true'})}
+            >
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Order</label>
+            <input
+              className="form-input"
+              type="number"
+              value={editForm.rowNumber}
+              onChange={(e) => setEditForm({...editForm, rowNumber: parseInt(e.target.value)})}
+              min="1"
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn btn-outline" onClick={() => setEditModal({ show: false, banner: null })}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={updating}>{updating ? 'Updating...' : 'Save Changes'}</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
-}
-
-// Add some basic modal styles
-const modalStyles = `
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-.form-group {
-  margin-bottom: 15px;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-.form-group input, .form-group select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-.modal-actions button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.modal-actions button[type="submit"] {
-  background: #007bff;
-  color: white;
-}
-.modal-actions button[type="button"] {
-  background: #6c757d;
-  color: white;
-}
-`
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style')
-  styleSheet.textContent = modalStyles
-  document.head.appendChild(styleSheet)
 }
 
 export default BannerList

@@ -1033,15 +1033,16 @@ body {
   .image-upload-section {
     .image-upload-area {
       border: 2px dashed $gray-300;
-      border-radius: 8px;
-      padding: 40px 20px;
+      border-radius: 10px;
+      padding: 32px 20px;
       text-align: center;
       transition: all 0.2s;
       cursor: pointer;
+      background: $gray-50;
 
       &:hover {
         border-color: $primary-color;
-        background: $gray-50;
+        background: #eff6ff;
       }
 
       .image-input {
@@ -1050,21 +1051,24 @@ body {
 
       .upload-label {
         cursor: pointer;
-        color: $gray-600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
 
         svg {
           color: $gray-400;
-          margin-bottom: 12px;
         }
 
         p {
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 500;
-          margin-bottom: 4px;
+          color: $gray-700;
+          margin: 0;
         }
 
         span {
-          font-size: 14px;
+          font-size: 13px;
           color: $gray-500;
         }
       }
@@ -1082,6 +1086,7 @@ body {
         border-radius: 8px;
         overflow: hidden;
         border: 1px solid $gray-200;
+        background: $gray-100;
 
         img {
           width: 100%;
@@ -1103,10 +1108,77 @@ body {
           cursor: pointer;
           opacity: 0;
           transition: opacity 0.2s;
+
+          &:hover {
+            background: darken($danger-color, 10%);
+          }
         }
 
         &:hover .remove-image {
           opacity: 1;
+        }
+      }
+    }
+  }
+
+  .color-image-upload {
+    .color-upload-area {
+      border: 2px dashed $gray-300;
+      border-radius: 8px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: $gray-50;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+
+      &:hover {
+        border-color: $primary-color;
+        background: #eff6ff;
+      }
+
+      svg {
+        color: $gray-400;
+      }
+
+      span {
+        color: $gray-600;
+      }
+    }
+
+    .color-image-preview {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid $gray-200;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .remove-color-image {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: $danger-color;
+        color: $white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        @include flex-center;
+        cursor: pointer;
+        padding: 0;
+
+        &:hover {
+          background: darken($danger-color, 10%);
         }
       }
     }
@@ -2497,6 +2569,199 @@ body {
           }
         }
       }
+    }
+  }
+}
+
+// Modal Styles
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal {
+  position: relative;
+  background: $white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 550px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: $gray-100;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    @include flex-center;
+    cursor: pointer;
+    color: $gray-600;
+    transition: all 0.2s;
+    z-index: 1;
+
+    &:hover {
+      background: $gray-200;
+      color: $gray-900;
+    }
+  }
+
+  .modal-content {
+    padding: 20px;
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: $gray-900;
+      margin-bottom: 16px;
+      padding-right: 40px;
+    }
+
+    &.view-modal {
+      .modal-product-image {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid $gray-200;
+        margin: 0 auto 20px;
+        display: block;
+        background: $gray-50;
+      }
+
+      .modal-product-info {
+        p {
+          margin-bottom: 12px;
+          font-size: 14px;
+          color: $gray-700;
+          line-height: 1.6;
+
+          strong {
+            color: $gray-900;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    &.edit-modal {
+      .form-group {
+        margin-bottom: 14px;
+      }
+
+      .image-edit-section {
+        .image-preview-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .current-image {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid $gray-200;
+            background: $gray-50;
+          }
+
+          .change-image-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: $gray-100;
+            border: 1px solid $gray-300;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: $gray-700;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover:not(:disabled) {
+              background: $gray-200;
+              border-color: $gray-400;
+            }
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+          }
+        }
+
+        .image-upload-area {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px dashed $gray-300;
+          border-radius: 8px;
+          padding: 24px 16px;
+          background: $gray-50;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            border-color: $primary-color;
+            background: #eff6ff;
+          }
+
+          svg {
+            color: $gray-400;
+            margin-bottom: 6px;
+          }
+
+          p {
+            font-size: 13px;
+            font-weight: 500;
+            color: $gray-700;
+            margin: 0 0 2px 0;
+          }
+
+          span {
+            font-size: 11px;
+            color: $gray-500;
+          }
+        }
+      }
+    }
+
+    &.delete-modal {
+      text-align: center;
+
+      p {
+        font-size: 14px;
+        color: $gray-700;
+        margin-bottom: 24px;
+        line-height: 1.6;
+
+        strong {
+          color: $gray-900;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid $gray-200;
     }
   }
 }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Upload, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { createSubCategory, getCategories } from '../api'
+import { createSubCategory, getCategories, uploadImage } from '../api'
 import '../styles/pages/add-sub-category.scss'
 
 const AddSubCategory = () => {
@@ -14,6 +14,7 @@ const AddSubCategory = () => {
     status: 'active'
   })
   const [categories, setCategories] = useState([])
+  const [image, setImage] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
@@ -21,6 +22,27 @@ const AddSubCategory = () => {
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      try {
+        const uploadResult = await uploadImage(file)
+        setImage({
+          file,
+          url: uploadResult.url,
+          filename: uploadResult.filename
+        })
+        toast.success('Image uploaded successfully!')
+      } catch (err) {
+        toast.error('Failed to upload image')
+      }
+    }
+  }
+
+  const removeImage = () => {
+    setImage(null)
   }
 
   useEffect(() => {
@@ -43,7 +65,8 @@ const AddSubCategory = () => {
       const subcategoryData = {
         name: formData.name,
         description: formData.description,
-        categoryId: parseInt(formData.categoryId)
+        categoryId: parseInt(formData.categoryId),
+        image: image ? image.url : null
       }
       
       await createSubCategory(subcategoryData)
@@ -51,6 +74,7 @@ const AddSubCategory = () => {
       
       // Reset form
       setFormData({ name: '', description: '', categoryId: '', status: 'active' })
+      setImage(null)
     } catch (err) {
       toast.error(err.message || 'Failed to create sub category')
     } finally {
@@ -72,49 +96,87 @@ const AddSubCategory = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="sub-category-form">
-        <div className="form-section">
-          <div className="section-header">
-            <h3>Sub Category Information</h3>
+        <div className="form-grid">
+          <div className="form-section">
+            <div className="section-header">
+              <h3>Sub Category Information</h3>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Sub Category Name *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="Enter sub category name"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Parent Category *</label>
+              <select
+                className="form-select"
+                value={formData.categoryId}
+                onChange={(e) => handleInputChange('categoryId', e.target.value)}
+                required
+              >
+                <option value="">Select Parent Category</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <textarea
+                className="form-textarea"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Enter sub category description"
+                rows={4}
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Sub Category Name *</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter sub category name"
-              required
-            />
-          </div>
+          <div className="form-section">
+            <div className="section-header">
+              <h3>Sub Category Image</h3>
+            </div>
 
-          <div className="form-group">
-            <label className="form-label">Parent Category *</label>
-            <select
-              className="form-select"
-              value={formData.categoryId}
-              onChange={(e) => handleInputChange('categoryId', e.target.value)}
-              required
-            >
-              <option value="">Select Parent Category</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea
-              className="form-textarea"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Enter sub category description"
-              rows={4}
-            />
+            <div className="image-upload-section">
+              {!image ? (
+                <div className="image-upload-area">
+                  <input
+                    type="file"
+                    id="image-upload"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="image-input"
+                  />
+                  <label htmlFor="image-upload" className="upload-label">
+                    <Upload size={48} />
+                    <p>Click to upload sub category image</p>
+                    <span>PNG, JPG up to 5MB</span>
+                  </label>
+                </div>
+              ) : (
+                <div className="image-preview">
+                  <img src={image.url || "/placeholder.svg"} alt="Sub Category" />
+                  <button
+                    type="button"
+                    className="remove-image"
+                    onClick={removeImage}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
