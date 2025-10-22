@@ -996,6 +996,9 @@ button:disabled {
 
 .no-results-message {
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
     padding: 4rem 0;
     font-size: 1.2rem;
