@@ -266,19 +266,25 @@ const ProductDetailPage = () => {
                                             </span>
                                         ))}
                                     </div>
-                                    {bundleSelections.length >= 2 && bundlePrice && (
-                                        <>
-                                            <div className="bundle-pricing">
-                                                <span className="bundle-total">Bundle Price: ₹{bundlePrice}</span>
-                                                <span className="savings">You save ₹{bundleSelections.reduce((sum, item) => sum + parseInt(item.price), 0) - parseInt(bundlePrice)}</span>
+                                    {bundleSelections.length >= 2 && (
+                                        bundlePrice ? (
+                                            <>
+                                                <div className="bundle-pricing">
+                                                    <span className="bundle-total">Bundle Price: ₹{bundlePrice}</span>
+                                                    <span className="savings">You save ₹{bundleSelections.reduce((sum, item) => sum + parseInt(item.price), 0) - parseInt(bundlePrice)}</span>
+                                                </div>
+                                                <button 
+                                                    className="bundle-add-btn"
+                                                    onClick={handleBundleAddToCart}
+                                                >
+                                                    Add Bundle to Cart
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="bundle-no-offer-message">
+                                                ⚠️ No bundle offer available for {bundleSelections.length} items. Check available offers below.
                                             </div>
-                                            <button 
-                                                className="bundle-add-btn"
-                                                onClick={handleBundleAddToCart}
-                                            >
-                                                Add Bundle to Cart
-                                            </button>
-                                        </>
+                                        )
                                     )}
                                 </div>
                             </div>
