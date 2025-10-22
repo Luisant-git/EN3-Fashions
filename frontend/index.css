@@ -2656,4 +2656,42 @@ button:disabled {
         padding: 3px 8px;
         font-size: 0.7rem;
     }
+    
+    /* Mobile Coupon Styles */
+    .available-coupons {
+        gap: 0.8rem;
+    }
+    .coupon-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.8rem;
+        gap: 0.8rem;
+    }
+    .coupon-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    .coupon-code-badge {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    .coupon-value {
+        font-size: 1rem;
+    }
+    .coupon-min, .coupon-max {
+        font-size: 0.75rem;
+    }
+    .apply-coupon-card-btn {
+        width: 100%;
+        padding: 0.6rem;
+    }
+    .coupon-section {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    .apply-coupon-btn, .remove-coupon-btn {
+        width: 100%;
+        padding: 0.8rem;
+    }
 }
