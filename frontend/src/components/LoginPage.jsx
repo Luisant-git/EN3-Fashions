@@ -4,7 +4,7 @@ import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner';
 import { toast } from 'react-toastify';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4062';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4062';
 
 const LoginPage = () => {
     const navigate = useNavigate();
