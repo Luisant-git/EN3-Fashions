@@ -1943,7 +1943,7 @@ button:disabled {
     box-sizing: border-box;
 }
 
-.profile-form button {
+.profile-form button:not(.btn) {
     align-self: flex-start;
     padding: 0.8rem 2rem;
     background-color: var(--primary-color);
@@ -1951,6 +1951,36 @@ button:disabled {
     border: none;
     font-weight: 700;
     margin-top: 0.5rem;
+}
+
+.profile-form .btn {
+    padding: 0.7rem 1rem;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    margin-top: 0;
+    max-width: 150px;
+}
+
+.profile-form .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.profile-form .btn-primary:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.profile-form .btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+}
+
+.profile-form .btn-secondary:hover:not(:disabled) {
+    opacity: 0.9;
 }
 
 
