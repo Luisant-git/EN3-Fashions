@@ -84,7 +84,21 @@ const WhatsAppChat = () => {
               {filteredMessages.map(msg => (
                 <div key={msg.id} className={`message ${msg.direction}`}>
                   <div className="message-bubble">
-                    <p>{msg.message}</p>
+                    {msg.mediaType === 'image' && msg.mediaUrl && (
+                      <img src={msg.mediaUrl} alt="media" className="message-media" />
+                    )}
+                    {msg.mediaType === 'video' && msg.mediaUrl && (
+                      <video src={msg.mediaUrl} controls className="message-media" />
+                    )}
+                    {msg.mediaType === 'audio' && msg.mediaUrl && (
+                      <audio src={msg.mediaUrl} controls className="message-audio" />
+                    )}
+                    {msg.mediaType === 'document' && msg.mediaUrl && (
+                      <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="message-document">
+                        📄 Document
+                      </a>
+                    )}
+                    {msg.message && <p>{msg.message}</p>}
                     <span className="message-time">
                       {new Date(msg.createdAt).toLocaleTimeString()}
                     </span>

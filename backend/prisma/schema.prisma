@@ -242,7 +242,9 @@ model WhatsappMessage {
   id        Int      @id @default(autoincrement())
   messageId String   @unique
   from      String
-  message   String
+  message   String?
+  mediaType String?  // "image", "video", "document", "audio"
+  mediaUrl  String?
   direction String   // "incoming" or "outgoing"
   status    String   // "received", "sent", "delivered", "read"
   createdAt DateTime @default(now())

@@ -12,22 +12,60 @@ export class WhatsappService {
 
   async handleIncomingMessage(message: any) {
     const from = message.from;
-    const text = message.text?.body;
     const messageId = message.id;
+    const text = message.text?.body;
+    const image = message.image;
+    const video = message.video;
+    const document = message.document;
+    const audio = message.audio;
 
-    if (!text) return;
+    let mediaType: string | null = null;
+    let mediaUrl: string | null = null;
+
+    if (image) {
+      mediaType = 'image';
+      mediaUrl = await this.downloadMedia(image.id);
+    } else if (video) {
+      mediaType = 'video';
+      mediaUrl = await this.downloadMedia(video.id);
+    } else if (document) {
+      mediaType = 'document';
+      mediaUrl = await this.downloadMedia(document.id);
+    } else if (audio) {
+      mediaType = 'audio';
+      mediaUrl = await this.downloadMedia(audio.id);
+    }
 
     await this.prisma.whatsappMessage.create({
       data: {
         messageId,
         from,
-        message: text,
+        message: text || (mediaType ? `${mediaType} file` : null),
+        mediaType,
+        mediaUrl,
         direction: 'incoming',
         status: 'received'
       }
     });
 
-    console.log(`Message from ${from}: ${text}`);
+    console.log(`Message from ${from}: ${text || mediaType}`);
+  }
+
+  async downloadMedia(mediaId: string): Promise<string | null> {
+    try {
+      const mediaResponse = await axios.get(
+        `${this.apiUrl}/${mediaId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`
+          }
+        }
+      );
+      return mediaResponse.data.url;
+    } catch (error) {
+      console.error('Media download error:', error.message);
+      return null;
+    }
   }
 
   async sendMessage(to: string, message: string) {
