@@ -53,6 +53,8 @@ export class WhatsappService {
 
   async downloadMedia(mediaId: string): Promise<string | null> {
     try {
+      console.log('Downloading media:', mediaId);
+      
       const mediaInfoResponse = await axios.get(
         `${this.apiUrl}/${mediaId}`,
         {
@@ -62,7 +64,13 @@ export class WhatsappService {
         }
       );
       
+      console.log('Media info:', mediaInfoResponse.data);
       const mediaUrl = mediaInfoResponse.data.url;
+      
+      if (!mediaUrl) {
+        console.error('No media URL found');
+        return null;
+      }
       
       const mediaDataResponse = await axios.get(mediaUrl, {
         headers: {
@@ -81,9 +89,12 @@ export class WhatsappService {
       
       fs.writeFileSync(filepath, mediaDataResponse.data);
       
-      return `${process.env.UPLOAD_URL}/${filename}`;
+      const finalUrl = `${process.env.UPLOAD_URL}/${filename}`;
+      console.log('Media saved:', finalUrl);
+      
+      return finalUrl;
     } catch (error) {
-      console.error('Media download error:', error.message);
+      console.error('Media download error:', error.response?.data || error.message);
       return null;
     }
   }
