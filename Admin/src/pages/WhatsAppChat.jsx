@@ -98,7 +98,7 @@ const WhatsAppChat = () => {
                         📄 Document
                       </a>
                     )}
-                    {msg.message && <p>{msg.message}</p>}
+                    {msg.message && msg.message !== 'image file' && msg.message !== 'video file' && msg.message !== 'audio file' && msg.message !== 'document file' && <p>{msg.message}</p>}
                     <span className="message-time">
                       {new Date(msg.createdAt).toLocaleTimeString()}
                     </span>

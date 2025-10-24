@@ -53,7 +53,7 @@ export class WhatsappService {
 
   async downloadMedia(mediaId: string): Promise<string | null> {
     try {
-      const mediaResponse = await axios.get(
+      const mediaInfoResponse = await axios.get(
         `${this.apiUrl}/${mediaId}`,
         {
           headers: {
@@ -61,7 +61,27 @@ export class WhatsappService {
           }
         }
       );
-      return mediaResponse.data.url;
+      
+      const mediaUrl = mediaInfoResponse.data.url;
+      
+      const mediaDataResponse = await axios.get(mediaUrl, {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`
+        },
+        responseType: 'arraybuffer'
+      });
+
+      const fs = require('fs');
+      const path = require('path');
+      const crypto = require('crypto');
+      
+      const ext = mediaInfoResponse.data.mime_type?.split('/')[1] || 'jpg';
+      const filename = `${crypto.randomBytes(16).toString('hex')}.${ext}`;
+      const filepath = path.join('uploads', filename);
+      
+      fs.writeFileSync(filepath, mediaDataResponse.data);
+      
+      return `${process.env.UPLOAD_URL}/${filename}`;
     } catch (error) {
       console.error('Media download error:', error.message);
       return null;
