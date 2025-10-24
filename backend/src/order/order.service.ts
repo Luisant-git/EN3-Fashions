@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CouponService } from '../coupon/coupon.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
-    private couponService: CouponService
+    private couponService: CouponService,
+    private whatsappService: WhatsappService
   ) {}
 
   async createOrder(userId: number, createOrderDto: CreateOrderDto) {
@@ -72,6 +74,9 @@ export class OrderService {
     await this.prisma.cartItem.deleteMany({
       where: { cartId: cart.id }
     });
+
+    // Send WhatsApp confirmation
+    await this.whatsappService.sendOrderConfirmation(order);
 
     return order;
   }

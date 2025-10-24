@@ -36,6 +36,7 @@ import BannerList from './pages/BannerList'
 import CouponList from './pages/CouponList'
 import PincodeList from './pages/PincodeList'
 import CreateCombo from './pages/CreateCombo'
+import WhatsAppChat from './pages/WhatsAppChat'
 
 // Import all SCSS files
 import './styles/App.scss'
@@ -58,6 +59,7 @@ import './styles/pages/add-template.scss'
 import './styles/pages/login.scss'
 import './styles/pages/list-pages.scss'
 import './styles/pages/create-combo.scss'
+import './styles/WhatsAppChat.scss'
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -136,6 +138,7 @@ function App() {
               <Route path="/coupon-list" element={<CouponList />} />
               <Route path="/pincode-list" element={<PincodeList />} />
               <Route path="/create-combo" element={<CreateCombo />} />
+              <Route path="/whatsapp-chat" element={<WhatsAppChat />} />
             </Routes>
           </div>
         </div>

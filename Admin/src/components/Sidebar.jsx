@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers,} from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers, MessageCircle} from 'lucide-react'
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [expandedItems, setExpandedItems] = useState({})
@@ -45,6 +45,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       icon: ShoppingCart,
       label: 'Orders List',
       path: '/orders'
+    },
+    {
+      key: 'whatsapp',
+      icon: MessageCircle,
+      label: 'WhatsApp Chat',
+      path: '/whatsapp-chat'
     },
     {
       key: 'customers',

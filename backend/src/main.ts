@@ -8,7 +8,7 @@ import * as bodyParser from 'body-parser';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4173', 'http://localhost:3002'],
+    origin: true,
     credentials: true,
   });
   app.use(bodyParser.json({ limit: '10mb' }));

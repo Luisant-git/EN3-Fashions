@@ -237,3 +237,16 @@ model CouponUsage {
   @@index([userId])
   @@index([couponId])
 }
+
+model WhatsappMessage {
+  id        Int      @id @default(autoincrement())
+  messageId String   @unique
+  from      String
+  message   String
+  direction String   // "incoming" or "outgoing"
+  status    String   // "received", "sent", "delivered", "read"
+  createdAt DateTime @default(now())
+
+  @@index([from])
+  @@index([createdAt])
+}

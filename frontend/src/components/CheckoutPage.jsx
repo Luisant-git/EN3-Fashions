@@ -81,7 +81,7 @@ const CheckoutPage = () => {
             };
             
             const order = await createOrder(orderData);
-            await fetchCart(); // Refresh cart to show it's empty
+            await fetchCart();
             toast.success('Order placed successfully!');
             navigate('/order-confirmation', { state: { order } });
         } catch (error) {
