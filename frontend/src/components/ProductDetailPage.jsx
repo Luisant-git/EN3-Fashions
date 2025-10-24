@@ -70,27 +70,33 @@ const ProductDetailPage = () => {
     };
 
     const handleBundleSelection = (colorName, size) => {
-        const newSelections = [...bundleSelections];
-        const existingIndex = newSelections.findIndex(item => item.color === colorName);
+        if (!size) return;
         
-        if (size) {
-            const color = product.colors.find(c => c.name === colorName);
-            const sizeInfo = color.sizes.find(s => s.size === size);
-            
-            if (existingIndex >= 0) {
-                newSelections[existingIndex] = { color: colorName, size, price: sizeInfo.price };
-            } else {
-                newSelections.push({ color: colorName, size, price: sizeInfo.price });
-            }
-        } else {
-            if (existingIndex >= 0) {
-                newSelections.splice(existingIndex, 1);
-            }
-        }
+        const color = product.colors.find(c => c.name === colorName);
+        const sizeInfo = color.sizes.find(s => s.size === size);
+        
+        const newSelections = [...bundleSelections, { 
+            color: colorName, 
+            size, 
+            price: sizeInfo.price,
+            id: Date.now() + Math.random()
+        }];
         
         setBundleSelections(newSelections);
         
         // Calculate bundle price
+        if (newSelections.length >= 2 && product.bundleOffers) {
+            const bundleOffer = product.bundleOffers.find(offer => offer.colorCount === newSelections.length);
+            setBundlePrice(bundleOffer ? bundleOffer.price : null);
+        } else {
+            setBundlePrice(null);
+        }
+    };
+
+    const removeBundleItem = (itemId) => {
+        const newSelections = bundleSelections.filter(item => item.id !== itemId);
+        setBundleSelections(newSelections);
+        
         if (newSelections.length >= 2 && product.bundleOffers) {
             const bundleOffer = product.bundleOffers.find(offer => offer.colorCount === newSelections.length);
             setBundlePrice(bundleOffer ? bundleOffer.price : null);
@@ -104,7 +110,7 @@ const ProductDetailPage = () => {
         
         const bundleItem = {
             id: `bundle-${product.id}-${Date.now()}`,
-            name: `${product.name} Bundle (${bundleSelections.length} colors)`,
+            name: `${product.name} Bundle (${bundleSelections.length} items)`,
             price: bundlePrice,
             imageUrl: product.gallery?.[0]?.url || product.colors[0]?.image,
             type: 'bundle',
@@ -217,7 +223,7 @@ const ProductDetailPage = () => {
                 {product.bundleOffers && product.bundleOffers.length > 0 && (
                     <div className="bundle-promo-card">
                         <h3>Bundle Offer!</h3>
-                        <p>Select multiple colors for special pricing:</p>
+                        <p>Pick any {product.bundleOffers[0]?.colorCount} products for special pricing:</p>
                         
                         <div className="bundle-selection">
                             {product.colors.map(color => (
@@ -231,10 +237,10 @@ const ProductDetailPage = () => {
                                     </div>
                                     <select 
                                         className="size-dropdown"
-                                        value={bundleSelections.find(item => item.color === color.name)?.size || ''}
+                                        value=""
                                         onChange={(e) => handleBundleSelection(color.name, e.target.value)}
                                     >
-                                        <option value="">Select Size</option>
+                                        <option value="">Add to Bundle</option>
                                         {color.sizes.map(size => (
                                             <option key={size.size} value={size.size}>
                                                 {size.size} - ₹{size.price}
@@ -245,35 +251,49 @@ const ProductDetailPage = () => {
                             ))}
                         </div>
 
-                        {bundleSelections.length >= 2 && bundlePrice && (
+                        {bundleSelections.length > 0 && (
                             <div className="bundle-summary">
                                 <div className="bundle-details">
                                     <h4>{bundleSelections.length} Items Selected</h4>
                                     <div className="selected-items">
-                                        {bundleSelections.map((item, index) => (
-                                            <span key={index} className="bundle-item">
+                                        {bundleSelections.map((item) => (
+                                            <span key={item.id} className="bundle-item">
                                                 {item.color} ({item.size})
+                                                <button 
+                                                    className="remove-bundle-item"
+                                                    onClick={() => removeBundleItem(item.id)}
+                                                >×</button>
                                             </span>
                                         ))}
                                     </div>
-                                    <div className="bundle-pricing">
-                                        <span className="bundle-total">Bundle Price: ₹{bundlePrice}</span>
-                                        <span className="savings">You save ₹{bundleSelections.reduce((sum, item) => sum + parseInt(item.price), 0) - parseInt(bundlePrice)}</span>
-                                    </div>
+                                    {bundleSelections.length >= 2 && (
+                                        bundlePrice ? (
+                                            <>
+                                                <div className="bundle-pricing">
+                                                    <span className="bundle-total">Bundle Price: ₹{bundlePrice}</span>
+                                                    <span className="savings">You save ₹{bundleSelections.reduce((sum, item) => sum + parseInt(item.price), 0) - parseInt(bundlePrice)}</span>
+                                                </div>
+                                                <button 
+                                                    className="bundle-add-btn"
+                                                    onClick={handleBundleAddToCart}
+                                                >
+                                                    Add Bundle to Cart
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="bundle-no-offer-message">
+                                                ⚠️ No bundle offer available for {bundleSelections.length} items. Check available offers below.
+                                            </div>
+                                        )
+                                    )}
                                 </div>
-                                <button 
-                                    className="bundle-add-btn"
-                                    onClick={handleBundleAddToCart}
-                                >
-                                    Add Bundle to Cart
-                                </button>
                             </div>
                         )}
                         
                         <div className="bundle-offers-list">
                             {product.bundleOffers.map(offer => (
                                 <p key={offer.colorCount}>
-                                    Pick any {offer.colorCount} color{offer.colorCount > 1 ? 's' : ''} for <strong>₹{offer.price}</strong>
+                                    Pick any {offer.colorCount} product{offer.colorCount > 1 ? 's' : ''} for <strong>₹{offer.price}</strong>
                                 </p>
                             ))}
                         </div>

@@ -57,7 +57,7 @@ const App = () => {
                                 </Routes>
                             </main>
                             <Footer />
-                            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+                            <ToastContainer position="top-right" autoClose={1000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
                         </div>
                     </Router>
                 </CartProvider>

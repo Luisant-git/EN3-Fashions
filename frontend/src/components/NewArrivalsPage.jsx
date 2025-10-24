@@ -108,9 +108,9 @@ const NewArrivalsPage = () => {
                 )}
                 <div className="product-grid-container">
                     {gridLoading && <div className="loading-overlay"><LoadingSpinner /></div>}
-                    <div className="product-grid">
-                        {filteredProducts.length > 0 ? (
-                            filteredProducts.map(product => {
+                    {filteredProducts.length > 0 ? (
+                        <div className="product-grid">
+                            {filteredProducts.map(product => {
                                 const firstColor = product.colors[0];
                                 const firstSize = firstColor?.sizes[0];
                                 return (
@@ -126,11 +126,12 @@ const NewArrivalsPage = () => {
                                         navigate={navigate} 
                                     />
                                 );
-                            })
+                            })}
+                             </div>
                         ) : (
-                            <p className="no-results-message">No new arrivals found.</p>
+                                <p className="no-results-message">No new arrivals found.</p>
                         )}
-                    </div>
+                   
                 </div>
             </div>
         </div>

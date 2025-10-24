@@ -63,15 +63,46 @@ export class CustomerService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} customer`;
+    try {
+      return this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          orders: {
+            select: {
+              id: true,
+              total: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      throw new Error('Failed to fetch user');
+    }
   }
 
   update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    return `This action updates a #${id} customer`;
+    try {
+      return this.prisma.user.update({
+        where: { id },
+        data: updateCustomerDto,
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error('Failed to update user');
+    }
   }
 
   remove(id: number) {
-    return `This action removes a #${id} customer`;
+    try {
+      return this.prisma.user.delete({
+        where: { id },
+      });
+    } catch (error) {
+      console.error('Error removing user:', error);
+      throw new Error('Failed to remove user');
+    }
   }
 
   async searchByPhone(phone: string) {
