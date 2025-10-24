@@ -17,7 +17,7 @@ const WhatsAppChat = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await axios.get('http://localhost:4062/whatsapp/messages');
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
       setMessages(response.data);
       
       const uniqueChats = {};
@@ -40,7 +40,7 @@ const WhatsAppChat = () => {
     if (!messageText.trim() || !selectedChat) return;
 
     try {
-      await axios.post('http://localhost:4062/whatsapp/send-message', {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-message`, {
         to: selectedChat,
         message: messageText
       });
