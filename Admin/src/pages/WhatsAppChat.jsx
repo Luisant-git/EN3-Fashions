@@ -21,6 +21,10 @@ const WhatsAppChat = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    fetchMessages();
+  }, [readMessages]);
+
 
 
   const fetchMessages = async () => {
@@ -92,10 +96,12 @@ const WhatsAppChat = () => {
             key={chat.phone}
             className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
-              setSelectedChat(chat.phone);
-              const newReadMessages = { ...readMessages, [chat.phone]: new Date().toISOString() };
-              setReadMessages(newReadMessages);
-              localStorage.setItem('readMessages', JSON.stringify(newReadMessages));
+              if (selectedChat !== chat.phone) {
+                setSelectedChat(chat.phone);
+                const newReadMessages = { ...readMessages, [chat.phone]: new Date().toISOString() };
+                setReadMessages(newReadMessages);
+                localStorage.setItem('readMessages', JSON.stringify(newReadMessages));
+              }
             }}
           >
             <div className="chat-avatar">{chat.phone.slice(-4)}</div>
