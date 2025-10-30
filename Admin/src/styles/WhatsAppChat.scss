@@ -142,6 +142,26 @@
           .message-time {
             font-size: 11px;
             color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+
+          .tick-mark {
+            font-size: 16px;
+            line-height: 1;
+            
+            &.sent {
+              color: #999;
+            }
+            
+            &.delivered {
+              color: #999;
+            }
+            
+            &.read {
+              color: #53bdeb;
+            }
           }
 
           .message-media {

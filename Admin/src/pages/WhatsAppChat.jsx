@@ -8,7 +8,10 @@ const WhatsAppChat = () => {
   const [messageText, setMessageText] = useState('');
   const [chats, setChats] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [readMessages, setReadMessages] = useState({});
+  const [readMessages, setReadMessages] = useState(() => {
+    const saved = localStorage.getItem('readMessages');
+    return saved ? JSON.parse(saved) : {};
+  });
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -90,7 +93,9 @@ const WhatsAppChat = () => {
             className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
               setSelectedChat(chat.phone);
-              setReadMessages(prev => ({ ...prev, [chat.phone]: new Date().toISOString() }));
+              const newReadMessages = { ...readMessages, [chat.phone]: new Date().toISOString() };
+              setReadMessages(newReadMessages);
+              localStorage.setItem('readMessages', JSON.stringify(newReadMessages));
             }}
           >
             <div className="chat-avatar">{chat.phone.slice(-4)}</div>
