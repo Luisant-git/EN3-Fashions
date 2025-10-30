@@ -17,9 +17,7 @@ const WhatsAppChat = () => {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedChat]);
+
 
   const fetchMessages = async () => {
     try {
