@@ -1,4 +1,6 @@
-import { Controller, Post, Get, Body, Query, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { WhatsappService } from './whatsapp.service';
 
 @Controller('whatsapp')
@@ -44,5 +46,26 @@ export class WhatsappController {
   @Post('send-message')
   async sendMessage(@Body() body: { to: string; message: string }) {
     return this.whatsappService.sendMessage(body.to, body.message);
+  }
+
+  @Post('send-media')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, cb) => {
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        cb(null, uniqueName);
+      }
+    })
+  }))
+  async sendMedia(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: { to: string; caption?: string }
+  ) {
+    const mediaUrl = `${process.env.UPLOAD_URL}/${file.filename}`;
+    const mediaType = file.mimetype.startsWith('image') ? 'image' : 
+                      file.mimetype.startsWith('video') ? 'video' : 
+                      file.mimetype.startsWith('audio') ? 'audio' : 'document';
+    return this.whatsappService.sendMediaMessage(body.to, mediaUrl, mediaType, body.caption);
   }
 }

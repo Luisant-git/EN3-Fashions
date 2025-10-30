@@ -134,10 +134,47 @@ export class WhatsappService {
     }
   }
 
+  async sendMediaMessage(to: string, mediaUrl: string, mediaType: string, caption?: string) {
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to,
+          type: mediaType,
+          [mediaType]: { link: mediaUrl, caption }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: to,
+          message: caption || `${mediaType} file`,
+          mediaType,
+          mediaUrl,
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp Media API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
   async getMessages(phoneNumber?: string) {
     return this.prisma.whatsappMessage.findMany({
       where: phoneNumber ? { from: phoneNumber } : {},
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
       take: 100
     });
   }

@@ -7,13 +7,19 @@ const WhatsAppChat = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messageText, setMessageText] = useState('');
   const [chats, setChats] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, selectedChat]);
 
   const fetchMessages = async () => {
     try {
@@ -37,13 +43,25 @@ const WhatsAppChat = () => {
   };
 
   const sendMessage = async () => {
-    if (!messageText.trim() || !selectedChat) return;
+    if ((!messageText.trim() && !selectedFile) || !selectedChat) return;
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-message`, {
-        to: selectedChat,
-        message: messageText
-      });
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('to', selectedChat);
+        if (messageText.trim()) formData.append('caption', messageText);
+        
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-media`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        setSelectedFile(null);
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-message`, {
+          to: selectedChat,
+          message: messageText
+        });
+      }
       setMessageText('');
       fetchMessages();
     } catch (error) {
@@ -109,13 +127,33 @@ const WhatsAppChat = () => {
             </div>
             <div className="chat-input">
               <input
-                type="text"
-                placeholder="Type a message..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+                accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
               />
-              <button onClick={sendMessage}>Send</button>
+              {selectedFile && (
+                <div className="file-preview">
+                  <span>{selectedFile.name}</span>
+                  <button className="remove-file" onClick={() => setSelectedFile(null)}>×</button>
+                </div>
+              )}
+              <div className="input-wrapper">
+                <button className="attach-btn" onClick={() => fileInputRef.current?.click()}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                </button>
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                />
+                <button className="send-btn" onClick={sendMessage}>Send</button>
+              </div>
             </div>
           </>
         ) : (
