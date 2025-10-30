@@ -30,6 +30,12 @@ export class WhatsappController {
             if (message) {
               await this.whatsappService.handleIncomingMessage(message);
             }
+            const statuses = change.value.statuses;
+            if (statuses) {
+              for (const status of statuses) {
+                await this.whatsappService.updateMessageStatus(status.id, status.status);
+              }
+            }
           }
         }
       }

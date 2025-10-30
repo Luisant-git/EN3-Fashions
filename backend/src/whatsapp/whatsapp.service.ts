@@ -171,6 +171,18 @@ export class WhatsappService {
     }
   }
 
+  async updateMessageStatus(messageId: string, status: string) {
+    try {
+      await this.prisma.whatsappMessage.updateMany({
+        where: { messageId },
+        data: { status }
+      });
+      console.log(`Message ${messageId} status updated to ${status}`);
+    } catch (error) {
+      console.error('Error updating message status:', error);
+    }
+  }
+
   async getMessages(phoneNumber?: string) {
     return this.prisma.whatsappMessage.findMany({
       where: phoneNumber ? { from: phoneNumber } : {},

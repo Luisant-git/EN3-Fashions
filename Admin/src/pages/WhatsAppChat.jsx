@@ -8,6 +8,7 @@ const WhatsAppChat = () => {
   const [messageText, setMessageText] = useState('');
   const [chats, setChats] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [readMessages, setReadMessages] = useState({});
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -26,11 +27,12 @@ const WhatsAppChat = () => {
       
       const uniqueChats = {};
       response.data.forEach(msg => {
-        if (!uniqueChats[msg.from]) {
+        if (!uniqueChats[msg.from] || new Date(msg.createdAt) > new Date(uniqueChats[msg.from].lastTime)) {
           uniqueChats[msg.from] = {
             phone: msg.from,
             lastMessage: msg.message,
-            lastTime: msg.createdAt
+            lastTime: msg.createdAt,
+            hasUnread: msg.direction === 'incoming' && (!readMessages[msg.from] || new Date(msg.createdAt) > new Date(readMessages[msg.from]))
           };
         }
       });
@@ -78,8 +80,11 @@ const WhatsAppChat = () => {
         {chats.map(chat => (
           <div 
             key={chat.phone}
-            className={`chat-item ${selectedChat === chat.phone ? 'active' : ''}`}
-            onClick={() => setSelectedChat(chat.phone)}
+            className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.hasUnread ? 'unread' : ''}`}
+            onClick={() => {
+              setSelectedChat(chat.phone);
+              setReadMessages(prev => ({ ...prev, [chat.phone]: new Date().toISOString() }));
+            }}
           >
             <div className="chat-avatar">{chat.phone.slice(-4)}</div>
             <div className="chat-info">
@@ -118,6 +123,13 @@ const WhatsAppChat = () => {
                     {msg.message && msg.message !== 'image file' && msg.message !== 'video file' && msg.message !== 'audio file' && msg.message !== 'document file' && <p>{msg.message}</p>}
                     <span className="message-time">
                       {new Date(msg.createdAt).toLocaleTimeString()}
+                      {msg.direction === 'outgoing' && (
+                        <span className={`tick-mark ${msg.status}`}>
+                          {msg.status === 'sent' && '✓'}
+                          {msg.status === 'delivered' && '✓✓'}
+                          {msg.status === 'read' && '✓✓'}
+                        </span>
+                      )}
                     </span>
                   </div>
                 </div>
