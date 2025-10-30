@@ -97,7 +97,8 @@ const WhatsAppChat = () => {
               <h3>{selectedChat}</h3>
             </div>
             <div className="chat-messages">
-              {filteredMessages.map(msg => (
+              <div ref={messagesEndRef} />
+              {[...filteredMessages].reverse().map(msg => (
                 <div key={msg.id} className={`message ${msg.direction}`}>
                   <div className="message-bubble">
                     {msg.mediaType === 'image' && msg.mediaUrl && (
@@ -121,7 +122,6 @@ const WhatsAppChat = () => {
                   </div>
                 </div>
               ))}
-              <div ref={messagesEndRef} />
             </div>
             <div className="chat-input">
               <input

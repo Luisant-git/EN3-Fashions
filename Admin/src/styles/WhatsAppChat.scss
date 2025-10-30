@@ -90,10 +90,10 @@
     .chat-messages {
       flex: 1;
       overflow-y: auto;
+      overflow-anchor: none;
       padding: 20px;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+      flex-direction: column-reverse;
 
       .message {
         display: flex;
