@@ -19,10 +19,6 @@ const WhatsAppChat = () => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    fetchMessages();
   }, [readMessages]);
 
 
@@ -96,8 +92,8 @@ const WhatsAppChat = () => {
             key={chat.phone}
             className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
-              if (selectedChat !== chat.phone) {
-                setSelectedChat(chat.phone);
+              setSelectedChat(chat.phone);
+              if (chat.unreadCount > 0) {
                 const newReadMessages = { ...readMessages, [chat.phone]: new Date().toISOString() };
                 setReadMessages(newReadMessages);
                 localStorage.setItem('readMessages', JSON.stringify(newReadMessages));
