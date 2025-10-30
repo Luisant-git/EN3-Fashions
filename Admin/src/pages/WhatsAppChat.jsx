@@ -27,13 +27,20 @@ const WhatsAppChat = () => {
       
       const uniqueChats = {};
       response.data.forEach(msg => {
-        if (!uniqueChats[msg.from] || new Date(msg.createdAt) > new Date(uniqueChats[msg.from].lastTime)) {
+        if (!uniqueChats[msg.from]) {
           uniqueChats[msg.from] = {
             phone: msg.from,
             lastMessage: msg.message,
             lastTime: msg.createdAt,
-            hasUnread: msg.direction === 'incoming' && (!readMessages[msg.from] || new Date(msg.createdAt) > new Date(readMessages[msg.from]))
+            unreadCount: 0
           };
+        }
+        if (new Date(msg.createdAt) > new Date(uniqueChats[msg.from].lastTime)) {
+          uniqueChats[msg.from].lastMessage = msg.message;
+          uniqueChats[msg.from].lastTime = msg.createdAt;
+        }
+        if (msg.direction === 'incoming' && (!readMessages[msg.from] || new Date(msg.createdAt) > new Date(readMessages[msg.from]))) {
+          uniqueChats[msg.from].unreadCount++;
         }
       });
       setChats(Object.values(uniqueChats));
@@ -80,7 +87,7 @@ const WhatsAppChat = () => {
         {chats.map(chat => (
           <div 
             key={chat.phone}
-            className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.hasUnread ? 'unread' : ''}`}
+            className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
               setSelectedChat(chat.phone);
               setReadMessages(prev => ({ ...prev, [chat.phone]: new Date().toISOString() }));
@@ -88,7 +95,10 @@ const WhatsAppChat = () => {
           >
             <div className="chat-avatar">{chat.phone.slice(-4)}</div>
             <div className="chat-info">
-              <div className="chat-phone">{chat.phone}</div>
+              <div className="chat-phone">
+                {chat.phone}
+                {chat.unreadCount > 0 && <span className="unread-badge">{chat.unreadCount}</span>}
+              </div>
               <div className="chat-last-msg">{chat.lastMessage}</div>
             </div>
           </div>

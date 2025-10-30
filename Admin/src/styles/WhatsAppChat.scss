@@ -30,15 +30,6 @@
         background: #e8f5e9;
       }
 
-      &.unread {
-        background: #f0f7ff;
-        
-        .chat-last-msg {
-          font-weight: 600;
-          color: #1976d2;
-        }
-      }
-
       .chat-avatar {
         width: 50px;
         height: 50px;
@@ -61,6 +52,17 @@
           display: flex;
           align-items: center;
           gap: 8px;
+        }
+
+        .unread-badge {
+          background: #25d366;
+          color: white;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 10px;
+          min-width: 20px;
+          text-align: center;
         }
 
         .chat-last-msg {
@@ -140,26 +142,6 @@
           .message-time {
             font-size: 11px;
             color: #666;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
-
-          .tick-mark {
-            font-size: 16px;
-            line-height: 1;
-            
-            &.sent {
-              color: #999;
-            }
-            
-            &.delivered {
-              color: #999;
-            }
-            
-            &.read {
-              color: #53bdeb;
-            }
           }
 
           .message-media {
