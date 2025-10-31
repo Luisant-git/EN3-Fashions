@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from '../prisma.service';
+import { WhatsappSessionService } from '../whatsapp-session/whatsapp-session.service';
 
 @Injectable()
 export class WhatsappService {
@@ -8,7 +9,10 @@ export class WhatsappService {
   private readonly phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   private readonly accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private sessionService: WhatsappSessionService
+  ) {}
 
   async handleIncomingMessage(message: any) {
     const from = message.from;
@@ -48,8 +52,14 @@ export class WhatsappService {
       }
     });
 
+    if (text) {
+      await this.sessionService.handleInteractiveMenu(from, text, (to, msg) => this.sendMessage(to, msg));
+    }
+
     console.log(`Message from ${from}: ${text || mediaType}`);
   }
+
+
 
   async downloadMedia(mediaId: string): Promise<string | null> {
     try {
