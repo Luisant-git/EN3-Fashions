@@ -54,6 +54,14 @@ export class WhatsappController {
     return this.whatsappService.sendMessage(body.to, body.message);
   }
 
+  @Post('send-bulk')
+  async sendBulk(@Body() body: { phoneNumbers?: string[]; contacts?: Array<{name: string; phone: string}>; templateName: string; parameters?: any[] }) {
+    if (body.contacts) {
+      return this.whatsappService.sendBulkTemplateMessageWithNames(body.contacts, body.templateName);
+    }
+    return this.whatsappService.sendBulkTemplateMessage(body.phoneNumbers || [], body.templateName, body.parameters);
+  }
+
   @Post('send-media')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({

@@ -191,6 +191,106 @@ export class WhatsappService {
     });
   }
 
+  async sendBulkTemplateMessage(phoneNumbers: string[], templateName: string, parameters?: any[]) {
+    const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
+    
+    for (const phoneNumber of phoneNumbers) {
+      try {
+        const response = await axios.post(
+          `${this.apiUrl}/${this.phoneNumberId}/messages`,
+          {
+            messaging_product: 'whatsapp',
+            to: phoneNumber,
+            type: 'template',
+            template: {
+              name: templateName,
+              language: { code: 'en' },
+              components: parameters ? [
+                {
+                  type: 'body',
+                  parameters: parameters.map(param => ({ type: 'text', text: param }))
+                }
+              ] : []
+            }
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${this.accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        await this.prisma.whatsappMessage.create({
+          data: {
+            messageId: response.data.messages[0].id,
+            from: phoneNumber,
+            message: `Template ${templateName} sent`,
+            direction: 'outgoing',
+            status: 'sent'
+          }
+        });
+
+        results.push({ phoneNumber, success: true, messageId: response.data.messages[0].id });
+      } catch (error) {
+        console.error(`Failed to send to ${phoneNumber}:`, error.response?.data || error.message);
+        results.push({ phoneNumber, success: false, error: error.message });
+      }
+    }
+
+    return results;
+  }
+
+  async sendBulkTemplateMessageWithNames(contacts: Array<{name: string; phone: string}>, templateName: string) {
+    const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
+    
+    for (const contact of contacts) {
+      try {
+        const response = await axios.post(
+          `${this.apiUrl}/${this.phoneNumberId}/messages`,
+          {
+            messaging_product: 'whatsapp',
+            to: contact.phone,
+            type: 'template',
+            template: {
+              name: templateName,
+              language: { code: 'en' },
+              components: contact.name ? [
+                {
+                  type: 'body',
+                  parameters: [{ type: 'text', text: contact.name }]
+                }
+              ] : []
+            }
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${this.accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        await this.prisma.whatsappMessage.create({
+          data: {
+            messageId: response.data.messages[0].id,
+            from: contact.phone,
+            message: `Template ${templateName} sent to ${contact.name}`,
+            direction: 'outgoing',
+            status: 'sent'
+          }
+        });
+
+        results.push({ phoneNumber: contact.phone, success: true, messageId: response.data.messages[0].id });
+      } catch (error) {
+        console.error(`Failed to send to ${contact.phone}:`, error.response?.data || error.message);
+        results.push({ phoneNumber: contact.phone, success: false, error: error.message });
+      }
+    }
+
+    return results;
+  }
+
   async sendOrderConfirmation(order: any) {
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
