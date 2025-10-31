@@ -14,7 +14,7 @@ export class WhatsappSessionService {
 
     const trimmedInput = input.trim();
 
-    if (trimmedInput.toLowerCase() === 'menu' || trimmedInput === '0' || trimmedInput.toLowerCase() === 'hi' || trimmedInput.toLowerCase() === 'hello' || trimmedInput.toLowerCase() === 'start' || trimmedInput.toLowerCase() === 'restart') {
+    if (trimmedInput.toLowerCase() === 'menu' || trimmedInput === '0') {
       await this.prisma.whatsappSession.update({
         where: { phone },
         data: { state: 'menu', categoryId: null, subCategoryId: null }
