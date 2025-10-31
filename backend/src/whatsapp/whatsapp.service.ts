@@ -178,8 +178,22 @@ export class WhatsappService {
         data: { status }
       });
       console.log(`Message ${messageId} status updated to ${status}`);
+      return { messageId, status };
     } catch (error) {
       console.error('Error updating message status:', error);
+      return null;
+    }
+  }
+
+  async getMessageStatus(messageId: string) {
+    try {
+      const message = await this.prisma.whatsappMessage.findFirst({
+        where: { messageId }
+      });
+      return message?.status || 'unknown';
+    } catch (error) {
+      console.error('Error getting message status:', error);
+      return 'unknown';
     }
   }
 
@@ -245,6 +259,12 @@ export class WhatsappService {
     const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
     
     for (const contact of contacts) {
+      const validationError = this.validatePhoneNumber(contact.phone);
+      if (validationError) {
+        results.push({ phoneNumber: contact.phone, success: false, error: validationError });
+        continue;
+      }
+
       try {
         const response = await axios.post(
           `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -283,12 +303,57 @@ export class WhatsappService {
 
         results.push({ phoneNumber: contact.phone, success: true, messageId: response.data.messages[0].id });
       } catch (error) {
-        console.error(`Failed to send to ${contact.phone}:`, error.response?.data || error.message);
-        results.push({ phoneNumber: contact.phone, success: false, error: error.message });
+        const errorMsg = this.getErrorMessage(error);
+        console.error(`Failed to send to ${contact.phone}:`, errorMsg);
+        results.push({ phoneNumber: contact.phone, success: false, error: errorMsg });
       }
     }
 
     return results;
+  }
+
+  private validatePhoneNumber(phone: string): string | null {
+    if (!phone || phone.trim() === '') {
+      return 'Phone number is required';
+    }
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+      return 'Invalid phone number format';
+    }
+    if (!/^[1-9]/.test(cleanPhone)) {
+      return 'Phone number cannot start with 0';
+    }
+    
+    // Block repeated digits (1111111111, 2222222222, etc.)
+    if (/^(\d)\1{9,}$/.test(cleanPhone)) {
+      return 'Invalid phone number - not registered on WhatsApp';
+    }
+    
+    // Block sequential numbers (1234567890, 0123456789)
+    if (cleanPhone === '1234567890' || cleanPhone === '0123456789' || 
+        cleanPhone === '9876543210' || cleanPhone === '0987654321') {
+      return 'Invalid phone number - not registered on WhatsApp';
+    }
+    
+    return null;
+  }
+
+  private getErrorMessage(error: any): string {
+    if (error.response?.data?.error) {
+      const apiError = error.response.data.error;
+      if (apiError.code === 131026) {
+        return 'Number not registered on WhatsApp';
+      }
+      if (apiError.code === 131047) {
+        return 'Message failed to send - Invalid number';
+      }
+      if (apiError.code === 131051) {
+        return 'Unsupported message type';
+      }
+      return apiError.message || 'WhatsApp API error';
+    }
+    return error.message || 'Failed to send message';
   }
 
   async sendOrderConfirmation(order: any) {

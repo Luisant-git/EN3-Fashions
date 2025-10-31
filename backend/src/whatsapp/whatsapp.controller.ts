@@ -82,4 +82,9 @@ export class WhatsappController {
                       file.mimetype.startsWith('audio') ? 'audio' : 'document';
     return this.whatsappService.sendMediaMessage(body.to, mediaUrl, mediaType, body.caption);
   }
+
+  @Get('message-status/:messageId')
+  async getMessageStatus(@Query('messageId') messageId: string) {
+    return this.whatsappService.getMessageStatus(messageId);
+  }
 }

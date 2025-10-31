@@ -23,6 +23,8 @@ const WhatsAppChat = () => {
 
 
 
+
+
   const fetchMessages = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
@@ -33,19 +35,20 @@ const WhatsAppChat = () => {
         if (!uniqueChats[msg.from]) {
           uniqueChats[msg.from] = {
             phone: msg.from,
-            lastMessage: msg.message,
+            lastMessage: msg.message || 'Media',
             lastTime: msg.createdAt,
             unreadCount: 0
           };
         }
         if (new Date(msg.createdAt) > new Date(uniqueChats[msg.from].lastTime)) {
-          uniqueChats[msg.from].lastMessage = msg.message;
+          uniqueChats[msg.from].lastMessage = msg.message || 'Media';
           uniqueChats[msg.from].lastTime = msg.createdAt;
         }
         if (msg.direction === 'incoming' && (!readMessages[msg.from] || new Date(msg.createdAt) > new Date(readMessages[msg.from]))) {
           uniqueChats[msg.from].unreadCount++;
         }
       });
+      setChats(Object.values(uniqueChats).sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime)));
       setChats(Object.values(uniqueChats));
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -55,27 +58,42 @@ const WhatsAppChat = () => {
   const sendMessage = async () => {
     if ((!messageText.trim() && !selectedFile) || !selectedChat) return;
 
+    const tempMessage = {
+      id: Date.now(),
+      from: selectedChat,
+      message: messageText,
+      direction: 'outgoing',
+      status: 'sent',
+      createdAt: new Date().toISOString(),
+      mediaType: selectedFile ? (selectedFile.type.startsWith('image') ? 'image' : selectedFile.type.startsWith('video') ? 'video' : 'document') : null
+    };
+
+    setMessages(prev => [...prev, tempMessage]);
+    const currentMessage = messageText;
+    const currentFile = selectedFile;
+    setMessageText('');
+    setSelectedFile(null);
+
     try {
-      if (selectedFile) {
+      if (currentFile) {
         const formData = new FormData();
-        formData.append('file', selectedFile);
+        formData.append('file', currentFile);
         formData.append('to', selectedChat);
-        if (messageText.trim()) formData.append('caption', messageText);
+        if (currentMessage.trim()) formData.append('caption', currentMessage);
         
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-media`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        setSelectedFile(null);
       } else {
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-message`, {
           to: selectedChat,
-          message: messageText
+          message: currentMessage
         });
       }
-      setMessageText('');
-      fetchMessages();
+      await fetchMessages();
     } catch (error) {
       console.error('Error sending message:', error);
+      setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
     }
   };
 
@@ -98,6 +116,7 @@ const WhatsAppChat = () => {
                 setReadMessages(newReadMessages);
                 localStorage.setItem('readMessages', JSON.stringify(newReadMessages));
               }
+              setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), 50);
             }}
           >
             <div className="chat-avatar">{chat.phone.slice(-4)}</div>
@@ -119,8 +138,7 @@ const WhatsAppChat = () => {
               <h3>{selectedChat}</h3>
             </div>
             <div className="chat-messages">
-              <div ref={messagesEndRef} />
-              {[...filteredMessages].reverse().map(msg => (
+              {filteredMessages.map(msg => (
                 <div key={msg.id} className={`message ${msg.direction}`}>
                   <div className="message-bubble">
                     {msg.mediaType === 'image' && msg.mediaUrl && (
@@ -151,6 +169,7 @@ const WhatsAppChat = () => {
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
             <div className="chat-input">
               <input
