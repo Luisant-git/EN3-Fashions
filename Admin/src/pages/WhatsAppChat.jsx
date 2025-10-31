@@ -19,7 +19,7 @@ const WhatsAppChat = () => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
-  }, [readMessages]);
+  }, []);
 
 
 
@@ -28,6 +28,7 @@ const WhatsAppChat = () => {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
       setMessages(response.data);
 
+      const savedReadMessages = JSON.parse(localStorage.getItem('readMessages') || '{}');
       const uniqueChats = {};
       response.data.forEach(msg => {
         if (!uniqueChats[msg.from]) {
@@ -42,7 +43,7 @@ const WhatsAppChat = () => {
           uniqueChats[msg.from].lastMessage = msg.message;
           uniqueChats[msg.from].lastTime = msg.createdAt;
         }
-        if (msg.direction === 'incoming' && (!readMessages[msg.from] || new Date(msg.createdAt) > new Date(readMessages[msg.from]))) {
+        if (msg.direction === 'incoming' && (!savedReadMessages[msg.from] || new Date(msg.createdAt) > new Date(savedReadMessages[msg.from]))) {
           uniqueChats[msg.from].unreadCount++;
         }
       });
@@ -73,7 +74,7 @@ const WhatsAppChat = () => {
         });
       }
       setMessageText('');
-      fetchMessages();
+      await fetchMessages();
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -119,7 +120,6 @@ const WhatsAppChat = () => {
               <h3>{selectedChat}</h3>
             </div>
             <div className="chat-messages">
-              <div ref={messagesEndRef} />
               {[...filteredMessages].reverse().map(msg => (
                 <div key={msg.id} className={`message ${msg.direction}`}>
                   <div className="message-bubble">
@@ -151,6 +151,7 @@ const WhatsAppChat = () => {
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
             <div className="chat-input">
               <input
