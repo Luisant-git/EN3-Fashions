@@ -49,11 +49,8 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     {
       key: 'whatsapp',
       icon: MessageCircle,
-      label: 'WhatsApp',
-      children: [
-        { key: 'whatsapp-chat', icon: MessageCircle, label: 'WhatsApp Chat', path: '/whatsapp-chat' },
-        { key: 'bulk-whatsapp', icon: MessageCircle, label: 'Bulk WhatsApp', path: '/bulk-whatsapp' }
-      ]
+      label: 'WhatsApp Chat',
+      path: '/whatsapp-chat'
     },
     {
       key: 'customers',
