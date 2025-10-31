@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import '../styles/WhatsAppChat.scss';
-
+ 
 const WhatsAppChat = () => {
   const [messages, setMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -14,21 +14,20 @@ const WhatsAppChat = () => {
   });
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-
+ 
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
-  }, []);
-
-
-
+  }, [readMessages]);
+ 
+ 
+ 
   const fetchMessages = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
       setMessages(response.data);
-
-      const savedReadMessages = JSON.parse(localStorage.getItem('readMessages') || '{}');
+     
       const uniqueChats = {};
       response.data.forEach(msg => {
         if (!uniqueChats[msg.from]) {
@@ -43,7 +42,7 @@ const WhatsAppChat = () => {
           uniqueChats[msg.from].lastMessage = msg.message;
           uniqueChats[msg.from].lastTime = msg.createdAt;
         }
-        if (msg.direction === 'incoming' && (!savedReadMessages[msg.from] || new Date(msg.createdAt) > new Date(savedReadMessages[msg.from]))) {
+        if (msg.direction === 'incoming' && (!readMessages[msg.from] || new Date(msg.createdAt) > new Date(readMessages[msg.from]))) {
           uniqueChats[msg.from].unreadCount++;
         }
       });
@@ -52,17 +51,17 @@ const WhatsAppChat = () => {
       console.error('Error fetching messages:', error);
     }
   };
-
+ 
   const sendMessage = async () => {
     if ((!messageText.trim() && !selectedFile) || !selectedChat) return;
-
+ 
     try {
       if (selectedFile) {
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('to', selectedChat);
         if (messageText.trim()) formData.append('caption', messageText);
-
+       
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-media`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -74,22 +73,22 @@ const WhatsAppChat = () => {
         });
       }
       setMessageText('');
-      await fetchMessages();
+      fetchMessages();
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
-
-  const filteredMessages = selectedChat 
-    ? messages.filter(m => m.from === selectedChat || m.to === selectedChat)
+ 
+  const filteredMessages = selectedChat
+    ? messages.filter(m => m.from === selectedChat)
     : [];
-
+ 
   return (
     <div className="whatsapp-chat">
       <div className="chat-sidebar">
-        <h2>WhatsApp Chat</h2>
+        <h2>WhatsApp Chats</h2>
         {chats.map(chat => (
-          <div 
+          <div
             key={chat.phone}
             className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
@@ -112,7 +111,7 @@ const WhatsAppChat = () => {
           </div>
         ))}
       </div>
-
+ 
       <div className="chat-main">
         {selectedChat ? (
           <>
@@ -120,6 +119,7 @@ const WhatsAppChat = () => {
               <h3>{selectedChat}</h3>
             </div>
             <div className="chat-messages">
+              <div ref={messagesEndRef} />
               {[...filteredMessages].reverse().map(msg => (
                 <div key={msg.id} className={`message ${msg.direction}`}>
                   <div className="message-bubble">
@@ -151,7 +151,6 @@ const WhatsAppChat = () => {
                   </div>
                 </div>
               ))}
-              <div ref={messagesEndRef} />
             </div>
             <div className="chat-input">
               <input
@@ -193,5 +192,5 @@ const WhatsAppChat = () => {
     </div>
   );
 };
-
+ 
 export default WhatsAppChat;

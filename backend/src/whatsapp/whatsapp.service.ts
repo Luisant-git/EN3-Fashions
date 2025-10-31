@@ -40,6 +40,7 @@ export class WhatsappService {
       data: {
         messageId,
         from,
+        to: this.phoneNumberId!,
         message: text || (mediaType ? `${mediaType} file` : null),
         mediaType,
         mediaUrl,
@@ -120,7 +121,8 @@ export class WhatsappService {
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
-          from: to,
+          from: this.phoneNumberId!,
+          to,
           message,
           direction: 'outgoing',
           status: 'sent'
@@ -155,7 +157,8 @@ export class WhatsappService {
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
-          from: to,
+          from: this.phoneNumberId!,
+          to,
           message: caption || `${mediaType} file`,
           mediaType,
           mediaUrl,
@@ -185,7 +188,12 @@ export class WhatsappService {
 
   async getMessages(phoneNumber?: string) {
     return this.prisma.whatsappMessage.findMany({
-      where: phoneNumber ? { from: phoneNumber } : {},
+      where: phoneNumber ? {
+        OR: [
+          { from: phoneNumber },
+          { to: phoneNumber }
+        ]
+      } : {},
       orderBy: { createdAt: 'asc' },
       take: 100
     });
@@ -228,7 +236,8 @@ export class WhatsappService {
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
-          from: phoneNumber,
+          from: this.phoneNumberId!,
+          to: phoneNumber,
           message: `Order ${order.id} confirmation sent`,
           direction: 'outgoing',
           status: 'sent'
