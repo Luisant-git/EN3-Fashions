@@ -27,7 +27,7 @@ const WhatsAppChat = () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
       setMessages(response.data);
-      
+
       const uniqueChats = {};
       response.data.forEach(msg => {
         if (!uniqueChats[msg.from]) {
@@ -61,7 +61,7 @@ const WhatsAppChat = () => {
         formData.append('file', selectedFile);
         formData.append('to', selectedChat);
         if (messageText.trim()) formData.append('caption', messageText);
-        
+
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-media`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -80,13 +80,13 @@ const WhatsAppChat = () => {
   };
 
   const filteredMessages = selectedChat 
-    ? messages.filter(m => m.from === selectedChat)
+    ? messages.filter(m => m.from === selectedChat || m.to === selectedChat)
     : [];
 
   return (
     <div className="whatsapp-chat">
       <div className="chat-sidebar">
-        <h2>WhatsApp Chats</h2>
+        <h2>WhatsApp Chat</h2>
         {chats.map(chat => (
           <div 
             key={chat.phone}
