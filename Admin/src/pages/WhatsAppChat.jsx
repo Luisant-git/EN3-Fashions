@@ -12,7 +12,6 @@ const WhatsAppChat = () => {
     const saved = localStorage.getItem('readMessages');
     return saved ? JSON.parse(saved) : {};
   });
-  const [sessionState, setSessionState] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -21,12 +20,6 @@ const WhatsAppChat = () => {
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, [readMessages]);
-
-  useEffect(() => {
-    if (selectedChat) {
-      fetchSessionState();
-    }
-  }, [selectedChat]);
 
 
 
@@ -86,31 +79,6 @@ const WhatsAppChat = () => {
     }
   };
 
-  const fetchSessionState = async () => {
-    if (!selectedChat) return;
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp-session/session?phone=${selectedChat}`);
-      setSessionState(response.data);
-    } catch (error) {
-      setSessionState(null);
-    }
-  };
-
-  const sendCatalogMenu = async (phone) => {
-    try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp-session/test-menu`, {
-        phone,
-        message: 'menu'
-      });
-      setTimeout(() => {
-        fetchMessages();
-        fetchSessionState();
-      }, 500);
-    } catch (error) {
-      console.error('Error sending menu:', error);
-    }
-  };
-
   const filteredMessages = selectedChat 
     ? messages.filter(m => m.from === selectedChat)
     : [];
@@ -148,19 +116,7 @@ const WhatsAppChat = () => {
         {selectedChat ? (
           <>
             <div className="chat-header">
-              <div className="header-info">
-                <h3>{selectedChat}</h3>
-                {sessionState && (
-                  <span className="session-badge">
-                    {sessionState.state === 'menu' && '📋 Main Menu'}
-                    {sessionState.state === 'category' && '📂 Browsing Subcategory'}
-                    {sessionState.state === 'subcategory' && '🏷️ Browsing Products'}
-                  </span>
-                )}
-              </div>
-              <button className="menu-btn" onClick={() => sendCatalogMenu(selectedChat)}>
-                📋 Send Menu
-              </button>
+              <h3>{selectedChat}</h3>
             </div>
             <div className="chat-messages">
               <div ref={messagesEndRef} />

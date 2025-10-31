@@ -15,10 +15,9 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { CouponModule } from './coupon/coupon.module';
 import { CustomerModule } from './customer/customer.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
-import { WhatsappSessionModule } from './whatsapp-session/whatsapp-session.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule],
+  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule],
   controllers: [AppController],
   providers: [AppService],
 })
