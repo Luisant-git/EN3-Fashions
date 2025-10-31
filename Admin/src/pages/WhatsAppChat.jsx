@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import '../styles/WhatsAppChat.scss';
-
+ 
 const WhatsAppChat = () => {
   const [messages, setMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -12,29 +12,22 @@ const WhatsAppChat = () => {
     const saved = localStorage.getItem('readMessages');
     return saved ? JSON.parse(saved) : {};
   });
-  const [sessionState, setSessionState] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-
+ 
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, [readMessages]);
-
-  useEffect(() => {
-    if (selectedChat) {
-      fetchSessionState();
-    }
-  }, [selectedChat]);
-
-
-
+ 
+ 
+ 
   const fetchMessages = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
       setMessages(response.data);
-      
+     
       const uniqueChats = {};
       response.data.forEach(msg => {
         if (!uniqueChats[msg.from]) {
@@ -58,17 +51,17 @@ const WhatsAppChat = () => {
       console.error('Error fetching messages:', error);
     }
   };
-
+ 
   const sendMessage = async () => {
     if ((!messageText.trim() && !selectedFile) || !selectedChat) return;
-
+ 
     try {
       if (selectedFile) {
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('to', selectedChat);
         if (messageText.trim()) formData.append('caption', messageText);
-        
+       
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-media`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -85,42 +78,17 @@ const WhatsAppChat = () => {
       console.error('Error sending message:', error);
     }
   };
-
-  const fetchSessionState = async () => {
-    if (!selectedChat) return;
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp-session/session?phone=${selectedChat}`);
-      setSessionState(response.data);
-    } catch (error) {
-      setSessionState(null);
-    }
-  };
-
-  const sendCatalogMenu = async (phone) => {
-    try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp-session/test-menu`, {
-        phone,
-        message: 'menu'
-      });
-      setTimeout(() => {
-        fetchMessages();
-        fetchSessionState();
-      }, 500);
-    } catch (error) {
-      console.error('Error sending menu:', error);
-    }
-  };
-
-  const filteredMessages = selectedChat 
+ 
+  const filteredMessages = selectedChat
     ? messages.filter(m => m.from === selectedChat)
     : [];
-
+ 
   return (
     <div className="whatsapp-chat">
       <div className="chat-sidebar">
         <h2>WhatsApp Chats</h2>
         {chats.map(chat => (
-          <div 
+          <div
             key={chat.phone}
             className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
@@ -143,24 +111,12 @@ const WhatsAppChat = () => {
           </div>
         ))}
       </div>
-
+ 
       <div className="chat-main">
         {selectedChat ? (
           <>
             <div className="chat-header">
-              <div className="header-info">
-                <h3>{selectedChat}</h3>
-                {sessionState && (
-                  <span className="session-badge">
-                    {sessionState.state === 'menu' && '📋 Main Menu'}
-                    {sessionState.state === 'category' && '📂 Browsing Subcategory'}
-                    {sessionState.state === 'subcategory' && '🏷️ Browsing Products'}
-                  </span>
-                )}
-              </div>
-              <button className="menu-btn" onClick={() => sendCatalogMenu(selectedChat)}>
-                📋 Send Menu
-              </button>
+              <h3>{selectedChat}</h3>
             </div>
             <div className="chat-messages">
               <div ref={messagesEndRef} />
@@ -236,5 +192,5 @@ const WhatsAppChat = () => {
     </div>
   );
 };
-
+ 
 export default WhatsAppChat;
