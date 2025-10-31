@@ -51,7 +51,7 @@ export class WhatsappController {
 
   @Post('send-message')
   async sendMessage(@Body() body: { to: string; message: string }) {
-    return this.whatsappService.sendMessage(body.to, body.message);
+    return this.whatsappService.sendMessage(body.to, body.message); 
   }
 
   @Post('send-media')
