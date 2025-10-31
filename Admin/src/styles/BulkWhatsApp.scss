@@ -349,10 +349,21 @@
         border: 1px solid transparent;
         transition: all 0.2s ease;
         
-        .result-phone {
-          font-family: 'Monaco', 'Menlo', monospace;
-          font-size: 13px;
-          font-weight: 500;
+        .result-info {
+          flex: 1;
+          
+          .result-phone {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+          
+          .result-error-msg {
+            font-size: 11px;
+            opacity: 0.8;
+            font-style: italic;
+          }
         }
         
         .result-status {

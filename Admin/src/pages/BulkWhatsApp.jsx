@@ -75,10 +75,17 @@ const BulkWhatsApp = () => {
       });
       
       setResults(response.data);
-      alert(`Sent to ${response.data.filter(r => r.success).length} out of ${dataToSend.length} contacts`);
+      const successCount = response.data.filter(r => r.success).length;
+      const failedCount = response.data.filter(r => !r.success).length;
+      
+      if (failedCount > 0) {
+        alert(`Sent: ${successCount} | Failed: ${failedCount}\n\nNote: Some numbers may not be registered on WhatsApp or are invalid.`);
+      } else {
+        alert(`Successfully sent to all ${successCount} contacts!`);
+      }
     } catch (error) {
       console.error('Error sending bulk messages:', error);
-      alert('Failed to send messages');
+      alert('Failed to send messages. Please check your configuration.');
     } finally {
       setLoading(false);
     }
@@ -215,7 +222,12 @@ const BulkWhatsApp = () => {
             <div className="results-list">
               {results.map((result, index) => (
                 <div key={index} className={`result-item ${result.success ? 'success' : 'error'}`}>
-                  <div className="result-phone">{result.phoneNumber}</div>
+                  <div className="result-info">
+                    <div className="result-phone">{result.phoneNumber}</div>
+                    {!result.success && result.error && (
+                      <div className="result-error-msg">{result.error}</div>
+                    )}
+                  </div>
                   <div className="result-status">
                     <span className={`status-icon ${result.success ? 'success' : 'error'}`}>
                       {result.success ? <IoCheckmarkOutline size={16} /> : <IoCloseSharp size={16} />}
