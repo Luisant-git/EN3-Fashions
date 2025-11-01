@@ -5,7 +5,7 @@ import { IoSettingsOutline, IoCloseOutline, IoCheckmarkOutline, IoCloseSharp, Io
 import { FaWhatsapp } from 'react-icons/fa';
 import '../styles/BulkWhatsApps.scss';
 
-const BulkWhatsApps = () => {
+const BulkWhatsApp = () => {
   const [phoneNumbers, setPhoneNumbers] = useState('');
   const [templateName, setTemplateName] = useState('luisant_diwali_website50_v1');
   const [customerName, setCustomerName] = useState('');
@@ -316,4 +316,4 @@ const BulkWhatsApps = () => {
   );
 };
 
-export default BulkWhatsApps;
+export default BulkWhatsApp;
