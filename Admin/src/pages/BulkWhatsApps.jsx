@@ -3,9 +3,9 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { IoSettingsOutline, IoCloseOutline, IoCheckmarkOutline, IoCloseSharp, IoDocumentTextOutline, IoPhonePortraitOutline, IoLockClosedOutline, IoCloudUploadOutline, IoSendSharp } from 'react-icons/io5';
 import { FaWhatsapp } from 'react-icons/fa';
-import '../styles/BulkWhatsApp.scss';
+import '../styles/BulkWhatsApps.scss';
 
-const BulkWhatsApp = () => {
+const BulkWhatsApps = () => {
   const [phoneNumbers, setPhoneNumbers] = useState('');
   const [templateName, setTemplateName] = useState('luisant_diwali_website50_v1');
   const [customerName, setCustomerName] = useState('');
@@ -316,4 +316,4 @@ const BulkWhatsApp = () => {
   );
 };
 
-export default BulkWhatsApp;
+export default BulkWhatsApps;

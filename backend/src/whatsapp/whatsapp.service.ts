@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from '../prisma.service';
-
+import { WhatsappSessionService } from '../whatsapp-session/whatsapp-session.service';
+ 
 @Injectable()
 export class WhatsappService {
   private readonly apiUrl = process.env.WHATSAPP_API_URL;
   private readonly phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   private readonly accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-
-  constructor(private prisma: PrismaService) {}
-
+ 
+  constructor(
+    private prisma: PrismaService,
+    private sessionService: WhatsappSessionService
+  ) {}
+ 
   async handleIncomingMessage(message: any) {
     const from = message.from;
     const messageId = message.id;
@@ -18,10 +22,10 @@ export class WhatsappService {
     const video = message.video;
     const document = message.document;
     const audio = message.audio;
-
+ 
     let mediaType: string | null = null;
     let mediaUrl: string | null = null;
-
+ 
     if (image) {
       mediaType = 'image';
       mediaUrl = await this.downloadMedia(image.id);
@@ -35,7 +39,7 @@ export class WhatsappService {
       mediaType = 'audio';
       mediaUrl = await this.downloadMedia(audio.id);
     }
-
+ 
     await this.prisma.whatsappMessage.create({
       data: {
         messageId,
@@ -48,13 +52,22 @@ export class WhatsappService {
       }
     });
 
+    if (text) {
+      await this.sessionService.handleInteractiveMenu(from, text, async (to, msg, imageUrl) => {
+        if (imageUrl) {
+          return this.sendMediaMessage(to, imageUrl, 'image', msg);
+        }
+        return this.sendMessage(to, msg);
+      });
+    }
+ 
     console.log(`Message from ${from}: ${text || mediaType}`);
   }
-
+ 
   async downloadMedia(mediaId: string): Promise<string | null> {
     try {
       console.log('Downloading media:', mediaId);
-      
+     
       const mediaInfoResponse = await axios.get(
         `${this.apiUrl}/${mediaId}`,
         {
@@ -63,42 +76,42 @@ export class WhatsappService {
           }
         }
       );
-      
+     
       console.log('Media info:', mediaInfoResponse.data);
       const mediaUrl = mediaInfoResponse.data.url;
-      
+     
       if (!mediaUrl) {
         console.error('No media URL found');
         return null;
       }
-      
+     
       const mediaDataResponse = await axios.get(mediaUrl, {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`
         },
         responseType: 'arraybuffer'
       });
-
+ 
       const fs = require('fs');
       const path = require('path');
       const crypto = require('crypto');
-      
+     
       const ext = mediaInfoResponse.data.mime_type?.split('/')[1] || 'jpg';
       const filename = `${crypto.randomBytes(16).toString('hex')}.${ext}`;
       const filepath = path.join('uploads', filename);
-      
+     
       fs.writeFileSync(filepath, mediaDataResponse.data);
-      
+     
       const finalUrl = `${process.env.UPLOAD_URL}/${filename}`;
       console.log('Media saved:', finalUrl);
-      
+     
       return finalUrl;
     } catch (error) {
       console.error('Media download error:', error.response?.data || error.message);
       return null;
     }
   }
-
+ 
   async sendMessage(to: string, message: string) {
     try {
       const response = await axios.post(
@@ -116,7 +129,7 @@ export class WhatsappService {
           }
         }
       );
-
+ 
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
@@ -126,14 +139,14 @@ export class WhatsappService {
           status: 'sent'
         }
       });
-
+ 
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
   }
-
+ 
   async sendMediaMessage(to: string, mediaUrl: string, mediaType: string, caption?: string) {
     try {
       const response = await axios.post(
@@ -151,7 +164,7 @@ export class WhatsappService {
           }
         }
       );
-
+ 
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
@@ -163,14 +176,14 @@ export class WhatsappService {
           status: 'sent'
         }
       });
-
+ 
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp Media API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
   }
-
+ 
   async updateMessageStatus(messageId: string, status: string) {
     try {
       await this.prisma.whatsappMessage.updateMany({
@@ -184,7 +197,7 @@ export class WhatsappService {
       return null;
     }
   }
-
+ 
   async getMessageStatus(messageId: string) {
     try {
       const message = await this.prisma.whatsappMessage.findFirst({
@@ -196,18 +209,17 @@ export class WhatsappService {
       return 'unknown';
     }
   }
-
+ 
   async getMessages(phoneNumber?: string) {
     return this.prisma.whatsappMessage.findMany({
       where: phoneNumber ? { from: phoneNumber } : {},
       orderBy: { createdAt: 'asc' },
-      take: 100
     });
   }
-
+ 
   async sendBulkTemplateMessage(phoneNumbers: string[], templateName: string, parameters?: any[]) {
     const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
-    
+   
     for (const phoneNumber of phoneNumbers) {
       try {
         const response = await axios.post(
@@ -234,7 +246,7 @@ export class WhatsappService {
             }
           }
         );
-
+ 
         await this.prisma.whatsappMessage.create({
           data: {
             messageId: response.data.messages[0].id,
@@ -244,27 +256,27 @@ export class WhatsappService {
             status: 'sent'
           }
         });
-
+ 
         results.push({ phoneNumber, success: true, messageId: response.data.messages[0].id });
       } catch (error) {
         console.error(`Failed to send to ${phoneNumber}:`, error.response?.data || error.message);
         results.push({ phoneNumber, success: false, error: error.message });
       }
     }
-
+ 
     return results;
   }
-
+ 
   async sendBulkTemplateMessageWithNames(contacts: Array<{name: string; phone: string}>, templateName: string) {
     const results: Array<{ phoneNumber: string; success: boolean; messageId?: string; error?: string }> = [];
-    
+   
     for (const contact of contacts) {
       const validationError = this.validatePhoneNumber(contact.phone);
       if (validationError) {
         results.push({ phoneNumber: contact.phone, success: false, error: validationError });
         continue;
       }
-
+ 
       try {
         const response = await axios.post(
           `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -290,7 +302,7 @@ export class WhatsappService {
             }
           }
         );
-
+ 
         await this.prisma.whatsappMessage.create({
           data: {
             messageId: response.data.messages[0].id,
@@ -300,7 +312,7 @@ export class WhatsappService {
             status: 'sent'
           }
         });
-
+ 
         results.push({ phoneNumber: contact.phone, success: true, messageId: response.data.messages[0].id });
       } catch (error) {
         const errorMsg = this.getErrorMessage(error);
@@ -308,37 +320,38 @@ export class WhatsappService {
         results.push({ phoneNumber: contact.phone, success: false, error: errorMsg });
       }
     }
-
+ 
     return results;
   }
 
+ 
   private validatePhoneNumber(phone: string): string | null {
     if (!phone || phone.trim() === '') {
       return 'Phone number is required';
     }
     const cleanPhone = phone.replace(/[^0-9]/g, '');
-    
+   
     if (cleanPhone.length < 10 || cleanPhone.length > 15) {
       return 'Invalid phone number format';
     }
     if (!/^[1-9]/.test(cleanPhone)) {
       return 'Phone number cannot start with 0';
     }
-    
+   
     // Block repeated digits (1111111111, 2222222222, etc.)
     if (/^(\d)\1{9,}$/.test(cleanPhone)) {
       return 'Invalid phone number - not registered on WhatsApp';
     }
-    
+   
     // Block sequential numbers (1234567890, 0123456789)
-    if (cleanPhone === '1234567890' || cleanPhone === '0123456789' || 
+    if (cleanPhone === '1234567890' || cleanPhone === '0123456789' ||
         cleanPhone === '9876543210' || cleanPhone === '0987654321') {
       return 'Invalid phone number - not registered on WhatsApp';
     }
-    
+   
     return null;
   }
-
+ 
   private getErrorMessage(error: any): string {
     if (error.response?.data?.error) {
       const apiError = error.response.data.error;
@@ -355,11 +368,11 @@ export class WhatsappService {
     }
     return error.message || 'Failed to send message';
   }
-
+ 
   async sendOrderConfirmation(order: any) {
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
-
+ 
     try {
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -389,7 +402,7 @@ export class WhatsappService {
           }
         }
       );
-
+ 
       await this.prisma.whatsappMessage.create({
         data: {
           messageId: response.data.messages[0].id,
@@ -399,7 +412,7 @@ export class WhatsappService {
           status: 'sent'
         }
       });
-
+ 
       console.log(`WhatsApp message sent to ${phoneNumber}:`, response.data);
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {

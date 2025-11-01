@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import '../styles/WhatsAppChat.scss';
-
+ 
 const WhatsAppChat = () => {
   const [messages, setMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -14,7 +14,7 @@ const WhatsAppChat = () => {
   });
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-
+ 
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
@@ -29,7 +29,7 @@ const WhatsAppChat = () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/messages`);
       setMessages(response.data);
-      
+     
       const uniqueChats = {};
       response.data.forEach(msg => {
         if (!uniqueChats[msg.from]) {
@@ -54,7 +54,7 @@ const WhatsAppChat = () => {
       console.error('Error fetching messages:', error);
     }
   };
-
+ 
   const sendMessage = async () => {
     if ((!messageText.trim() && !selectedFile) || !selectedChat) return;
 
@@ -79,8 +79,8 @@ const WhatsAppChat = () => {
         const formData = new FormData();
         formData.append('file', currentFile);
         formData.append('to', selectedChat);
-        if (currentMessage.trim()) formData.append('caption', currentMessage);
-        
+        if (messageText.trim()) formData.append('caption', messageText);
+       
         await axios.post(`${import.meta.env.VITE_API_BASE_URL}/whatsapp/send-media`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -96,17 +96,17 @@ const WhatsAppChat = () => {
       setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
     }
   };
-
-  const filteredMessages = selectedChat 
+ 
+  const filteredMessages = selectedChat
     ? messages.filter(m => m.from === selectedChat)
     : [];
-
+ 
   return (
     <div className="whatsapp-chat">
       <div className="chat-sidebar">
         <h2>WhatsApp Chats</h2>
         {chats.map(chat => (
-          <div 
+          <div
             key={chat.phone}
             className={`chat-item ${selectedChat === chat.phone ? 'active' : ''} ${chat.unreadCount > 0 ? 'unread' : ''}`}
             onClick={() => {
@@ -130,7 +130,7 @@ const WhatsAppChat = () => {
           </div>
         ))}
       </div>
-
+ 
       <div className="chat-main">
         {selectedChat ? (
           <>
@@ -211,5 +211,5 @@ const WhatsAppChat = () => {
     </div>
   );
 };
-
+ 
 export default WhatsAppChat;
