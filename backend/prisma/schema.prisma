@@ -252,3 +252,15 @@ model WhatsappMessage {
   @@index([from])
   @@index([createdAt])
 }
+
+model WhatsappSession {
+  id         Int      @id @default(autoincrement())
+  phone      String   @unique
+  state      String   @default("menu") // "menu", "category", "subcategory", "product"
+  categoryId Int?
+  subCategoryId Int?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  @@index([phone])
+}
