@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma.service';
 export class WhatsappSessionService {
   constructor(private prisma: PrismaService) {}
 
-  async handleInteractiveMenu(phone: string, input: string, sendMessageFn: (to: string, msg: string) => Promise<any>) {
+  async handleInteractiveMenu(phone: string, input: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const session = await this.prisma.whatsappSession.upsert({
       where: { phone },
       create: { phone, state: 'menu' },
@@ -40,7 +40,7 @@ export class WhatsappSessionService {
     }
   }
 
-  async sendCategoryMenu(phone: string, sendMessageFn: (to: string, msg: string) => Promise<any>) {
+  async sendCategoryMenu(phone: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const categories = await this.prisma.category.findMany({ orderBy: { id: 'asc' } });
     let message = '🛍️ *Welcome to EN3 Fashions!*\n\nSelect a category:\n\n';
     categories.forEach(cat => {
@@ -50,7 +50,7 @@ export class WhatsappSessionService {
     await sendMessageFn(phone, message);
   }
 
-  async handleCategorySelection(phone: string, input: string, sendMessageFn: (to: string, msg: string) => Promise<any>) {
+  async handleCategorySelection(phone: string, input: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const categoryId = parseInt(input);
     if (isNaN(categoryId)) {
       await sendMessageFn(phone, '❌ Invalid input. Please enter a number.');
@@ -81,7 +81,7 @@ export class WhatsappSessionService {
     await sendMessageFn(phone, message);
   }
 
-  async handleSubCategorySelection(phone: string, input: string, categoryId: number, sendMessageFn: (to: string, msg: string) => Promise<any>) {
+  async handleSubCategorySelection(phone: string, input: string, categoryId: number, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const subCategoryId = parseInt(input);
     if (isNaN(subCategoryId)) {
       await sendMessageFn(phone, '❌ Invalid input. Please enter a number.');
@@ -116,7 +116,7 @@ export class WhatsappSessionService {
     await sendMessageFn(phone, message);
   }
 
-  async handleProductSelection(phone: string, input: string, subCategoryId: number, sendMessageFn: (to: string, msg: string) => Promise<any>) {
+  async handleProductSelection(phone: string, input: string, subCategoryId: number, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const productId = parseInt(input);
     if (isNaN(productId)) {
       await sendMessageFn(phone, '❌ Invalid input. Please enter a number.');
@@ -139,7 +139,10 @@ export class WhatsappSessionService {
     message += `\n🔗 View: ${process.env.FRONTEND_URL}/product/${product.id}\n`;
     message += '\nType "menu" or "0" to go back to main menu';
 
-    await sendMessageFn(phone, message);
+    const gallery = product.gallery as any;
+    const colors = product.colors as any;
+    const imageUrl = gallery?.[0]?.url || colors?.[0]?.image;
+    await sendMessageFn(phone, message, imageUrl);
   }
 
   async getSession(phone: string) {

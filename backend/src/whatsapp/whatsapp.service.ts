@@ -53,7 +53,12 @@ export class WhatsappService {
     });
 
     if (text) {
-      await this.sessionService.handleInteractiveMenu(from, text, (to, msg) => this.sendMessage(to, msg));
+      await this.sessionService.handleInteractiveMenu(from, text, async (to, msg, imageUrl) => {
+        if (imageUrl) {
+          return this.sendMediaMessage(to, imageUrl, 'image', msg);
+        }
+        return this.sendMessage(to, msg);
+      });
     }
  
     console.log(`Message from ${from}: ${text || mediaType}`);
