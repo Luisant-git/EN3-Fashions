@@ -201,7 +201,6 @@ export class WhatsappService {
     return this.prisma.whatsappMessage.findMany({
       where: phoneNumber ? { from: phoneNumber } : {},
       orderBy: { createdAt: 'asc' },
-      take: 100
     });
   }
  
