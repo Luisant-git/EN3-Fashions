@@ -53,13 +53,11 @@ export class WhatsappSessionService {
   async handleCategorySelection(phone: string, input: string, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const categoryId = parseInt(input);
     if (isNaN(categoryId)) {
-      await sendMessageFn(phone, '❌ Invalid input. Please enter a number.');
       return;
     }
 
     const category = await this.prisma.category.findUnique({ where: { id: categoryId } });
     if (!category) {
-      await sendMessageFn(phone, '❌ Category not found. Please try again.');
       return;
     }
 
@@ -84,7 +82,6 @@ export class WhatsappSessionService {
   async handleSubCategorySelection(phone: string, input: string, categoryId: number, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const subCategoryId = parseInt(input);
     if (isNaN(subCategoryId)) {
-      await sendMessageFn(phone, '❌ Invalid input. Please enter a number.');
       return;
     }
 
@@ -93,7 +90,6 @@ export class WhatsappSessionService {
     });
 
     if (!subCategory) {
-      await sendMessageFn(phone, '❌ Subcategory not found. Please try again.');
       return;
     }
 
@@ -119,7 +115,6 @@ export class WhatsappSessionService {
   async handleProductSelection(phone: string, input: string, subCategoryId: number, sendMessageFn: (to: string, msg: string, imageUrl?: string) => Promise<any>) {
     const productId = parseInt(input);
     if (isNaN(productId)) {
-      await sendMessageFn(phone, '❌ Invalid input. Please enter a number.');
       return;
     }
 
@@ -129,7 +124,6 @@ export class WhatsappSessionService {
     });
 
     if (!product) {
-      await sendMessageFn(phone, '❌ Product not found. Please try again.');
       return;
     }
 
