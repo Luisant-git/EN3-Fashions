@@ -741,20 +741,21 @@ button:disabled {
     text-align: center;
     cursor: pointer;
 }
+.category-card p {
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 0.9rem 0;
+}
 .category-card img {
-    width: 95%;
+    width: 100%;
+    height: 500px;
     border-radius: 10px;
-    background-color: #f0f0f0;
-    margin-bottom: 1rem;
+    /* background-color: #f0f0f0; */
     transition: transform 0.3s;
     object-fit: contain;
 }
 .category-card:hover img {
     transform: scale(1.03);
-}
-.category-card p {
-    font-weight: 600;
-    font-size: 1.1rem;
 }
 
 .home-bundle-offer {
@@ -2185,6 +2186,14 @@ button:disabled {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
     }
+    
+    .category-card img {
+        height: 150px;
+    }
+    
+    .category-card p {
+        font-size: 0.9rem;
+    }
 
     .footer-content {
         grid-template-columns: repeat(2, 1fr);
@@ -2561,6 +2570,16 @@ button:disabled {
 
     .featured-items-grid, .category-display {
         grid-template-columns: 1fr;
+    }
+    
+    .category-card img {
+        height: 180px;
+        width: 90%;
+    }
+    
+    .category-card p {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
     }
 
     .hero-section {
