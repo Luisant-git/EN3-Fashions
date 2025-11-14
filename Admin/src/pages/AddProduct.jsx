@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload, X, Plus } from 'lucide-react'
+import { Upload, X, Plus, Edit } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { ColorPicker } from 'antd'
 import { createProduct, getCategories, getSubCategories, getBrands, uploadImage } from '../api'
@@ -27,6 +27,7 @@ const AddProduct = () => {
   const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [editingColorIndex, setEditingColorIndex] = useState(null)
   const [currentColor, setCurrentColor] = useState({ name: '', code: '#000000', images: [], sizes: [] })
   const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0, image: '' })
 
@@ -111,12 +112,53 @@ const AddProduct = () => {
         image: currentColor.images[0] || '',
         sizes: currentColor.sizes.map(({ size, price, quantity }) => ({ size, price, quantity }))
       }
-      setFormData(prev => ({
-        ...prev,
-        colors: [...prev.colors, colorData]
-      }))
-      setCurrentColor({ name: '', code: '', images: [], sizes: [] })
+      
+      if (editingColorIndex !== null) {
+        const newColors = [...formData.colors]
+        newColors[editingColorIndex] = colorData
+        setFormData(prev => ({ ...prev, colors: newColors }))
+        setEditingColorIndex(null)
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          colors: [...prev.colors, colorData]
+        }))
+      }
+      setCurrentColor({ name: '', code: '#000000', images: [], sizes: [] })
     }
+  }
+
+  const editColor = (index) => {
+    const color = formData.colors[index]
+    setCurrentColor({
+      name: color.name,
+      code: color.code,
+      images: color.image ? [color.image] : [],
+      sizes: color.sizes || []
+    })
+    setEditingColorIndex(index)
+  }
+
+  const cancelEditColor = () => {
+    setCurrentColor({ name: '', code: '#000000', images: [], sizes: [] })
+    setEditingColorIndex(null)
+  }
+
+  const removeColor = (index) => {
+    if (editingColorIndex === index) {
+      cancelEditColor()
+    }
+    setFormData(prev => ({
+      ...prev,
+      colors: prev.colors.filter((_, i) => i !== index)
+    }))
+  }
+
+  const removeSizeFromCurrentColor = (sizeIndex) => {
+    setCurrentColor(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, i) => i !== sizeIndex)
+    }))
   }
 
   const addTag = () => {
@@ -298,9 +340,6 @@ const AddProduct = () => {
             </div>
           </div>
 
-        </div>
-
-        <div className="form-grid">
           <div className="form-section">
             <div className="section-header">
               <h3>Pricing</h3>
@@ -363,6 +402,9 @@ const AddProduct = () => {
             </div>
           </div>
 
+        </div>
+
+
           <div className="form-section">
             <div className="section-header">
               <h3>Gallery Images</h3>
@@ -403,7 +445,7 @@ const AddProduct = () => {
               )}
             </div>
           </div>
-        </div>
+        
 
         <div className="form-section">
           <div className="section-header">
@@ -529,6 +571,13 @@ const AddProduct = () => {
                     {currentColor.sizes.map((size, i) => (
                       <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f3f4f6', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #e5e7eb' }}>
                         <strong>{size.size}</strong> - ₹{size.price} <span style={{ color: '#6b7280' }}>(Qty: {size.quantity})</span>
+                        <button
+                          type="button"
+                          onClick={() => removeSizeFromCurrentColor(i)}
+                          style={{ marginLeft: '4px', padding: '2px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }}
+                        >
+                          <X size={14} />
+                        </button>
                       </span>
                     ))}
                   </div>
@@ -536,7 +585,7 @@ const AddProduct = () => {
               )}
             </div>
 
-            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: '12px' }}>
               <button 
                 type="button" 
                 onClick={addColor} 
@@ -544,8 +593,18 @@ const AddProduct = () => {
                 disabled={!currentColor.name || !currentColor.code || currentColor.sizes.length === 0}
                 style={{ padding: '10px 20px', fontSize: '14px' }}
               >
-                <Plus size={16} /> Add Color Variant
+                <Plus size={16} /> {editingColorIndex !== null ? 'Update Color Variant' : 'Add Color Variant'}
               </button>
+              {editingColorIndex !== null && (
+                <button 
+                  type="button" 
+                  onClick={cancelEditColor} 
+                  className="btn btn-outline"
+                  style={{ padding: '10px 20px', fontSize: '14px' }}
+                >
+                  Cancel Edit
+                </button>
+              )}
             </div>
           </div>
 
@@ -554,14 +613,23 @@ const AddProduct = () => {
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#111827' }}>Added Color Variants ({formData.colors.length})</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                 {formData.colors.map((color, i) => (
-                  <div key={i} style={{ position: 'relative', background: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setFormData(prev => ({ ...prev, colors: prev.colors.filter((_, idx) => idx !== i) }))}
-                      style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10, width: '28px', height: '28px', background: 'rgba(239, 68, 68, 0.95)', color: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
-                    >
-                      <X size={16} />
-                    </button>
+                  <div key={i} style={{ position: 'relative', background: editingColorIndex === i ? '#eff6ff' : 'white', border: editingColorIndex === i ? '2px solid #3b82f6' : '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10, display: 'flex', gap: '4px' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => editColor(i)}
+                        style={{ width: '28px', height: '28px', background: 'rgba(59, 130, 246, 0.95)', color: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => removeColor(i)}
+                        style={{ width: '28px', height: '28px', background: 'rgba(239, 68, 68, 0.95)', color: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                     
                     {color.image ? (
                       <img 

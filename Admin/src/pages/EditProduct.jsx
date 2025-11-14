@@ -331,9 +331,7 @@ const EditProduct = () => {
               </label>
             </div>
           </div>
-        </div>
 
-        <div className="form-grid">
           <div className="form-section">
             <div className="section-header">
               <h3>Pricing</h3>
@@ -395,6 +393,9 @@ const EditProduct = () => {
               </div>
             </div>
           </div>
+        </div>
+
+
 
           <div className="form-section">
             <div className="section-header">
@@ -436,7 +437,7 @@ const EditProduct = () => {
               )}
             </div>
           </div>
-        </div>
+  
 
         <div className="form-section">
           <div className="section-header">
