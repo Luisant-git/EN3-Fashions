@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Upload, X, Plus, Edit } from 'lucide-react'
 import { toast } from 'react-toastify'
+import { ColorPicker } from 'antd'
 import { getProduct, updateProduct, getCategories, getSubCategories, getBrands, uploadImage } from '../api'
 
 const EditProduct = () => {
@@ -29,7 +30,7 @@ const EditProduct = () => {
   const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(false)
   const [editingColorIndex, setEditingColorIndex] = useState(null)
-  const [currentColor, setCurrentColor] = useState({ name: '', code: '', images: [], sizes: [] })
+  const [currentColor, setCurrentColor] = useState({ name: '', code: '#000000', images: [], sizes: [] })
   const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0 })
 
   useEffect(() => {
@@ -459,12 +460,12 @@ const EditProduct = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Color</label>
-                  <input
-                    type="color"
-                    className="form-input"
+                  <ColorPicker
                     value={currentColor.code}
-                    onChange={(e) => setCurrentColor(prev => ({ ...prev, code: e.target.value }))}
-                    style={{ height: '42px', padding: '4px' }}
+                    onChange={(color) => setCurrentColor(prev => ({ ...prev, code: color.toHexString() }))}
+                    defaultFormat="hex"
+                    showText
+                    style={{ width: '100%', height: '42px' }}
                   />
                 </div>
               </div>
@@ -558,7 +559,7 @@ const EditProduct = () => {
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {currentColor.sizes.map((size, i) => (
                       <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f3f4f6', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #e5e7eb' }}>
-                        <strong>{size.size}</strong> - ${size.price} <span style={{ color: '#6b7280' }}>(Qty: {size.quantity})</span>
+                        <strong>{size.size}</strong> - ₹{size.price} <span style={{ color: '#6b7280' }}>(Qty: {size.quantity})</span>
                         <button
                           type="button"
                           onClick={() => removeSizeFromCurrentColor(i)}
@@ -646,7 +647,7 @@ const EditProduct = () => {
                           <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f9fafb', borderRadius: '6px', fontSize: '13px' }}>
                             <span style={{ fontWeight: '600', color: '#111827' }}>{size.size}</span>
                             <div style={{ display: 'flex', gap: '12px', color: '#6b7280' }}>
-                              <span>${size.price}</span>
+                              <span>₹{size.price}</span>
                               <span>Qty: {size.quantity}</span>
                             </div>
                           </div>

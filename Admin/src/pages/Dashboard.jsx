@@ -51,7 +51,7 @@ const Dashboard = () => {
     {
       title: 'Total Revenue',
       period: 'Last 30 days',
-      value: '$82,650',
+      value: '₹82,650',
       change: '11%',
       trend: 'up',
       icon: Wallet
