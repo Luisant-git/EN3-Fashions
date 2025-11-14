@@ -296,8 +296,9 @@ button:disabled {
 .desktop-search-recommendation img {
     width: 40px;
     height: 40px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 4px;
+    background-color: #f5f5f5;
 }
 
 .desktop-search-recommendation-info {
@@ -433,10 +434,11 @@ button:disabled {
 .dropdown-menu img {
     width: 40px;
     height: 40px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
+    background-color: #f5f5f5;
 }
 
 .dropdown-menu a:hover img {
@@ -739,19 +741,21 @@ button:disabled {
     text-align: center;
     cursor: pointer;
 }
+.category-card p {
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 0.9rem 0;
+}
 .category-card img {
-    width: 95%;
+    width: 100%;
+    height: 500px;
     border-radius: 10px;
-    background-color: #f0f0f0;
-    margin-bottom: 1rem;
+    /* background-color: #f0f0f0; */
     transition: transform 0.3s;
+    object-fit: contain;
 }
 .category-card:hover img {
     transform: scale(1.03);
-}
-.category-card p {
-    font-weight: 600;
-    font-size: 1.1rem;
 }
 
 .home-bundle-offer {
@@ -809,7 +813,8 @@ button:disabled {
 .featured-item-card img {
     width: 100%;
     height: 400px;
-    object-fit: cover;
+    object-fit: contain;
+    background-color: #f5f5f5;
 }
 .featured-item-info {
     padding-top: 1rem;
@@ -853,8 +858,9 @@ button:disabled {
 .product-image-container img {
     width: 100%;
     height: 300px;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
+    background-color: #f5f5f5;
 }
 
 .bundle-tag {
@@ -897,17 +903,18 @@ button:disabled {
 
 
 .product-info {
-    padding: 1rem;
+    padding: 0.75rem;
 }
 
 .product-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem 0;
+    line-height: 1.3;
 }
 
 .product-price {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--primary-color);
     font-weight: 700;
     margin: 0;
@@ -932,7 +939,7 @@ button:disabled {
 .subcategory-card {
     text-align: center;
     cursor: pointer;
-    border-radius: 10px;
+    /* border-radius: 10px; */
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     transition: transform 0.3s, box-shadow 0.3s;
@@ -944,7 +951,8 @@ button:disabled {
 .subcategory-card img {
     width: 100%;
     height: 300px;
-    object-fit: cover;
+    object-fit: contain;
+    /* background-color: #f5f5f5; */
 }
 .subcategory-card p {
     padding: 1rem;
@@ -961,6 +969,7 @@ button:disabled {
     }
     .subcategory-card img {
         height: 200px;
+        object-fit: contain;
     }
 }
 
@@ -971,6 +980,7 @@ button:disabled {
     }
     .subcategory-card img {
         height: 150px;
+        object-fit: contain;
     }
     .subcategory-card p {
         padding: 0.8rem;
@@ -1110,11 +1120,17 @@ button:disabled {
     margin-bottom: 1rem;
     border-radius: 10px;
     overflow: hidden;
+    /* background-color: #f5f5f5; */
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .pdp-main-image img {
     width: 100%;
-    height: auto;
+    height: 70%;
     display: block;
+    object-fit: contain;
 }
 .pdp-thumbnails {
     display: grid;
@@ -1126,10 +1142,17 @@ button:disabled {
     border: 2px solid transparent;
     border-radius: 5px;
     overflow: hidden;
+    /* background-color: #f5f5f5; */
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .pdp-thumbnail img {
     width: 100%;
+    height: 100%;
     display: block;
+    object-fit: contain;
 }
 .pdp-thumbnail.active {
     border-color: var(--primary-color);
@@ -1307,7 +1330,7 @@ button:disabled {
 .cart-item img {
     width: 120px;
     height: 120px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 8px;
     background: var(--light-grey);
 }
@@ -1448,13 +1471,14 @@ button:disabled {
 
 .simple-savings {
     color: var(--green-color);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    background: rgba(76, 175, 80, 0.1);
-    padding: 0.2rem 0.5rem;
-    border-radius: 3px;
+    background: rgba(76, 175, 80, 0.05);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
     display: inline-block;
     margin-top: 0.5rem;
+    width: fit-content;
 }
 .summary-row.total {
     font-size: 1.2rem;
@@ -1541,7 +1565,8 @@ button:disabled {
     width: 60px;
     height: 60px;
     border-radius: 5px;
-    object-fit: cover;
+    object-fit: contain;
+    background-color: #f5f5f5;
 }
 
 /* Checkout Page */
@@ -2161,6 +2186,14 @@ button:disabled {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
     }
+    
+    .category-card img {
+        height: 150px;
+    }
+    
+    .category-card p {
+        font-size: 0.9rem;
+    }
 
     .footer-content {
         grid-template-columns: repeat(2, 1fr);
@@ -2499,8 +2532,9 @@ button:disabled {
     .search-recommendation img {
         width: 50px;
         height: 50px;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 5px;
+        background-color: #f5f5f5;
     }
     
     .search-recommendation-info {
@@ -2537,6 +2571,16 @@ button:disabled {
     .featured-items-grid, .category-display {
         grid-template-columns: 1fr;
     }
+    
+    .category-card img {
+        height: 180px;
+        width: 90%;
+    }
+    
+    .category-card p {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
 
     .hero-section {
         min-height: 65vh;
@@ -2560,6 +2604,7 @@ button:disabled {
     .cart-item img {
         width: 80px;
         height: 80px;
+        object-fit: contain;
     }
     
     .cart-item-details h3 {
@@ -2636,6 +2681,18 @@ button:disabled {
 
     .pdp-thumbnails {
         gap: 0.5rem;
+    }
+    
+    .pdp-main-image {
+        max-height: 400px;
+    }
+    
+    .pdp-main-image img {
+        max-height: 400px;
+    }
+    
+    .pdp-thumbnail {
+        height: 70px;
     }
 
     .static-page-container {
