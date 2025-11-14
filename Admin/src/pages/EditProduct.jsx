@@ -460,13 +460,15 @@ const EditProduct = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Color</label>
-                  <ColorPicker
-                    value={currentColor.code}
-                    onChange={(color) => setCurrentColor(prev => ({ ...prev, code: color.toHexString() }))}
-                    defaultFormat="hex"
-                    showText
-                    style={{ width: '100%', height: '42px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <ColorPicker
+                      value={currentColor.code}
+                      onChange={(color) => setCurrentColor(prev => ({ ...prev, code: color.toHexString() }))}
+                      defaultFormat="hex"
+                      showText
+                      style={{ width: '100%' }}
+                    />
+                  </div>
                 </div>
               </div>
 
