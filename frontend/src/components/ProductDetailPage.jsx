@@ -240,7 +240,7 @@ const ProductDetailPage = () => {
                                         value=""
                                         onChange={(e) => handleBundleSelection(color.name, e.target.value)}
                                     >
-                                        <option value="">Add to Bundle</option>
+                                        <option value="">Choose a size</option>
                                         {color.sizes.map(size => (
                                             <option key={size.size} value={size.size}>
                                                 {size.size} - ₹{size.price}
