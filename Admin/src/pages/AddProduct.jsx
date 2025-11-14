@@ -249,14 +249,19 @@ const AddProduct = () => {
 
   return (
     <div className="add-product">
-      <div className="page-header">
-        <h1>Add Product</h1>
-        <p>Create a new product for your store</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>Add Product</h1>
+          <p>Create a new product for your store</p>
+        </div>
+        <button type="submit" form="product-form" className="btn btn-primary" disabled={loading}>
+          {loading ? 'Creating Product...' : 'Publish Product'}
+        </button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
       
-      <form onSubmit={handleSubmit} className="product-form">
+      <form id="product-form" onSubmit={handleSubmit} className="product-form">
         <div className="form-grid">
           <div className="form-section">
             <div className="section-header">
@@ -710,11 +715,7 @@ const AddProduct = () => {
           </div>
         </div>
 
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Creating Product...' : 'Publish Product'}
-          </button>
-        </div>
+
       </form>
     </div>
   )

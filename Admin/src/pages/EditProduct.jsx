@@ -219,12 +219,26 @@ const EditProduct = () => {
 
   return (
     <div className="add-product">
-      <div className="page-header">
-        <h1>Edit Product</h1>
-        <p>Update product information</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>Edit Product</h1>
+          <p>Update product information</p>
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            type="button" 
+            onClick={() => navigate('/product-list')}
+            className="btn btn-outline"
+          >
+            Cancel
+          </button>
+          <button type="submit" form="product-form" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Updating...' : 'Update Product'}
+          </button>
+        </div>
       </div>
       
-      <form onSubmit={handleSubmit} className="product-form">
+      <form id="product-form" onSubmit={handleSubmit} className="product-form">
         <div className="form-grid">
           <div className="form-section">
             <div className="section-header">
@@ -702,18 +716,7 @@ const EditProduct = () => {
           </div>
         </div>
 
-        <div className="form-actions">
-          <button 
-            type="button" 
-            onClick={() => navigate('/product-list')}
-            className="btn btn-outline"
-          >
-            Cancel
-          </button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Updating...' : 'Update Product'}
-          </button>
-        </div>
+
       </form>
     </div>
   )
