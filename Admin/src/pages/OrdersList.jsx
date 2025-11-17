@@ -9,9 +9,13 @@ import {
   CheckCircle,
   Clock,
   X,
+  Download,
+  FileText,
+  Receipt,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus } from "../api/order";
+import jsPDF from "jspdf";
 
 const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,10 +63,208 @@ const OrdersList = () => {
     }
   };
 
+  const generatePackageSlip = (order) => {
+    const pdf = new jsPDF();
+    
+    // Company info
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(244, 67, 54); // #F44336
+    pdf.text('EN3 Fashion Store', 20, 15);
+    pdf.setTextColor(0, 0, 0); // Reset to black
+    
+    // Left side - Order details
+    pdf.setFontSize(10);
+    pdf.text(`Order ID: #ORD-${order.id}`, 20, 25);
+    pdf.text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 20, 32);
+    
+    // Right side - Ship To address
+    pdf.text('Ship To:', 120, 25);
+    pdf.setFont(undefined, 'normal');
+    const address = order.shippingAddress;
+    if (address) {
+      pdf.text(address.fullName || order.user?.name || 'N/A', 120, 32);
+      pdf.text(address.mobile || order.user?.phone || 'N/A', 120, 37);
+      pdf.text(address.addressLine1 || '', 120, 42);
+      pdf.text(address.addressLine2 || '', 120, 47);
+      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 120, 52);
+    } else {
+      pdf.text('Address not provided', 120, 32);
+    }
+    
+    // Items table header
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Items in This Package:', 20, 60);
+    
+    // Table header background
+    pdf.setFillColor(244, 67, 54); // #F44336
+    pdf.rect(20, 65, 170, 10, 'F');
+    
+    // Table headers with white text
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('Item', 25, 70);
+    pdf.text('Size', 120, 70);
+    pdf.text('Qty', 160, 70);
+    
+    // Reset text color to black
+    pdf.setTextColor(0, 0, 0);
+    
+    // Line under header
+    pdf.line(20, 75, 190, 75);
+    
+    // Items table
+    pdf.setFont(undefined, 'normal');
+    let yPos = 82;
+    let itemCounter = 1;
+    order.items?.forEach((item) => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        // Show bundle items separately
+        item.bundleItems.forEach((bundleItem) => {
+          pdf.text(`${itemCounter}. Classic Cotton T-Shirt`, 20, yPos);
+          pdf.text(bundleItem.size || 'N/A', 120, yPos);
+          pdf.text('1', 160, yPos);
+          yPos += 8;
+          itemCounter++;
+        });
+      } else {
+        // Show regular items
+        pdf.text(`${itemCounter}. ${item.name}`, 20, yPos);
+        pdf.text(item.size || 'N/A', 120, yPos);
+        pdf.text(item.quantity?.toString() || '1', 160, yPos);
+        yPos += 8;
+        itemCounter++;
+      }
+    });
+    
+    // Footer
+    pdf.setFont(undefined, 'italic');
+    pdf.text('Thank you for shopping with us!', 105, yPos + 10, { align: 'center' });
+    
+    pdf.save(`package-slip-${order.id}.pdf`);
+  };
+
+  const generateInvoice = (order) => {
+    const pdf = new jsPDF();
+    
+    // Header
+    pdf.setFontSize(24);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('INVOICE', 105, 30, { align: 'center' });
+    
+    // Company info - Left side
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('EN3 Fashions', 20, 50);
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Fashion Store', 20, 60);
+    pdf.text('Contact: +91 XXXXX XXXXX', 20, 68);
+    
+    // Invoice details - Right side
+    pdf.setFont(undefined, 'bold');
+    pdf.text(`Invoice #: ORD-${order.id}`, 130, 50);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 130, 60);
+    pdf.text(`Payment: ${order.paymentMethod}`, 130, 68);
+    
+    // Bill to - Left side
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Bill To:', 20, 90);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`${order.user?.name || 'N/A'}`, 20, 100);
+    pdf.text(`${order.user?.email || 'N/A'}`, 20, 108);
+    pdf.text(`Phone: ${order.user?.phone || 'N/A'}`, 20, 116);
+    
+    // Ship to - Right side
+    const address = order.shippingAddress;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Ship To:', 130, 90);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      pdf.text(address.fullName || 'N/A', 130, 100);
+      pdf.text(`Phone: ${address.mobile || 'N/A'}`, 130, 108);
+      pdf.text(address.addressLine1 || '', 130, 116);
+      pdf.text(address.addressLine2 || '', 130, 124);
+      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 130, 132);
+    } else {
+      pdf.text('Address not provided', 130, 100);
+    }
+    
+    // Items table header
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Item', 20, 150);
+    pdf.text('Size', 100, 150);
+    pdf.text('Qty', 130, 150);
+    pdf.text('Price', 150, 150);
+    pdf.text('Total', 170, 150);
+    
+    // Line under header
+    pdf.line(20, 155, 190, 155);
+    
+    // Items
+    pdf.setFont(undefined, 'normal');
+    let yPos = 165;
+    let subtotal = 0;
+    
+    order.items?.forEach((item) => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        // Show bundle main item
+        const bundleTotal = parseFloat(item.price) || 0;
+        subtotal += bundleTotal;
+        pdf.text((item.name || 'N/A').substring(0, 30), 20, yPos);
+        pdf.text((item.quantity || 1).toString(), 130, yPos);
+        pdf.text(`₹${item.price || 0}`, 150, yPos);
+        pdf.text(`₹${bundleTotal}`, 170, yPos);
+        yPos += 8;
+        
+        // Show bundle sub-items indented
+        item.bundleItems.forEach((bundleItem) => {
+          pdf.text(`   - ${bundleItem.color} (${bundleItem.size}) - Original Price ₹${bundleItem.originalPrice}`, 25, yPos);
+          yPos += 6;
+        });
+        yPos += 4; // Extra space after bundle
+      } else {
+        // Show regular items
+        const itemTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
+        subtotal += itemTotal;
+        const itemName = item.size && item.color ? `${item.name} (${item.size}, ${item.color})` : (item.name || 'N/A');
+        pdf.text(itemName.substring(0, 35), 20, yPos);
+        pdf.text((item.quantity || 1).toString(), 130, yPos);
+        pdf.text(`₹${item.price || 0}`, 150, yPos);
+        pdf.text(`₹${itemTotal}`, 170, yPos);
+        yPos += 10;
+      }
+    });
+    
+    // Total section
+    pdf.line(20, yPos + 5, 190, yPos + 5);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(`Subtotal: ₹${order.subtotal || subtotal}`, 130, yPos + 20);
+    
+    if (order.discount && parseFloat(order.discount) > 0) {
+      pdf.text(`Discount: -₹${order.discount}`, 130, yPos + 30);
+      yPos += 10;
+    }
+    
+    if (order.deliveryFee && parseFloat(order.deliveryFee) > 0) {
+      pdf.text(`Delivery Fee: ₹${order.deliveryFee}`, 130, yPos + 30);
+      yPos += 10;
+    }
+    
+    pdf.text(`Total: ₹${order.total}`, 130, yPos + 40);
+    
+    // Footer
+    pdf.setFont(undefined, 'italic');
+    pdf.text('Thank you for your business!', 105, yPos + 70, { align: 'center' });
+    
+    pdf.save(`invoice-${order.id}.pdf`);
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
       order.status.toLowerCase() === statusFilter.toLowerCase();
@@ -104,6 +306,7 @@ const OrdersList = () => {
         <div className="customer-info">
           <div className="customer-name">{value?.name || "N/A"}</div>
           <div className="customer-email">{value?.email || "N/A"}</div>
+          <div className="customer-phone">{value?.phone || "N/A"}</div>
         </div>
       ),
     },
@@ -113,6 +316,17 @@ const OrdersList = () => {
       render: (value) => `${value?.length || 0} items`,
     },
     { key: "total", label: "Total", render: (value) => `₹${value}` },
+    {
+      key: "address",
+      label: "Address",
+      render: (value, row) => {
+        const address = row.shippingAddress;
+        if (address && typeof address === 'object') {
+          return `${address.addressLine1 || ''}, ${address.addressLine2 || ''}, ${address.city || ''}, ${address.pincode || ''}`.replace(/^,\s*|,\s*$/g, '').replace(/,\s*,/g, ',') || 'N/A';
+        }
+        return address || 'N/A';
+      },
+    },
     {
       key: "status",
       label: "Status",
@@ -164,6 +378,24 @@ const OrdersList = () => {
           >
             <Edit size={16} />
           </button>
+          {(row.status === 'Processing' || row.status === 'Shipped' || row.status === 'Delivered') && (
+            <>
+              <button
+                className="action-btn download"
+                title="Download Package Slip"
+                onClick={() => generatePackageSlip(row)}
+              >
+                <Package size={16} />
+              </button>
+              <button
+                className="action-btn download"
+                title="Download Invoice"
+                onClick={() => generateInvoice(row)}
+              >
+                <Receipt size={16} />
+              </button>
+            </>
+          )}
         </div>
       ),
     },
@@ -309,6 +541,22 @@ const OrdersList = () => {
                 <p>
                   <strong>Total:</strong> ₹{selectedOrder.total}
                 </p>
+                {(selectedOrder.status === 'Processing' || selectedOrder.status === 'Shipped' || selectedOrder.status === 'Delivered') && (
+                  <div className="download-buttons">
+                    <button 
+                      className="btn btn-secondary"
+                      onClick={() => generatePackageSlip(selectedOrder)}
+                    >
+                      <Package size={16} /> Download Package Slip
+                    </button>
+                    <button 
+                      className="btn btn-secondary"
+                      onClick={() => generateInvoice(selectedOrder)}
+                    >
+                      <Receipt size={16} /> Download Invoice
+                    </button>
+                  </div>
+                )}
               </div>
               <h3>Items</h3>
               <div className="order-items">
