@@ -143,6 +143,140 @@ const OrdersList = () => {
     pdf.save(`package-slip-${order.id}.pdf`);
   };
 
+  const generateAllPackageSlips = () => {
+    const processingOrders = orders.filter(order => order.status === 'Processing');
+    
+    if (processingOrders.length === 0) {
+      alert('No processing orders found');
+      return;
+    }
+
+    const pdf = new jsPDF();
+    let currentY = 0;
+    let isFirstSlip = true;
+
+    processingOrders.forEach((order, orderIndex) => {
+      // Calculate slip height
+      const itemCount = order.items?.reduce((count, item) => {
+        return count + (item.type === 'bundle' && item.bundleItems ? item.bundleItems.length : 1);
+      }, 0) || 0;
+      const slipHeight = 85 + (itemCount * 6) + 15; // Base + items + footer
+
+      // Check if slip fits on current page
+      if (!isFirstSlip && currentY + slipHeight > 280) {
+        pdf.addPage();
+        currentY = 0;
+      }
+      isFirstSlip = false;
+
+      // Generate slip at current position
+      generateCompactPackageSlip(pdf, order, currentY);
+      
+      // Add scissor cut line
+      const cutY = currentY + slipHeight + 5;
+      drawScissorLine(pdf, cutY);
+      
+      currentY = cutY + 10;
+    });
+
+    pdf.save(`all-package-slips-processing.pdf`);
+  };
+
+  const generateCompactPackageSlip = (pdf, order, yOffset) => {
+    // Company info
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(244, 67, 54); // #F44336
+    pdf.text('EN3 Fashion Store', 20, 15 + yOffset);
+    pdf.setTextColor(0, 0, 0); // Reset to black
+    
+    // Left side - Order details
+    pdf.setFontSize(8);
+    pdf.text(`Order ID: #ORD-${order.id}`, 20, 25 + yOffset);
+    pdf.text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 20, 32 + yOffset);
+    
+    // Right side - Ship To address
+    pdf.text('Ship To:', 120, 25 + yOffset);
+    pdf.setFont(undefined, 'normal');
+    const address = order.shippingAddress;
+    if (address) {
+      pdf.text(address.fullName || order.user?.name || 'N/A', 120, 32 + yOffset);
+      pdf.text(address.mobile || order.user?.phone || 'N/A', 120, 37 + yOffset);
+      pdf.text(address.addressLine1 || '', 120, 42 + yOffset);
+      pdf.text(address.addressLine2 || '', 120, 47 + yOffset);
+      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 120, 52 + yOffset);
+    } else {
+      pdf.text('Address not provided', 120, 32 + yOffset);
+    }
+    
+    // Items table header
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Items in This Package:', 20, 60 + yOffset);
+    
+    // Table header background
+    pdf.setFillColor(244, 67, 54); // #F44336
+    pdf.rect(20, 65 + yOffset, 170, 8, 'F');
+    
+    // Table headers with white text
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('Item', 25, 70 + yOffset);
+    pdf.text('Size', 120, 70 + yOffset);
+    pdf.text('Qty', 160, 70 + yOffset);
+    
+    // Reset text color to black
+    pdf.setTextColor(0, 0, 0);
+    
+    // Line under header
+    pdf.line(20, 73 + yOffset, 190, 73 + yOffset);
+    
+    // Items table
+    pdf.setFont(undefined, 'normal');
+    let yPos = 78 + yOffset;
+    let itemCounter = 1;
+    order.items?.forEach((item) => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        // Show bundle items separately
+        item.bundleItems.forEach((bundleItem) => {
+          pdf.text(`${itemCounter}. Classic Cotton T-Shirt`, 20, yPos);
+          pdf.text(bundleItem.size || 'N/A', 120, yPos);
+          pdf.text('1', 160, yPos);
+          yPos += 6;
+          itemCounter++;
+        });
+      } else {
+        // Show regular items
+        pdf.text(`${itemCounter}. ${item.name}`, 20, yPos);
+        pdf.text(item.size || 'N/A', 120, yPos);
+        pdf.text(item.quantity?.toString() || '1', 160, yPos);
+        yPos += 6;
+        itemCounter++;
+      }
+    });
+    
+    // Footer
+    pdf.setFont(undefined, 'italic');
+    pdf.text('Thank you for shopping with us!', 105, yPos + 8, { align: 'center' });
+  };
+
+  const drawScissorLine = (pdf, y) => {
+    // Scissor symbols every inch (approximately 28.35 points per inch)
+    pdf.setFont(undefined, 'normal');
+    pdf.setFontSize(10);
+    
+    const startX = 15;
+    const endX = 185;
+    const inchInPoints = 28.35;
+    
+    for (let x = startX; x <= endX; x += inchInPoints) {
+      pdf.text('>8', x, y + 1);
+    }
+    
+    // Dashed cut line between scissors
+    pdf.setLineDashPattern([2, 2], 0);
+    pdf.line(startX + 10, y, endX, y);
+    pdf.setLineDashPattern([], 0); // Reset to solid line
+  };
+
   const generateInvoice = (order) => {
     const pdf = new jsPDF();
     
@@ -503,6 +637,15 @@ const OrdersList = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
+          {statusFilter === "processing" && (
+            <button
+              className="download-all-btn"
+              onClick={generateAllPackageSlips}
+              title="Download All Package Slips"
+            >
+              <Download size={16} /> Download All Package Slips
+            </button>
+          )}
         </div>
       </div>
 

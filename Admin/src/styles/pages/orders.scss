@@ -228,4 +228,47 @@
       }
     }
   }
+
+  .filters-section {
+    .search-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: none;
+      
+      .search-input {
+        width: 400px;
+        flex-shrink: 0;
+      }
+      
+      .download-all-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        white-space: nowrap;
+        
+        &:hover {
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+          transform: translateY(-1px);
+        }
+        
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+      }
+    }
+  }
 }
