@@ -59,7 +59,8 @@ export class AuthService {
     const sent = await this.whatsappService.sendOtp(phone, otp);
     if (!sent) throw new BadRequestException('Failed to send OTP');
  
-    return { message: 'OTP sent successfully' };
+    const existingUser = await this.prisma.user.findUnique({ where: { phone } });
+    return { message: 'OTP sent successfully', isNewUser: !existingUser };
   }
  
   async verifyOtpAndLogin(phone: string, otp: string, name?: string, email?: string) {
@@ -74,6 +75,8 @@ export class AuthService {
     await this.prisma.otp.update({ where: { id: otpRecord.id }, data: { verified: true } });
  
     let user = await this.prisma.user.findUnique({ where: { phone } });
+    const isNewUser = !user;
+    
     if (!user) {
       user = await this.prisma.user.create({ data: { phone, name, email: email || undefined } });
     } else {

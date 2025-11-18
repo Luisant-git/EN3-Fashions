@@ -229,6 +229,108 @@
     }
   }
 
+  .order-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 8px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 16px;
+    }
+
+    .order-info, .shipping-address {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+
+      h4 {
+        font-size: 16px;
+        font-weight: 600;
+        color: $gray-900;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e5e7eb;
+      }
+
+      p {
+        margin-bottom: 10px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: $gray-700;
+
+        strong {
+          color: $gray-900;
+          font-weight: 600;
+          display: inline-block;
+          min-width: 80px;
+        }
+      }
+    }
+  }
+
+  .order-items-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-top: 20px;
+
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: $gray-900;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .order-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .order-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #f3f4f6;
+        border-radius: 6px;
+        background: #f9fafb;
+
+        img {
+          width: 60px;
+          height: 60px;
+          object-fit: cover;
+          border-radius: 6px;
+          border: 1px solid #e5e7eb;
+        }
+
+        div {
+          flex: 1;
+
+          p {
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: $gray-700;
+            line-height: 1.5;
+
+            strong {
+              color: $gray-900;
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+  }
+
   .filters-section {
     .search-container {
       display: flex;

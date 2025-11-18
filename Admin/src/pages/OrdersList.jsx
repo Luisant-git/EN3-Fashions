@@ -451,17 +451,6 @@ const OrdersList = () => {
     },
     { key: "total", label: "Total", render: (value) => `₹${value}` },
     {
-      key: "address",
-      label: "Address",
-      render: (value, row) => {
-        const address = row.shippingAddress;
-        if (address && typeof address === 'object') {
-          return `${address.addressLine1 || ''}, ${address.addressLine2 || ''}, ${address.city || ''}, ${address.pincode || ''}`.replace(/^,\s*|,\s*$/g, '').replace(/,\s*,/g, ',') || 'N/A';
-        }
-        return address || 'N/A';
-      },
-    },
-    {
       key: "status",
       label: "Status",
       render: (value) => (
@@ -668,57 +657,69 @@ const OrdersList = () => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="order-info">
-                <p>
-                  <strong>Customer:</strong> {selectedOrder.user?.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {selectedOrder.user?.email}
-                </p>
-                <p>
-                  <strong>Status:</strong> {selectedOrder.status}
-                </p>
-                <p>
-                  <strong>Payment:</strong> {selectedOrder.paymentMethod}
-                </p>
-                <p>
-                  <strong>Total:</strong> ₹{selectedOrder.total}
-                </p>
-                {(selectedOrder.status === 'Processing' || selectedOrder.status === 'Shipped' || selectedOrder.status === 'Delivered') && (
-                  <div className="download-buttons">
-                    <button 
-                      className="btn btn-secondary"
-                      onClick={() => generatePackageSlip(selectedOrder)}
-                    >
-                      <Package size={16} /> Download Package Slip
-                    </button>
-                    <button 
-                      className="btn btn-secondary"
-                      onClick={() => generateInvoice(selectedOrder)}
-                    >
-                      <Receipt size={16} /> Download Invoice
-                    </button>
-                  </div>
-                )}
-              </div>
-              <h3>Items</h3>
-              <div className="order-items">
-                {selectedOrder.items?.map((item, idx) => (
-                  <div key={idx} className="order-item">
-                    <img src={item.imageUrl} alt={item.name} />
+              <div className="order-details-grid">
+                <div className="order-info">
+                  <h4>Order Information</h4>
+                  <p><strong>Customer:</strong> {selectedOrder.user?.name}</p>
+                  <p><strong>Email:</strong> {selectedOrder.user?.email}</p>
+                  <p><strong>Status:</strong> {selectedOrder.status}</p>
+                  <p><strong>Payment:</strong> {selectedOrder.paymentMethod}</p>
+                  <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
+                </div>
+                <div className="shipping-address">
+                  <h4>Shipping Address</h4>
+                  {selectedOrder.shippingAddress ? (
                     <div>
-                      <p>
-                        <strong>{item.name}</strong>
-                      </p>
-                      <p>
-                        Size: {item.size}, Color: {item.color}
-                      </p>
-                      <p>
-                        Qty: {item.quantity} × ₹{item.price}
-                      </p>
+                      <p><strong>Name:</strong> {selectedOrder.shippingAddress.fullName || 'N/A'}</p>
+                      <p><strong>Phone:</strong> {selectedOrder.shippingAddress.mobile || 'N/A'}</p>
+                      <p><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || ''}</p>
+                      {selectedOrder.shippingAddress.addressLine2 && (
+                        <p><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
+                      )}
+                      <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
+                      <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
                     </div>
-                  </div>
-                ))}
+                  ) : (
+                    <p>No shipping address provided</p>
+                  )}
+                </div>
+              </div>
+              {(selectedOrder.status === 'Processing' || selectedOrder.status === 'Shipped' || selectedOrder.status === 'Delivered') && (
+                <div className="download-buttons">
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => generatePackageSlip(selectedOrder)}
+                  >
+                    <Package size={16} /> Download Package Slip
+                  </button>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => generateInvoice(selectedOrder)}
+                  >
+                    <Receipt size={16} /> Download Invoice
+                  </button>
+                </div>
+              )}
+              <div className="order-items-section">
+                <h4>Order Items</h4>
+                <div className="order-items">
+                  {selectedOrder.items?.map((item, idx) => (
+                    <div key={idx} className="order-item">
+                      <img src={item.imageUrl} alt={item.name} />
+                      <div>
+                        <p>
+                          <strong>{item.name}</strong>
+                        </p>
+                        <p>
+                          Size: {item.size}, Color: {item.color}
+                        </p>
+                        <p>
+                          Qty: {item.quantity} × ₹{item.price}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

@@ -16,6 +16,7 @@ const LoginPage = () => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState(0);
+    const [isNewUser, setIsNewUser] = useState(false);
 
     React.useEffect(() => {
         if (timer > 0) {
@@ -28,7 +29,8 @@ const LoginPage = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.post(`${API_URL}/auth/otp/request`, { phone });
+            const { data } = await axios.post(`${API_URL}/auth/otp/request`, { phone });
+            setIsNewUser(data.isNewUser || false);
             toast.success('OTP sent to WhatsApp!');
             setTimer(180);
             setStep(2);
@@ -68,8 +70,12 @@ const LoginPage = () => {
                 ) : (
                     <form onSubmit={verifyOtp}>
                         <input type="text" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value)} maxLength={6} required/>
-                        <input type="text" placeholder="Name (optional)" value={name} onChange={e => setName(e.target.value)}/>
-                        <input type="email" placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)}/>
+                        {isNewUser && (
+                            <>
+                                <input type="text" placeholder="Name (optional)" value={name} onChange={e => setName(e.target.value)}/>
+                                <input type="email" placeholder="Email (optional)" value={email} onChange={e => setEmail(e.target.value)}/>
+                            </>
+                        )}
                         <button type="submit" disabled={loading}>
                             {loading ? <LoadingSpinner /> : 'Verify & Login'}
                         </button>
