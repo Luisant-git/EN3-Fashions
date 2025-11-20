@@ -390,10 +390,10 @@ const OrdersList = () => {
     // Footer
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'normal');
-    pdf.text('This is a system-generated invoice and does not require a signature.', 105, yPos + 55, { align: 'center' });
+    pdf.text('This is a system-generated invoice and does not require a signature.', 105, yPos + 50, { align: 'center' });
     pdf.setFontSize(10);
     pdf.setFont(undefined, 'italic');
-    pdf.text('Thank you for your business!', 105, yPos + 70, { align: 'center' });
+    pdf.text('Thank you for your business!', 105, yPos + 60, { align: 'center' });
     
     pdf.save(`invoice-${order.id}.pdf`);
   };
