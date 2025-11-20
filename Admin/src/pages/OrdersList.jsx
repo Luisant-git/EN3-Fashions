@@ -120,7 +120,7 @@ const OrdersList = () => {
       if (item.type === 'bundle' && item.bundleItems) {
         // Show bundle items separately
         item.bundleItems.forEach((bundleItem) => {
-          pdf.text(`${itemCounter}. Classic Cotton T-Shirt`, 20, yPos);
+          pdf.text(`${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`, 20, yPos);
           pdf.text(bundleItem.size || 'N/A', 120, yPos);
           pdf.text('1', 160, yPos);
           yPos += 8;
@@ -128,7 +128,8 @@ const OrdersList = () => {
         });
       } else {
         // Show regular items
-        pdf.text(`${itemCounter}. ${item.name}`, 20, yPos);
+        const itemName = item.color ? `${item.name} (${item.color})` : item.name;
+        pdf.text(`${itemCounter}. ${itemName}`, 20, yPos);
         pdf.text(item.size || 'N/A', 120, yPos);
         pdf.text(item.quantity?.toString() || '1', 160, yPos);
         yPos += 8;
@@ -237,7 +238,7 @@ const OrdersList = () => {
       if (item.type === 'bundle' && item.bundleItems) {
         // Show bundle items separately
         item.bundleItems.forEach((bundleItem) => {
-          pdf.text(`${itemCounter}. Classic Cotton T-Shirt`, 20, yPos);
+          pdf.text(`${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`, 20, yPos);
           pdf.text(bundleItem.size || 'N/A', 120, yPos);
           pdf.text('1', 160, yPos);
           yPos += 6;
@@ -245,7 +246,8 @@ const OrdersList = () => {
         });
       } else {
         // Show regular items
-        pdf.text(`${itemCounter}. ${item.name}`, 20, yPos);
+        const itemName = item.color ? `${item.name} (${item.color})` : item.name;
+        pdf.text(`${itemCounter}. ${itemName}`, 20, yPos);
         pdf.text(item.size || 'N/A', 120, yPos);
         pdf.text(item.quantity?.toString() || '1', 160, yPos);
         yPos += 6;
