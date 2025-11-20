@@ -37,7 +37,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   { key: 'subcategory-list', icon: Layers, label: 'Sub Categories', path: '/subcategory-list' },
   { key: 'banner-list', icon: Image, label: 'Banners', path: '/banner-list' },
   { key: 'coupon-list', icon: TicketPercent, label: 'Coupons', path: '/coupon-list' },
-  { key: 'pincode-list', icon: MapPin, label: 'Pincodes', path: '/pincode-list' },
+  // { key: 'pincode-list', icon: MapPin, label: 'Pincodes', path: '/pincode-list' },
       ]
     },
     {
