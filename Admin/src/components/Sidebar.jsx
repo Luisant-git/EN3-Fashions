@@ -60,26 +60,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       icon: Users,
       label: 'Customers',
       children: [
-        { key: 'customer-list', icon: List, label: 'Customer List', path: '/customer-list' },
-        { key: 'customer-reviews', icon: Star, label: 'Customer Reviews', path: '/customer-reviews' }
-      ]
-    },
-    {
-      key: 'inventory',
-      icon: Warehouse,
-      label: 'Inventory',
-      children: [
-        { key: 'all-stock-list', icon: List, label: 'All Stock List', path: '/all-stock-list' },
-        { key: 'tracker-stocks', icon: TrendingUp, label: 'Tracker Stocks', path: '/tracker-stocks' }
-      ]
-    },
-    {
-      key: 'manage-user',
-      icon: Settings,
-      label: 'Manage User',
-      children: [
-        { key: 'employee-details', icon: Users, label: 'Employee Details', path: '/employee-details' },
-        { key: 'add-employee', icon: UserPlus, label: 'Add Employee', path: '/add-employee' }
+        { key: 'customer-list', icon: List, label: 'Customer List', path: '/customer-list' }
       ]
     }
   ]

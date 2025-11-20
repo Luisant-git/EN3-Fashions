@@ -347,13 +347,13 @@ const OrdersList = () => {
         subtotal += bundleTotal;
         pdf.text((item.name || 'N/A').substring(0, 30), 20, yPos);
         pdf.text((item.quantity || 1).toString(), 130, yPos);
-        pdf.text(`₹${item.price || 0}`, 150, yPos);
-        pdf.text(`₹${bundleTotal}`, 170, yPos);
+        pdf.text(`Rs.${item.price || 0}`, 150, yPos);
+        pdf.text(`Rs.${bundleTotal}`, 170, yPos);
         yPos += 8;
         
         // Show bundle sub-items indented
         item.bundleItems.forEach((bundleItem) => {
-          pdf.text(`   - ${bundleItem.color} (${bundleItem.size}) - Original Price ₹${bundleItem.originalPrice}`, 25, yPos);
+          pdf.text(`   - ${bundleItem.color} (${bundleItem.size}) - Original Price Rs.${bundleItem.originalPrice}`, 25, yPos);
           yPos += 6;
         });
         yPos += 4; // Extra space after bundle
@@ -364,8 +364,8 @@ const OrdersList = () => {
         const itemName = item.size && item.color ? `${item.name} (${item.size}, ${item.color})` : (item.name || 'N/A');
         pdf.text(itemName.substring(0, 35), 20, yPos);
         pdf.text((item.quantity || 1).toString(), 130, yPos);
-        pdf.text(`₹${item.price || 0}`, 150, yPos);
-        pdf.text(`₹${itemTotal}`, 170, yPos);
+        pdf.text(`Rs.${item.price || 0}`, 150, yPos);
+        pdf.text(`Rs.${itemTotal}`, 170, yPos);
         yPos += 10;
       }
     });
@@ -373,21 +373,25 @@ const OrdersList = () => {
     // Total section
     pdf.line(20, yPos + 5, 190, yPos + 5);
     pdf.setFont(undefined, 'bold');
-    pdf.text(`Subtotal: ₹${order.subtotal || subtotal}`, 130, yPos + 20);
+    pdf.text(`Subtotal: Rs.${order.subtotal || subtotal}`, 140, yPos + 20);
     
     if (order.discount && parseFloat(order.discount) > 0) {
-      pdf.text(`Discount: -₹${order.discount}`, 130, yPos + 30);
+      pdf.text(`Discount: - Rs.${order.discount}`, 140, yPos + 30);
       yPos += 10;
     }
     
     if (order.deliveryFee && parseFloat(order.deliveryFee) > 0) {
-      pdf.text(`Delivery Fee: ₹${order.deliveryFee}`, 130, yPos + 30);
+      pdf.text(`Delivery Fee: Rs.${order.deliveryFee}`, 140, yPos + 30);
       yPos += 10;
     }
     
-    pdf.text(`Total: ₹${order.total}`, 130, yPos + 40);
+    pdf.text(`Total: Rs.${order.total}`, 140, yPos + 30);
     
     // Footer
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('This is a system-generated invoice and does not require a signature.', 105, yPos + 55, { align: 'center' });
+    pdf.setFontSize(10);
     pdf.setFont(undefined, 'italic');
     pdf.text('Thank you for your business!', 105, yPos + 70, { align: 'center' });
     
@@ -684,22 +688,6 @@ const OrdersList = () => {
                   )}
                 </div>
               </div>
-              {(selectedOrder.status === 'Processing' || selectedOrder.status === 'Shipped' || selectedOrder.status === 'Delivered') && (
-                <div className="download-buttons">
-                  <button 
-                    className="btn btn-secondary"
-                    onClick={() => generatePackageSlip(selectedOrder)}
-                  >
-                    <Package size={16} /> Download Package Slip
-                  </button>
-                  <button 
-                    className="btn btn-secondary"
-                    onClick={() => generateInvoice(selectedOrder)}
-                  >
-                    <Receipt size={16} /> Download Invoice
-                  </button>
-                </div>
-              )}
               <div className="order-items-section">
                 <h4>Order Items</h4>
                 <div className="order-items">
