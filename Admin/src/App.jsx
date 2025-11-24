@@ -37,7 +37,7 @@ import CouponList from './pages/CouponList'
 import PincodeList from './pages/PincodeList'
 import CreateCombo from './pages/CreateCombo'
 import WhatsAppChat from './pages/WhatsAppChat'
-import BulkWhatsApp from './pages/BulkWhatsApps'
+// import BulkWhatsApp from './pages/BulkWhatsApps'
 
 // Import all SCSS files
 import './styles/App.scss'
@@ -139,8 +139,8 @@ function App() {
               <Route path="/coupon-list" element={<CouponList />} />
               <Route path="/pincode-list" element={<PincodeList />} />
               <Route path="/create-combo" element={<CreateCombo />} />
-              <Route path="/whatsapp-chat" element={<WhatsAppChat />} />
-              <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} />
+              {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
+              {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>
           </div>
         </div>

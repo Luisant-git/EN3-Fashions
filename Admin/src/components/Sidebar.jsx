@@ -46,15 +46,15 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       label: 'Orders List',
       path: '/orders'
     },
-    {
-      key: 'whatsapp',
-      icon: MessageCircle,
-      label: 'WhatsApp',
-      children: [
-        { key: 'whatsapp-chat', icon: MessageCircle, label: 'WhatsApp Chat', path: '/whatsapp-chat' },
-        { key: 'bulk-whatsapp', icon: MessageCircle, label: 'Bulk WhatsApp', path: '/bulk-whatsapp' }
-      ]
-    },
+    // {
+    //   key: 'whatsapp',
+    //   icon: MessageCircle,
+    //   label: 'WhatsApp',
+    //   children: [
+    //     { key: 'whatsapp-chat', icon: MessageCircle, label: 'WhatsApp Chat', path: '/whatsapp-chat' },
+    //     { key: 'bulk-whatsapp', icon: MessageCircle, label: 'Bulk WhatsApp', path: '/bulk-whatsapp' }
+    //   ]
+    // },
     {
       key: 'customers',
       icon: Users,
