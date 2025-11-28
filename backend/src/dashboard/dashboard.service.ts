@@ -142,4 +142,22 @@ export class DashboardService {
       };
     });
   }
+
+  async getRecentOrders() {
+    const orders = await this.prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: { user: { select: { name: true, email: true, phone: true } } }
+    });
+
+    return orders.map(order => ({
+      id: order.id,
+      customer: order.user?.name || 'Guest',
+      email: order.user?.email || '',
+      phone: order.user?.phone || '',
+      total: `₹${parseFloat(order.total).toFixed(2)}`,
+      status: order.status,
+      date: order.createdAt.toLocaleDateString('en-GB')
+    }));
+  }
 }

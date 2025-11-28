@@ -11,13 +11,15 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Package,
+  Clock
 } from 'lucide-react';
 
 // Import child components
 import SalesAnalytics from '../components/SalesAnalytics';
 import TopSellingProducts from '../components/TopSellingProducts';
-import { getDashboardStats, getSalesAnalytics, getTopProducts, getCurrentOffers } from '../api/dashboardApi';
+import { getDashboardStats, getSalesAnalytics, getTopProducts, getCurrentOffers, getRecentOrders } from '../api/dashboardApi';
 import './Dashboard.scss'
 
 // You can create a separate component for this, but for simplicity, it's here
@@ -49,6 +51,7 @@ const StatsCard = ({ title, value, period, change, trend, icon: Icon }) => {
 const Dashboard = () => {
   const [statsData, setStatsData] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const productsScrollRef = React.useRef(null);
 
@@ -68,9 +71,10 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [stats, offersData] = await Promise.all([
+      const [stats, offersData, ordersData] = await Promise.all([
         getDashboardStats(),
-        getCurrentOffers()
+        getCurrentOffers(),
+        getRecentOrders()
       ]);
 
       setStatsData([
@@ -109,6 +113,7 @@ const Dashboard = () => {
       ]);
 
       setOffers(offersData);
+      setRecentOrders(ordersData);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -184,6 +189,54 @@ const Dashboard = () => {
                     className={`progress ${offer.type}`}
                     style={{ width: `${offer.progress}%`}}
                   ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Orders */}
+        <div className="card recent-orders">
+          <div className="card-header">
+            <h3>Recent Orders</h3>
+            <span className="order-count">{recentOrders.length} orders</span>
+          </div>
+          <div className="orders-list">
+            {recentOrders.map((order, index) => (
+              <div key={order.id} className="order-item">
+                <div className="order-number">
+                  <Package size={18} />
+                  <span>#{String(order.id).slice(0, 8)}</span>
+                </div>
+                <div className="order-content">
+                  <div className="order-main">
+                    <div className="customer-section">
+                      <div className="customer-avatar">
+                        {order.customer.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="customer-details">
+                        <span className="customer-name">{order.customer}</span>
+                        <span className="customer-email">{order.email}</span>
+                        <span className='customer-phone'>{order.phone}</span>
+                      </div>
+                    </div>
+                    <div className="order-info">
+                      <div className="info-item">
+                        <span className="info-label">Amount</span>
+                        <span className="info-value amount">{order.total}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Status</span>
+                        <span className={`status-badge ${order.status}`}>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <Clock size={14} />
+                        <span className="info-value date">{order.date}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

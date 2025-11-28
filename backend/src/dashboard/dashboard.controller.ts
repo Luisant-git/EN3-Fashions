@@ -26,4 +26,9 @@ export class DashboardController {
   async getOffers() {
     return this.dashboardService.getCurrentOffers();
   }
+
+  @Get('recent-orders')
+  async getRecentOrders() {
+    return this.dashboardService.getRecentOrders();
+  }
 }

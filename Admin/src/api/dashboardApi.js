@@ -19,3 +19,8 @@ export const getCurrentOffers = async () => {
   const response = await axiosInstance.get('/dashboard/offers');
   return response.data;
 };
+
+export const getRecentOrders = async () => {
+  const response = await axiosInstance.get('/dashboard/recent-orders');
+  return response.data;
+};

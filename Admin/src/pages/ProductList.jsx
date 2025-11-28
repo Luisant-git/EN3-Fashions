@@ -9,6 +9,7 @@ import {
   updateProduct,
   deleteProduct,
   getCategories,
+  getSubCategories,
   getBrands,
   uploadImage,
 } from "../api";
@@ -33,8 +34,10 @@ const ProductList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [filterSubCategory, setFilterSubCategory] = useState("all");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [modal, setModal] = useState({ type: null, product: null });
   const [loading, setLoading] = useState(true);
@@ -44,17 +47,20 @@ const ProductList = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [productsData, categoriesData, brandsData] = await Promise.all([
+        const [productsData, categoriesData, subCategoriesData, brandsData] = await Promise.all([
           getProducts(),
           getCategories(),
+          getSubCategories(),
           getBrands(),
         ]);
         console.log("Products:", productsData);
         console.log("Categories:", categoriesData);
+        console.log("SubCategories:", subCategoriesData);
         console.log("Brands:", brandsData);
         console.log("API Base URL:", import.meta.env.VITE_API_BASE_URL);
         setProducts(productsData);
         setCategories(categoriesData);
+        setSubCategories(subCategoriesData);
         setBrands(brandsData);
       } catch (err) {
         console.error("Error loading data:", err);
@@ -507,7 +513,10 @@ const ProductList = () => {
             <div className="filter-group">
               <select
                 value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
+                onChange={(e) => {
+                  setFilterCategory(e.target.value);
+                  setFilterSubCategory("all");
+                }}
                 className="filter-select"
               >
                 <option value="all">All Categories</option>
@@ -521,11 +530,30 @@ const ProductList = () => {
                   <option disabled>No categories found</option>
                 )}
               </select>
+
+              <select
+                value={filterSubCategory}
+                onChange={(e) => setFilterSubCategory(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All SubCategories</option>
+                {subCategories
+                  .filter(sub => filterCategory === 'all' || sub.categoryId === parseInt(filterCategory))
+                  .map((subCategory) => (
+                    <option key={subCategory.id} value={subCategory.id}>
+                      {subCategory.name}
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
 
           <DataTable
-            data={products.filter(p => filterCategory === 'all' || p.categoryId === parseInt(filterCategory))}
+            data={products.filter(p => {
+              const categoryMatch = filterCategory === 'all' || p.categoryId === parseInt(filterCategory);
+              const subCategoryMatch = filterSubCategory === 'all' || p.subCategoryId === parseInt(filterSubCategory);
+              return categoryMatch && subCategoryMatch;
+            })}
             columns={columns}
             searchTerm={searchTerm}
             searchKey="name"
