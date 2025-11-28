@@ -1,28 +1,43 @@
-import React from 'react'
-import { Eye, TrendingUp, Users, ShoppingCart, Package, Star } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { TrendingUp, Users, ShoppingCart, Package, Star, IndianRupee } from 'lucide-react'
+import { getQuickStats, getRecentActivity, getTopPerformers } from '../api/overviewApi'
 
 const Overview = () => {
-  const quickStats = [
-    { label: 'Total Views', value: '45,678', icon: Eye, color: 'blue' },
-    { label: 'Conversion Rate', value: '3.2%', icon: TrendingUp, color: 'green' },
-    { label: 'Active Users', value: '1,234', icon: Users, color: 'purple' },
-    { label: 'Avg. Order Value', value: '₹2,456', icon: ShoppingCart, color: 'orange' }
-  ]
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState(null)
+  const [recentActivity, setRecentActivity] = useState([])
+  const [topPerformers, setTopPerformers] = useState([])
+  useEffect(() => {
+    fetchOverviewData()
+  }, [])
 
-  const recentActivity = [
-    { type: 'order', message: 'New order #1234 received', time: '2 minutes ago' },
-    { type: 'customer', message: 'New customer registration', time: '5 minutes ago' },
-    { type: 'product', message: 'Product "Wireless Headphones" updated', time: '10 minutes ago' },
-    { type: 'review', message: 'New 5-star review received', time: '15 minutes ago' },
-    { type: 'stock', message: 'Low stock alert for "Cotton T-Shirt"', time: '20 minutes ago' }
-  ]
+  const fetchOverviewData = async () => {
+    try {
+      const [statsData, activityData, performersData] = await Promise.all([
+        getQuickStats(),
+        getRecentActivity(),
+        getTopPerformers()
+      ])
+      setStats(statsData)
+      setRecentActivity(activityData)
+      setTopPerformers(performersData)
+    } catch (error) {
+      console.error('Error fetching overview data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const topPerformers = [
-    { name: 'Wireless Headphones', metric: '245 sales', status: 'trending' },
-    { name: 'Cotton T-Shirt', metric: '189 sales', status: 'stable' },
-    { name: 'Running Shoes', metric: '156 sales', status: 'trending' },
-    { name: 'Smartphone Case', metric: '134 sales', status: 'declining' }
-  ]
+  const quickStats = stats ? [
+    { label: 'Total Revenues', value: stats.totalRevenue.toLocaleString(), icon: IndianRupee, color: 'blue' },
+    { label: 'Total Orders', value: stats.totalOrders.toString(), icon: TrendingUp, color: 'green' },
+    { label: 'Total Users', value: stats.totalUsers.toString(), icon: Users, color: 'purple' },
+    { label: 'Avg. Order Value', value: `₹${stats.avgOrderValue.toLocaleString()}`, icon: ShoppingCart, color: 'orange' }
+  ] : []
+
+  if (loading) {
+    return <div className="overview"><div className="page-header"><h1>Loading...</h1></div></div>
+  }
 
   return (
     <div className="overview">
@@ -87,50 +102,6 @@ const Overview = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="overview-summary">
-        <div className="card">
-          <div className="card-header">
-            <h3>Business Summary</h3>
-          </div>
-          <div className="summary-grid">
-            <div className="summary-item">
-              <h4>Today's Performance</h4>
-              <div className="summary-stats">
-                <div className="summary-stat">
-                  <span className="stat-label">Orders</span>
-                  <span className="stat-value">23</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="stat-label">Revenue</span>
-                  <span className="stat-value">₹12,450</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="stat-label">Visitors</span>
-                  <span className="stat-value">456</span>
-                </div>
-              </div>
-            </div>
-            <div className="summary-item">
-              <h4>This Week</h4>
-              <div className="summary-stats">
-                <div className="summary-stat">
-                  <span className="stat-label">Orders</span>
-                  <span className="stat-value">156</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="stat-label">Revenue</span>
-                  <span className="stat-value">₹89,670</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="stat-label">New Customers</span>
-                  <span className="stat-value">34</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

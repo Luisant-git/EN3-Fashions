@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Calendar,
@@ -16,8 +16,8 @@ import {
 
 // Import child components
 import SalesAnalytics from '../components/SalesAnalytics';
-import SalesTarget from '../components/SalesTarget';
 import TopSellingProducts from '../components/TopSellingProducts';
+import { getDashboardStats, getSalesAnalytics, getTopProducts, getCurrentOffers } from '../api/dashboardApi';
 import './Dashboard.scss'
 
 // You can create a separate component for this, but for simplicity, it's here
@@ -47,61 +47,80 @@ const StatsCard = ({ title, value, period, change, trend, icon: Icon }) => {
 
 // Main Dashboard Component
 const Dashboard = () => {
-  const statsData = [
-    {
-      title: 'Total Revenue',
-      period: 'Last 30 days',
-      value: '₹82,650',
-      change: '11%',
-      trend: 'up',
-      icon: Wallet
-    },
-    {
-      title: 'Total Order',
-      period: 'Last 30 days',
-      value: '1645',
-      change: '11%',
-      trend: 'up',
-      icon: ShoppingCart
-    },
-    {
-      title: 'Total Customer',
-      period: 'Last 30 days',
-      value: '1,462',
-      change: '17%',
-      trend: 'down',
-      icon: Users
-    },
-    {
-      title: 'Pending Delivery',
-      period: 'Last 30 days',
-      value: '117',
-      change: '5%',
-      trend: 'up',
-      icon: Truck
-    }
-  ];
+  const [statsData, setStatsData] = useState([]);
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const productsScrollRef = React.useRef(null);
 
-  const offers = [
-    {
-      title: '40% Discount Offer',
-      status: 'Expire on: 05-08-24',
-      progress: 75,
-      type: 'discount'
-    },
-    {
-      title: '100 Taka Cupon',
-      status: 'Expire on: 10-09-24',
-      progress: 60,
-      type: 'coupon'
-    },
-    {
-      title: 'Stock Out Sell',
-      status: 'Upcoming on: 14-09-24',
-      progress: 90,
-      type: 'sellout'
+  const scrollProducts = (direction) => {
+    if (productsScrollRef.current) {
+      const scrollAmount = 300;
+      productsScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [stats, offersData] = await Promise.all([
+        getDashboardStats(),
+        getCurrentOffers()
+      ]);
+
+      setStatsData([
+        {
+          title: 'Total Revenue',
+          period: 'Last 30 days',
+          value: stats.totalRevenue.value,
+          change: stats.totalRevenue.change,
+          trend: stats.totalRevenue.trend,
+          icon: Wallet
+        },
+        {
+          title: 'Total Order',
+          period: 'Last 30 days',
+          value: stats.totalOrder.value,
+          change: stats.totalOrder.change,
+          trend: stats.totalOrder.trend,
+          icon: ShoppingCart
+        },
+        {
+          title: 'Total Customer',
+          period: 'Last 30 days',
+          value: stats.totalCustomer.value,
+          change: stats.totalCustomer.change,
+          trend: stats.totalCustomer.trend,
+          icon: Users
+        },
+        {
+          title: 'Pending Delivery',
+          period: 'Last 30 days',
+          value: stats.pendingDelivery.value,
+          change: stats.pendingDelivery.change,
+          trend: stats.pendingDelivery.trend,
+          icon: Truck
+        }
+      ]);
+
+      setOffers(offersData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setLoading(false);
+    }
+  };
+
+  const todayDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  if (loading) {
+    return <div className="dashboard-container">Loading...</div>;
+  }
 
   return (
     <div className="dashboard-container">
@@ -115,7 +134,7 @@ const Dashboard = () => {
           </div>
           <button className="icon-btn date-btn">
             <Calendar size={20} />
-            <span>30 May</span>
+            <span>{todayDate}</span>
           </button>
           <button className="icon-btn">
             <Bell size={20} />
@@ -129,7 +148,7 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <main className="dashboard-grid">
         {/* Stats Cards */}
-        {statsData.map((stat, index) => (
+        {statsData.length > 0 && statsData.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
 
@@ -138,21 +157,16 @@ const Dashboard = () => {
           <SalesAnalytics />
         </div>
 
-        {/* Sales Target */}
-        <div className="card sales-target">
-          <SalesTarget />
-        </div>
-
         {/* Top Selling Products */}
         <div className="card top-products">
           <div className="card-header">
             <h3>Top Selling Products</h3>
             <div className="nav-arrows">
-              <button><ArrowLeft size={16} /></button>
-              <button><ArrowRight size={16} /></button>
+              <button onClick={() => scrollProducts('left')}><ArrowLeft size={16} /></button>
+              <button onClick={() => scrollProducts('right')}><ArrowRight size={16} /></button>
             </div>
           </div>
-          <TopSellingProducts />
+          <TopSellingProducts scrollRef={productsScrollRef} />
         </div>
 
         {/* Current Offer */}

@@ -1,23 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getTopProducts } from '../api/dashboardApi';
 
-const TopSellingProducts = () => {
-  const products = [
-    { name: 'Air Jordan 8', pieces: 752, img: 'public/stylish-phone-case.png' },
-    { name: 'Air Jordan 5', pieces: 752, img: 'public/stylish-phone-case.png' },
-    { name: 'Air Jordan 13', pieces: 752, img: 'public/stylish-phone-case.png' },
-    { name: 'Nike Air Max', pieces: 752, img: 'public/stylish-phone-case.png' },
-    { name: 'Nike Fly 3', pieces: 752, img: 'public/stylish-phone-case.png' },
-  ];
+const TopSellingProducts = ({ scrollRef }) => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    fetchTopProducts();
+  }, []);
+
+  const fetchTopProducts = async () => {
+    try {
+      const data = await getTopProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error('Error fetching top products:', error);
+    }
+  };
 
   return (
-    <div className="products-scroller">
+    <div className="products-scroller" ref={scrollRef}>
       {products.map((product, index) => (
         <div key={index} className="product-card">
           <div className="product-image-bg">
-            <img src={product.img} alt={product.name} />
+            <img src={product.image} alt={product.name} />
           </div>
           <h4>{product.name}</h4>
-          <p>{product.pieces} Pcs</p>
+          <p>{product.sold} Pcs</p>
         </div>
       ))}
     </div>

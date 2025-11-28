@@ -16,9 +16,11 @@ import { CouponModule } from './coupon/coupon.module';
 import { CustomerModule } from './customer/customer.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { WhatsappSessionModule } from './whatsapp-session/whatsapp-session.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { OverviewModule } from './overview/overview.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule],
+  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -20,7 +20,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       label: 'Dashboards',
       children: [
         { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { key: 'analytics', icon: BarChart3, label: 'Analytics', path: '/analytics' },
+        // { key: 'analytics', icon: BarChart3, label: 'Analytics', path: '/analytics' },
         { key: 'overview', icon: Eye, label: 'Overview', path: '/overview' }
       ]
     },

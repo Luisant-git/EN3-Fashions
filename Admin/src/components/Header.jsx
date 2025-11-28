@@ -52,10 +52,6 @@ const Header = () => {
                   <User size={16} />
                   <span>Profile</span>
                 </div>
-                <div className="profile-item">
-                  <Settings size={16} />
-                  <span>Settings</span>
-                </div>
                 <div className="profile-item logout" onClick={handleLogout}>
                   <LogOut size={16} />
                   <span>Logout</span>

@@ -7,7 +7,7 @@ import { checkTokenExpiry, logout } from './utils/tokenManager';
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import Dashboard from './pages/Dashboard'
-import Analytics from './pages/Analytics'
+// import Analytics from './pages/Analytics'
 import Overview from './pages/Overview'
 import AddProduct from './pages/AddProduct'
 import EditProduct from './pages/EditProduct'
@@ -111,7 +111,7 @@ function App() {
               <Route path="/login" element={<Navigate to="/dashboard" replace />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/analytics" element={<Analytics />} />
+              {/* <Route path="/analytics" element={<Analytics />} /> */}
               <Route path="/overview" element={<Overview />} />
               <Route path="/add-product" element={<AddProduct />} />
               <Route path="/edit-product/:id" element={<EditProduct />} />
