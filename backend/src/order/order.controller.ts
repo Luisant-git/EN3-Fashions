@@ -4,11 +4,15 @@ import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PaymentService } from './payment.service';
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly paymentService: PaymentService
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -54,5 +58,22 @@ export class OrderController {
   @ApiResponse({ status: 404, description: 'Order not found' })
   async updateOrderStatus(@Param('orderId') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(parseInt(orderId), updateOrderStatusDto.status);
+  }
+
+  @Post('payment/create')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create Razorpay order' })
+  async createPaymentOrder(@Body() body: { amount: number }) {
+    return this.paymentService.createOrder(body.amount);
+  }
+
+  @Post('payment/verify')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify Razorpay payment' })
+  async verifyPayment(@Body() body: { orderId: string; paymentId: string; signature: string }) {
+    const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
+    return { success: isValid };
   }
 }

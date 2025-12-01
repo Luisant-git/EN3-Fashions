@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Filter, Plus, Edit, Trash2, Eye, MapPin } from 'lucide-react'
+import { Search, Filter, Plus, Edit, Trash2, Eye, MapPin, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getPincodes, deletePincode } from '../api/pincodeApi'
 import DataTable from '../components/DataTable'
@@ -9,6 +9,7 @@ const PincodeList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [pincodes, setPincodes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [viewModal, setViewModal] = useState({ open: false, data: null })
 
   useEffect(() => {
     fetchPincodes()
@@ -68,6 +69,15 @@ const PincodeList = () => {
       )
     },
     { 
+      key: 'shipping', 
+      label: 'Shipping',
+      render: (_, row) => (
+        <span className={`shipping-info ${row.freeShipping ? 'free' : 'paid'}`}>
+          {row.freeShipping ? 'Free Shipping' : `₹${row.deliveryCharge || 0}`}
+        </span>
+      )
+    },
+    { 
       key: 'status', 
       label: 'Status',
       render: (value) => (
@@ -80,7 +90,7 @@ const PincodeList = () => {
       label: 'Actions',
       render: (_, row) => (
         <div className="action-buttons">
-          <button className="action-btn view" title="View">
+          <button className="action-btn view" onClick={() => setViewModal({ open: true, data: row })} title="View">
             <Eye size={16} />
           </button>
           <button className="action-btn edit" onClick={() => handleEdit(row.id)} title="Edit">
@@ -129,6 +139,58 @@ const PincodeList = () => {
           searchTerm={searchTerm}
           searchKey="pincode"
         />
+      )}
+
+      {viewModal.open && (
+        <div className="modal-overlay" onClick={() => setViewModal({ open: false, data: null })}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Pincode Details</h3>
+              <button className="close-btn" onClick={() => setViewModal({ open: false, data: null })}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid">
+                <div className="detail-row">
+                  <span className="label">Pincode:</span>
+                  <span className="value">{viewModal.data?.pincode}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">City:</span>
+                  <span className="value">{viewModal.data?.city}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">State:</span>
+                  <span className="value">{viewModal.data?.state}</span>
+                </div>
+
+                <div className="detail-row">
+                  <span className="label">Delivery Days:</span>
+                  <span className="value">{viewModal.data?.deliveryDays} days</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">COD Available:</span>
+                  <span className="value">{viewModal.data?.codAvailable ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Free Shipping:</span>
+                  <span className="value">{viewModal.data?.freeShipping ? 'Yes' : 'No'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Delivery Charge:</span>
+                  <span className="value">₹{viewModal.data?.deliveryCharge || 0}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Status:</span>
+                  <span className="value">{viewModal.data?.status}</span>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

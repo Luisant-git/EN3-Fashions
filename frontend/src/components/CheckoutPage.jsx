@@ -5,7 +5,9 @@ import { CartContext } from '../contexts/CartContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { createOrder } from '../api/orderApi';
 import { validateCoupon, getActiveCoupons } from '../api/couponApi';
+import { createPaymentOrder, verifyPayment } from '../api/paymentApi';
 import LoadingSpinner from './LoadingSpinner';
+import useRazorpay from 'react-razorpay';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -13,6 +15,7 @@ const CheckoutPage = () => {
     const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
     const { user, token } = useContext(AuthContext);
+    const [Razorpay] = useRazorpay();
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [couponCode, setCouponCode] = useState('');
@@ -70,23 +73,58 @@ const CheckoutPage = () => {
 
         setIsPlacingOrder(true);
         try {
-            const orderData = {
-                subtotal: subtotal.toString(),
-                deliveryFee: deliveryOption.fee.toString(),
-                total: finalTotal.toString(),
-                couponCode: appliedCoupon?.code || undefined,
-                paymentMethod,
-                shippingAddress: formData,
-                deliveryOption
-            };
+            const razorpayOrder = await createPaymentOrder(finalTotal, token);
             
-            const order = await createOrder(orderData);
-            await fetchCart();
-            toast.success('Order placed successfully!');
-            navigate('/order-confirmation', { state: { order } });
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                name: 'EN3 Trends',
+                description: 'Order Payment',
+                order_id: razorpayOrder.id,
+                handler: async (response) => {
+                    try {
+                        const verification = await verifyPayment({
+                            orderId: response.razorpay_order_id,
+                            paymentId: response.razorpay_payment_id,
+                            signature: response.razorpay_signature
+                        }, token);
+
+                        if (verification.success) {
+                            const orderData = {
+                                subtotal: subtotal.toString(),
+                                deliveryFee: deliveryOption.fee.toString(),
+                                total: finalTotal.toString(),
+                                couponCode: appliedCoupon?.code || undefined,
+                                paymentMethod,
+                                shippingAddress: formData,
+                                deliveryOption
+                            };
+                            
+                            const order = await createOrder(orderData);
+                            await fetchCart();
+                            toast.success('Payment successful! Order placed.');
+                            navigate('/order-confirmation', { state: { order } });
+                        }
+                    } catch (error) {
+                        toast.error('Payment verification failed');
+                    }
+                },
+                prefill: {
+                    name: formData.fullName,
+                    contact: formData.mobile
+                },
+                theme: { color: '#3399cc' }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', () => {
+                toast.error('Payment failed. Please try again.');
+            });
+            rzp.open();
         } catch (error) {
-            console.error('Error placing order:', error);
-            toast.error('Failed to place order. Please try again.');
+            console.error('Error:', error);
+            toast.error('Failed to initiate payment');
         } finally {
             setIsPlacingOrder(false);
         }
