@@ -7,15 +7,12 @@ import { createOrder } from '../api/orderApi';
 import { validateCoupon, getActiveCoupons } from '../api/couponApi';
 import { createPaymentOrder, verifyPayment } from '../api/paymentApi';
 import LoadingSpinner from './LoadingSpinner';
-import useRazorpay from 'react-razorpay';
-
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
     const { user, token } = useContext(AuthContext);
-    const Razorpay = useRazorpay();
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [couponCode, setCouponCode] = useState('');
@@ -117,7 +114,7 @@ const CheckoutPage = () => {
                 theme: { color: '#3399cc' }
             };
 
-            const rzp = new Razorpay(options);
+            const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', () => {
                 toast.error('Payment failed. Please try again.');
             });
