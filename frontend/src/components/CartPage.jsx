@@ -6,7 +6,7 @@ import { getBundlePrice } from '../data/mockData';
 const CartPage = () => {
     const navigate = useNavigate();
     const { cart, removeFromCart, updateQuantity } = useContext(CartContext);
-    const [deliveryOption, setDeliveryOption] = useState({ fee: 50, name: 'Standard Delivery' });
+    // const [deliveryOption, setDeliveryOption] = useState({ fee: 50, name: 'Standard Delivery' });
 
     if (!Array.isArray(cart) || cart.length === 0) {
         return <div className="cart-page empty-cart"><h2>Your Cart is Empty</h2><button onClick={() => navigate('/')}>Continue Shopping</button></div>;
@@ -27,12 +27,12 @@ const CartPage = () => {
         }
         return sum;
     }, 0);
-    const deliveryOptions = [
-        { fee: 50, name: 'Standard Delivery', duration: '3-5 days' },
-        { fee: 150, name: 'Express Delivery', duration: '1-2 days' },
-        { fee: 250, name: 'Next Day Delivery', duration: 'Tomorrow' },
-    ];
-    const finalTotal = subtotal + deliveryOption.fee;
+    // const deliveryOptions = [
+    //     { fee: 50, name: 'Standard Delivery', duration: '3-5 days' },
+    //     { fee: 150, name: 'Express Delivery', duration: '1-2 days' },
+    //     { fee: 250, name: 'Next Day Delivery', duration: 'Tomorrow' },
+    // ];
+    const finalTotal = subtotal;
     
     if (false) {
         return <div className="cart-page empty-cart"><h2>Your Cart is Empty</h2><button onClick={() => navigate('/')}>Continue Shopping</button></div>;
@@ -129,7 +129,7 @@ const CartPage = () => {
                         <span>Total</span>
                         <span>₹{finalTotal.toFixed(2)}</span>
                     </div>
-                    <button className="checkout-btn" onClick={() => navigate('/checkout', { state: { deliveryOption } })}>Proceed to Checkout</button>
+                    <button className="checkout-btn" onClick={() => navigate('/checkout')}>Proceed to Checkout</button>
                 </div>
             </div>
         </div>
