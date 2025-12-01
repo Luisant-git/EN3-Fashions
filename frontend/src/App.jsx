@@ -21,6 +21,11 @@ import SignupPage from './components/SignupPage';
 import ProfilePage from './components/ProfilePage';
 import AboutUsPage from './components/AboutUsPage';
 import ReturnsPolicyPage from './components/ReturnsPolicyPage';
+import ReturnPolicy from './components/ReturnPolicy';
+import ShippingPolicy from './components/ShippingPolicy';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
+import ContactUs from './components/ContactUs';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -54,6 +59,11 @@ const App = () => {
                                     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                                     <Route path="/about" element={<AboutUsPage />} />
                                     <Route path="/returns-policy" element={<ReturnsPolicyPage />} />
+                                    <Route path="/return-policy" element={<ReturnPolicy />} />
+                                    <Route path="/shipping-policy" element={<ShippingPolicy />} />
+                                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                                    <Route path="/contact" element={<ContactUs />} />
                                 </Routes>
                             </main>
                             <Footer />

@@ -14,21 +14,21 @@ const Footer = () => {
                 <p>Elevate your style with our curated collection of men's and boys' fashion.</p>
             </div>
             <div className="footer-column">
-                <h4>Shop</h4>
+                <h4>Policy</h4>
                 <ul>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/subcategory/men'); }}>Men's Wear</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/subcategory/boys'); }}>Boys' Wear</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/category/sale'); }}>Sale</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/category/new-arrivals'); }}>New Arrivals</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/return-policy'); window.scrollTo(0, 0); }}>Return Policy</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/shipping-policy'); window.scrollTo(0, 0); }}>Shipping Policy</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/privacy-policy'); }}>Privacy Policy</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/terms-of-service'); }}>Terms of Service</a></li>
                 </ul>
             </div>
             <div className="footer-column">
                 <h4>Information</h4>
                 <ul>
                     <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/about'); }}>About Us</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">FAQs</a></li>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/returns-policy'); }}>Returns & Policies</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/contact'); }}>Contact Us</a></li>
+                    {/* <li><a href="#">FAQs</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/returns-policy'); }}>Returns & Policies</a></li> */}
                 </ul>
             </div>
             <div className="footer-column">

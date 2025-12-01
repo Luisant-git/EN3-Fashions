@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
-const AboutUsPage = () => (
+const AboutUsPage = () => {
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    return (
     <div className="static-page-container">
         <h1>About EN3 Fashion Trends</h1>
         <p>Welcome to EN3 Fashion Trends, your ultimate destination for contemporary men's and boys' fashion. Founded in 2024, our mission is to provide high-quality, stylish, and affordable clothing that empowers you to express your unique personality.</p>
@@ -8,6 +13,7 @@ const AboutUsPage = () => (
         <p>Our innovative bundle offers, like the "Pick Any 3 for ₹999," are designed to provide exceptional value, making it easier than ever to refresh your wardrobe without breaking the bank. We're committed to creating a seamless shopping experience, from our user-friendly website to our dedicated customer support.</p>
         <p>Thank you for choosing EN3 Fashion Trends. We're excited to be a part of your style journey.</p>
     </div>
-);
+    );
+};
 
 export default AboutUsPage;

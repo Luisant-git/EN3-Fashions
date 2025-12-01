@@ -18,9 +18,10 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { WhatsappSessionModule } from './whatsapp-session/whatsapp-session.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { OverviewModule } from './overview/overview.module';
+import { PincodeModule } from './pincode.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule],
+  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule, PincodeModule],
   controllers: [AppController],
   providers: [AppService],
 })

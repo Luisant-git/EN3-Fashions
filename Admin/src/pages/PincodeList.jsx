@@ -1,27 +1,42 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Search, Filter, Plus, Edit, Trash2, Eye, MapPin } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { getPincodes, deletePincode } from '../api/pincodeApi'
 import DataTable from '../components/DataTable'
 
 const PincodeList = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
+  const [pincodes, setPincodes] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const pincodes = [
-    { id: 1, pincode: '110001', city: 'New Delhi', state: 'Delhi', deliveryDays: 2, codAvailable: true, status: 'active', createdAt: '2024-01-15' },
-    { id: 2, pincode: '400001', city: 'Mumbai', state: 'Maharashtra', deliveryDays: 3, codAvailable: true, status: 'active', createdAt: '2024-01-12' },
-    { id: 3, pincode: '560001', city: 'Bangalore', state: 'Karnataka', deliveryDays: 4, codAvailable: false, status: 'active', createdAt: '2024-01-10' },
-    { id: 4, pincode: '600001', city: 'Chennai', state: 'Tamil Nadu', deliveryDays: 5, codAvailable: true, status: 'inactive', createdAt: '2024-01-08' },
-    { id: 5, pincode: '700001', city: 'Kolkata', state: 'West Bengal', deliveryDays: 6, codAvailable: false, status: 'active', createdAt: '2024-01-05' }
-  ]
+  useEffect(() => {
+    fetchPincodes()
+  }, [])
+
+  const fetchPincodes = async () => {
+    try {
+      const data = await getPincodes()
+      setPincodes(data)
+    } catch (error) {
+      console.error('Error fetching pincodes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleEdit = (id) => {
     console.log('Edit pincode:', id)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this pincode?')) {
-      console.log('Delete pincode:', id)
+      try {
+        await deletePincode(id)
+        fetchPincodes()
+      } catch (error) {
+        alert(error.message)
+      }
     }
   }
 
@@ -105,12 +120,16 @@ const PincodeList = () => {
         </div>
       </div>
 
-      <DataTable 
-        data={pincodes}
-        columns={columns}
-        searchTerm={searchTerm}
-        searchKey="pincode"
-      />
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <DataTable 
+          data={pincodes}
+          columns={columns}
+          searchTerm={searchTerm}
+          searchKey="pincode"
+        />
+      )}
     </div>
   )
 }

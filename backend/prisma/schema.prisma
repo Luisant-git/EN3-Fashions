@@ -264,3 +264,19 @@ model WhatsappSession {
 
   @@index([phone])
 }
+
+model Pincode {
+  id              Int      @id @default(autoincrement())
+  pincode         String   @unique
+  city            String
+  state           String
+  deliveryCharge  Float?   @default(0)
+  deliveryTime    Int?     @default(0)
+  minOrderAmount  Float?   @default(0)
+  codAvailable    Boolean  @default(true)
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([pincode])
+}
