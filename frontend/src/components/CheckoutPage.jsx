@@ -10,7 +10,7 @@ import LoadingSpinner from './LoadingSpinner';
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
+    // const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
     const { user, token } = useContext(AuthContext);
     const [paymentMethod, setPaymentMethod] = useState('card');
@@ -62,7 +62,7 @@ const CheckoutPage = () => {
     }, [token]);
 
     const subtotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0;
-    const finalTotal = subtotal - discount + deliveryOption.fee;
+    const finalTotal = subtotal - discount;
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
@@ -90,12 +90,12 @@ const CheckoutPage = () => {
                         if (verification.success) {
                             const orderData = {
                                 subtotal: subtotal.toString(),
-                                deliveryFee: deliveryOption.fee.toString(),
+                                // deliveryFee: deliveryOption.fee.toString(),
                                 total: finalTotal.toString(),
                                 couponCode: appliedCoupon?.code || undefined,
                                 paymentMethod,
-                                shippingAddress: formData,
-                                deliveryOption
+                                shippingAddress: formData
+                                // deliveryOption
                             };
                             
                             const order = await createOrder(orderData);
@@ -276,10 +276,10 @@ const CheckoutPage = () => {
                             <span>-₹{discount.toFixed(2)}</span>
                         </div>
                     )}
-                    <div className="summary-row">
+                    {/* <div className="summary-row">
                         <span>Delivery Fee</span>
                         <span>₹{deliveryOption.fee.toFixed(2)}</span>
-                    </div>
+                    </div> */}
                     <div className="summary-row total">
                         <span>Total</span>
                         <span>₹{finalTotal.toFixed(2)}</span>
