@@ -80,6 +80,7 @@ const CheckoutPage = () => {
                 description: 'Order Payment',
                 order_id: razorpayOrder.id,
                 handler: async (response) => {
+                    setIsPlacingOrder(true);
                     try {
                         const verification = await verifyPayment({
                             orderId: response.razorpay_order_id,
@@ -90,21 +91,28 @@ const CheckoutPage = () => {
                         if (verification.success) {
                             const orderData = {
                                 subtotal: subtotal.toString(),
-                                // deliveryFee: deliveryOption.fee.toString(),
+                                deliveryFee: '0',
                                 total: finalTotal.toString(),
                                 couponCode: appliedCoupon?.code || undefined,
-                                paymentMethod,
-                                shippingAddress: formData
-                                // deliveryOption
+                                paymentMethod: 'razorpay',
+                                shippingAddress: formData,
+                                deliveryOption: { fee: 0, name: 'Standard Delivery' }
                             };
                             
                             const order = await createOrder(orderData);
                             await fetchCart();
                             toast.success('Payment successful! Order placed.');
-                            navigate('/order-confirmation', { state: { order } });
+                            setTimeout(() => {
+                                navigate('/order-confirmation', { state: { order }, replace: true });
+                            }, 500);
+                        } else {
+                            toast.error('Payment verification failed');
                         }
                     } catch (error) {
-                        toast.error('Payment verification failed');
+                        console.error('Order creation error:', error);
+                        toast.error('Payment received but order failed. Contact support.');
+                    } finally {
+                        setIsPlacingOrder(false);
                     }
                 },
                 prefill: {
@@ -115,10 +123,12 @@ const CheckoutPage = () => {
             };
 
             const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', () => {
-                toast.error('Payment failed. Please try again.');
+            rzp.on('payment.failed', (response) => {
+                setIsPlacingOrder(false);
+                toast.error('Payment failed: ' + (response.error?.description || 'Please try again'));
             });
             rzp.open();
+            setIsPlacingOrder(false);
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to initiate payment');
