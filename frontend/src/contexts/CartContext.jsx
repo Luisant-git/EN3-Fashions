@@ -3,13 +3,21 @@ import { addToCart as addToCartAPI, getCart, removeFromCart as removeFromCartAPI
 import { AuthContext } from './AuthContext';
 import { toast } from 'react-toastify';
 
-export const CartContext = createContext(null);
+export const CartContext = createContext({
+    cart: [],
+    addToCart: () => {},
+    removeFromCart: () => {},
+    updateQuantity: () => {},
+    clearCart: () => {},
+    loading: false,
+    fetchCart: () => {}
+});
 
 const CartProviderInner = ({ children }) => {
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [initialized, setInitialized] = useState(false);
-    const { user, token } = useContext(AuthContext);
+    const authContext = useContext(AuthContext);
+    const { user, token } = authContext || {};
 
     // Load cart from API when user is logged in
     useEffect(() => {
@@ -17,7 +25,6 @@ const CartProviderInner = ({ children }) => {
             fetchCart();
         } else {
             setCart([]);
-            setInitialized(true);
         }
     }, [user, token]);
 
@@ -28,8 +35,6 @@ const CartProviderInner = ({ children }) => {
         } catch (error) {
             console.error('Error fetching cart:', error);
             setCart([]);
-        } finally {
-            setInitialized(true);
         }
     };
 
@@ -85,10 +90,6 @@ const CartProviderInner = ({ children }) => {
             console.error('Error clearing cart:', error);
         }
     };
-
-    if (!initialized) {
-        return <div>Loading...</div>;
-    }
 
     return (
         <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, loading, fetchCart }}>

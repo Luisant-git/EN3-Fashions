@@ -35,8 +35,8 @@ const App = () => {
 
     return (
         <AuthProvider>
-            <WishlistProvider>
-                <CartProvider>
+            <CartProvider>
+                <WishlistProvider>
                     <Router>
                         <div className="app-container">
                             <TopHeader />
@@ -70,8 +70,8 @@ const App = () => {
                             <ToastContainer position="top-right" autoClose={1000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
                         </div>
                     </Router>
-                </CartProvider>
-            </WishlistProvider>
+                </WishlistProvider>
+            </CartProvider>
         </AuthProvider>
     );
 };
