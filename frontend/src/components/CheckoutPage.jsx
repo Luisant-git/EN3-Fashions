@@ -15,7 +15,7 @@ const CheckoutPage = () => {
     const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
     const { user, token } = useContext(AuthContext);
-    const [Razorpay] = useRazorpay();
+    const Razorpay = useRazorpay();
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [couponCode, setCouponCode] = useState('');
