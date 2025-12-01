@@ -42,8 +42,8 @@ const HomePage = () => {
                     getCategories(),
                     getActiveBanners()
                 ]);
-                setCategories(categoriesData);
-                setBanners(bannersData);
+                setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+                setBanners(Array.isArray(bannersData) ? bannersData : []);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -72,7 +72,7 @@ const HomePage = () => {
         <div className="home-page">
             <section className="hero-section">
                 <div className="hero-slider">
-                    {banners.map((banner, index) => {
+                    {Array.isArray(banners) && banners.map((banner, index) => {
                         const bannerImage = isMobile && banner.mobileImage ? banner.mobileImage : banner.image;
                         return (
                             <div 
@@ -93,7 +93,7 @@ const HomePage = () => {
                     </div>
                 )}
                 <div className="hero-dots">
-                    {banners.map((_, index) => (
+                    {Array.isArray(banners) && banners.map((_, index) => (
                         <div 
                             key={index}
                             className={`hero-dot ${index === currentSlide ? 'active' : ''}`}
@@ -106,7 +106,7 @@ const HomePage = () => {
             <section className="home-section">
                 <h2>Shop by Category</h2>
                 <div className="category-display">
-                    {categories.map((category) => (
+                    {Array.isArray(categories) && categories.map((category) => (
                         <div key={category.id} className="category-card" onClick={() => navigate(`/category/${category.id}`)}>
                             <p>{category.name}</p>
                             <img src={category.image} alt={category.name}/>

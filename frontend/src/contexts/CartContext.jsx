@@ -8,6 +8,7 @@ export const CartContext = createContext(null);
 const CartProviderInner = ({ children }) => {
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [initialized, setInitialized] = useState(false);
     const { user, token } = useContext(AuthContext);
 
     // Load cart from API when user is logged in
@@ -16,6 +17,7 @@ const CartProviderInner = ({ children }) => {
             fetchCart();
         } else {
             setCart([]);
+            setInitialized(true);
         }
     }, [user, token]);
 
@@ -26,6 +28,8 @@ const CartProviderInner = ({ children }) => {
         } catch (error) {
             console.error('Error fetching cart:', error);
             setCart([]);
+        } finally {
+            setInitialized(true);
         }
     };
 
@@ -81,6 +85,10 @@ const CartProviderInner = ({ children }) => {
             console.error('Error clearing cart:', error);
         }
     };
+
+    if (!initialized) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, loading, fetchCart }}>

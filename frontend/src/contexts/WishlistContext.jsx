@@ -12,8 +12,11 @@ export const WishlistProvider = ({ children }) => {
     useEffect(() => {
         if (token) {
             getWishlist(token)
-                .then(setWishlist)
-                .catch(console.error);
+                .then(data => setWishlist(Array.isArray(data) ? data : []))
+                .catch(err => {
+                    console.error(err);
+                    setWishlist([]);
+                });
         } else {
             setWishlist([]);
         }
@@ -23,7 +26,7 @@ export const WishlistProvider = ({ children }) => {
         if (!token) return;
         
         setLoadingProductId(product.id);
-        const exists = wishlist.some(item => item.id === product.id);
+        const exists = Array.isArray(wishlist) && wishlist.some(item => item.id === product.id);
         
         try {
             if (exists) {
@@ -40,7 +43,7 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    const isInWishlist = (productId) => wishlist.some(item => item.id === productId);
+    const isInWishlist = (productId) => Array.isArray(wishlist) && wishlist.some(item => item.id === productId);
 
     return (
         <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist, loadingProductId }}>
