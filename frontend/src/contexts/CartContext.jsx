@@ -22,9 +22,10 @@ const CartProviderInner = ({ children }) => {
     const fetchCart = async () => {
         try {
             const cartData = await getCart();
-            setCart(cartData);
+            setCart(Array.isArray(cartData) ? cartData : []);
         } catch (error) {
             console.error('Error fetching cart:', error);
+            setCart([]);
         }
     };
 

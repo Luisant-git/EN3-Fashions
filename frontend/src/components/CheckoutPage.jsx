@@ -64,7 +64,7 @@ const CheckoutPage = () => {
         fetchCoupons();
     }, [token]);
 
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0;
     const finalTotal = subtotal - discount + deliveryOption.fee;
 
     const handlePlaceOrder = async (e) => {
@@ -262,7 +262,7 @@ const CheckoutPage = () => {
                 </div>
                 <div className="checkout-summary">
                     <h2>Order Summary</h2>
-                    {cart.map(item => (
+                    {Array.isArray(cart) && cart.map(item => (
                          <div key={item.id} className="summary-item">
                              <span>{item.name} x {item.quantity}</span>
                              <span>₹{item.price * item.quantity}</span>

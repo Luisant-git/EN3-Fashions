@@ -8,7 +8,7 @@ const CartPage = () => {
     const { cart, removeFromCart, updateQuantity } = useContext(CartContext);
     const [deliveryOption, setDeliveryOption] = useState({ fee: 50, name: 'Standard Delivery' });
 
-    if (!cart || cart.length === 0) {
+    if (!Array.isArray(cart) || cart.length === 0) {
         return <div className="cart-page empty-cart"><h2>Your Cart is Empty</h2><button onClick={() => navigate('/')}>Continue Shopping</button></div>;
     }
 
@@ -43,7 +43,7 @@ const CartPage = () => {
             <h1>Your Cart</h1>
             <div className="cart-content">
                 <div className="cart-items">
-                    {cart.map(item => (
+                    {Array.isArray(cart) && cart.map(item => (
                         <div key={item.id} className="cart-item">
                             {item.type === 'bundle' ? (
                                 <div className="bundle-images">
