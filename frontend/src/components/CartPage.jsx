@@ -110,7 +110,7 @@ const CartPage = () => {
                             <span>- ₹{totalSavings.toFixed(2)}</span>
                         </div>
                     )}
-                    <div className="delivery-options">
+                    {/* <div className="delivery-options">
                         <h3>Delivery Options</h3>
                         {deliveryOptions.map(opt => (
                             <div key={opt.name} className={`delivery-option-card ${deliveryOption.name === opt.name ? 'selected' : ''}`} onClick={() => setDeliveryOption(opt)}>
@@ -124,7 +124,7 @@ const CartPage = () => {
                      <div className="summary-row">
                         <span>Delivery Fee</span>
                         <span>₹{deliveryOption.fee.toFixed(2)}</span>
-                    </div>
+                    </div> */}
                     <div className="summary-row total">
                         <span>Total</span>
                         <span>₹{finalTotal.toFixed(2)}</span>
