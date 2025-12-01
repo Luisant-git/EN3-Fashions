@@ -32,7 +32,6 @@ import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 
 const App = () => {
-
     return (
         <AuthProvider>
             <CartProvider>
