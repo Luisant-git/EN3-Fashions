@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common'
 import { PrismaService } from './prisma.service'
+import { IndianState } from '@prisma/client'
 
 @Controller('shipping')
 export class ShippingController {
@@ -14,7 +15,7 @@ export class ShippingController {
   create(@Body() createShippingDto: { state: string; flatShippingRate: number }) {
     return this.prisma.shippingRule.create({
       data: {
-        state: createShippingDto.state,
+        state: createShippingDto.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_') as IndianState,
         flatShippingRate: createShippingDto.flatShippingRate
       }
     })
@@ -25,7 +26,7 @@ export class ShippingController {
     return this.prisma.shippingRule.update({
       where: { id: +id },
       data: {
-        state: updateShippingDto.state,
+        state: updateShippingDto.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_') as IndianState,
         flatShippingRate: updateShippingDto.flatShippingRate
       }
     })

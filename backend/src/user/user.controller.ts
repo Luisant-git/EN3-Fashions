@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateAddressDto } from './dto/update-address.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
  
 @Controller('user')
@@ -32,7 +33,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('profile/address')
-  async updateAddress(@Request() req, @Body() address: any) {
+  async updateAddress(@Request() req, @Body() address: UpdateAddressDto) {
     return this.userService.updateAddress(req.user.id, address);
   }
  

@@ -7,6 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum IndianState {
+  ANDHRA_PRADESH
+  ARUNACHAL_PRADESH
+  ASSAM
+  BIHAR
+  CHHATTISGARH
+  GOA
+  GUJARAT
+  HARYANA
+  HIMACHAL_PRADESH
+  JHARKHAND
+  KARNATAKA
+  KERALA
+  MADHYA_PRADESH
+  MAHARASHTRA
+  MANIPUR
+  MEGHALAYA
+  MIZORAM
+  NAGALAND
+  ODISHA
+  PUNJAB
+  RAJASTHAN
+  SIKKIM
+  TAMIL_NADU
+  TELANGANA
+  TRIPURA
+  UTTAR_PRADESH
+  UTTARAKHAND
+  WEST_BENGAL
+  ANDAMAN_NICOBAR
+  CHANDIGARH
+  DADRA_NAGAR_HAVELI
+  DELHI
+  JAMMU_KASHMIR
+  LADAKH
+  LAKSHADWEEP
+  PUDUCHERRY
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String?  @unique
@@ -270,7 +309,7 @@ model Pincode {
   id              Int      @id @default(autoincrement())
   pincode         String   @unique
   city            String
-  state           String
+  state           IndianState
   deliveryCharge  Float?   @default(0)
   deliveryTime    Int?     @default(0)
   minOrderAmount  Float?   @default(0)
@@ -284,7 +323,7 @@ model Pincode {
 
 model ShippingRule {
   id               Int      @id @default(autoincrement())
-  state            String   @unique
+  state            IndianState @unique
   flatShippingRate Float
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

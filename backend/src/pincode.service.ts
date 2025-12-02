@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { CreatePincodeDto } from './create-pincode.dto';
 import { UpdatePincodeDto } from './update-pincode.dto';
+import { IndianState } from '@prisma/client';
 
 @Injectable()
 export class PincodeService {
@@ -9,7 +10,10 @@ export class PincodeService {
 
   create(createPincodeDto: CreatePincodeDto) {
     return this.prisma.pincode.create({
-      data: createPincodeDto,
+      data: {
+        ...createPincodeDto,
+        state: createPincodeDto.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_') as IndianState,
+      },
     });
   }
 
@@ -26,9 +30,13 @@ export class PincodeService {
   }
 
   update(id: number, updatePincodeDto: UpdatePincodeDto) {
+    const data: any = { ...updatePincodeDto };
+    if (updatePincodeDto.state) {
+      data.state = updatePincodeDto.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_') as IndianState;
+    }
     return this.prisma.pincode.update({
       where: { id },
-      data: updatePincodeDto,
+      data,
     });
   }
 

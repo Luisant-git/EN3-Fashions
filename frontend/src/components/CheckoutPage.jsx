@@ -7,6 +7,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { createOrder } from '../api/orderApi';
 import { validateCoupon, getActiveCoupons } from '../api/couponApi';
 import { createPaymentOrder, verifyPayment } from '../api/paymentApi';
+import { getShippingRules } from '../api/shippingApi';
 import LoadingSpinner from './LoadingSpinner';
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -22,6 +23,9 @@ const CheckoutPage = () => {
     const [availableCoupons, setAvailableCoupons] = useState([]);
     const couponInputRef = useRef(null);
     const [selectedState, setSelectedState] = useState(null);
+    const [shippingRules, setShippingRules] = useState([]);
+    const [deliveryFee, setDeliveryFee] = useState(0);
+    const [deliveryAvailable, setDeliveryAvailable] = useState(true);
     const [formData, setFormData] = useState({
         fullName: '',
         addressLine1: '',
@@ -75,14 +79,55 @@ const CheckoutPage = () => {
         fetchCoupons();
     }, [token]);
 
+    useEffect(() => {
+        const fetchShippingRules = async () => {
+            try {
+                const rules = await getShippingRules();
+                setShippingRules(rules);
+            } catch (error) {
+                console.error('Failed to fetch shipping rules:', error);
+            }
+        };
+        fetchShippingRules();
+    }, []);
+
+    useEffect(() => {
+        if (selectedState) {
+            const stateEnum = selectedState.value.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
+            const rule = shippingRules.find(r => r.state === stateEnum);
+            if (rule) {
+                setDeliveryFee(rule.flatShippingRate);
+                setDeliveryAvailable(true);
+            } else {
+                setDeliveryFee(0);
+                setDeliveryAvailable(false);
+            }
+        }
+    }, [selectedState, shippingRules]);
+
+    const BUSINESS_STATE = 'Tamil Nadu';
+    const GST_RATE = 0.05; // 5%
+
     const subtotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0;
-    const finalTotal = subtotal - discount;
+    const subtotalAfterDiscount = subtotal - discount;
+    
+    const isSameState = selectedState?.value === BUSINESS_STATE;
+    const gstAmount = subtotalAfterDiscount * GST_RATE;
+    const cgst = isSameState ? gstAmount / 2 : 0;
+    const sgst = isSameState ? gstAmount / 2 : 0;
+    const igst = !isSameState ? gstAmount : 0;
+    
+    const finalTotal = subtotalAfterDiscount + gstAmount + deliveryFee;
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
         if (isPlacingOrder) return;
         if (!selectedState) {
             toast.error('Please select a state');
+            return;
+        }
+        if (!deliveryAvailable) {
+            toast.error('Delivery not available for your state');
             return;
         }
 
@@ -109,12 +154,24 @@ const CheckoutPage = () => {
                         if (verification.success) {
                             const orderData = {
                                 subtotal: subtotal.toString(),
-                                deliveryFee: '0',
+                                deliveryFee: deliveryFee.toString(),
                                 total: finalTotal.toString(),
+                                discount: discount.toString(),
                                 couponCode: appliedCoupon?.code || undefined,
                                 paymentMethod: 'razorpay',
                                 shippingAddress: { ...formData, state: selectedState.value },
-                                deliveryOption: { fee: 0, name: 'Standard Delivery' }
+                                deliveryOption: { 
+                                    fee: deliveryFee, 
+                                    name: 'Standard Delivery',
+                                    gst: {
+                                        rate: GST_RATE,
+                                        amount: gstAmount,
+                                        cgst: cgst,
+                                        sgst: sgst,
+                                        igst: igst,
+                                        isSameState: isSameState
+                                    }
+                                }
                             };
                             
                             const order = await createOrder(orderData);
@@ -297,10 +354,35 @@ const CheckoutPage = () => {
                             <span>-₹{discount.toFixed(2)}</span>
                         </div>
                     )}
-                    {/* <div className="summary-row">
-                        <span>Delivery Fee</span>
-                        <span>₹{deliveryOption.fee.toFixed(2)}</span>
-                    </div> */}
+                    {selectedState && isSameState && (
+                        <>
+                            <div className="summary-row">
+                                <span>CGST (2.5%)</span>
+                                <span>₹{cgst.toFixed(2)}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>SGST (2.5%)</span>
+                                <span>₹{sgst.toFixed(2)}</span>
+                            </div>
+                        </>
+                    )}
+                    {selectedState && !isSameState && (
+                        <div className="summary-row">
+                            <span>IGST (5%)</span>
+                            <span>₹{igst.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {selectedState && deliveryAvailable && (
+                        <div className="summary-row">
+                            <span>Delivery Fee</span>
+                            <span>₹{deliveryFee.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {selectedState && !deliveryAvailable && (
+                        <div className="summary-row" style={{ color: '#ef4444' }}>
+                            <span>Delivery not available for your state</span>
+                        </div>
+                    )}
                     <div className="summary-row total">
                         <span>Total</span>
                         <span>₹{finalTotal.toFixed(2)}</span>
