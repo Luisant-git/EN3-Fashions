@@ -37,7 +37,8 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   { key: 'subcategory-list', icon: Layers, label: 'Sub Categories', path: '/subcategory-list' },
   { key: 'banner-list', icon: Image, label: 'Banners', path: '/banner-list' },
   { key: 'coupon-list', icon: TicketPercent, label: 'Coupons', path: '/coupon-list' },
-  { key: 'pincode-list', icon: MapPin, label: 'Pincodes', path: '/pincode-list' },
+  { key: 'shipping-settings', icon: Warehouse, label: 'Shipping Settings', path: '/shipping-settings' },
+  // { key: 'pincode-list', icon: MapPin, label: 'Pincodes', path: '/pincode-list' },
       ]
     },
     {
@@ -121,17 +122,16 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   }
 
   return (
-   <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-  <div className="sidebar-header">
-    <div 
-      className="logo"
-      onClick={() => setCollapsed(!collapsed)} // ✅ Toggle on logo click
-      style={{ cursor: 'pointer' }} // Optional: show hand cursor
-    >
-      <div className="logo-icon">A</div>
-      {!collapsed && <span className="logo-text">Admin Panel</span>}
-    </div>
-  </div>
+    <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      <div className="sidebar-header">
+        <div 
+          className="logo"
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <div className="logo-icon">A</div>
+          {!collapsed && <span className="logo-text">Admin Panel</span>}
+        </div>
+      </div>
 
       
       <nav className="sidebar-nav">

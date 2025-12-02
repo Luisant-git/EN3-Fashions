@@ -37,6 +37,9 @@ import CouponList from './pages/CouponList'
 import PincodeList from './pages/PincodeList'
 import CreateCombo from './pages/CreateCombo'
 import WhatsAppChat from './pages/WhatsAppChat'
+import ShippingSettings from './pages/ShippingSettings'
+import AddShipping from './pages/AddShipping'
+import EditShipping from './pages/EditShipping'
 // import BulkWhatsApp from './pages/BulkWhatsApps'
 
 // Import all SCSS files
@@ -60,6 +63,7 @@ import './styles/pages/add-template.scss'
 import './styles/pages/login.scss'
 import './styles/pages/list-pages.scss'
 import './styles/pages/create-combo.scss'
+import './styles/pages/add-shipping.scss'
 import './styles/WhatsAppChat.scss'
 
 function App() {
@@ -139,6 +143,9 @@ function App() {
               <Route path="/coupon-list" element={<CouponList />} />
               <Route path="/pincode-list" element={<PincodeList />} />
               <Route path="/create-combo" element={<CreateCombo />} />
+              <Route path="/shipping-settings" element={<ShippingSettings />} />
+              <Route path="/add-shipping" element={<AddShipping />} />
+              <Route path="/edit-shipping/:id" element={<EditShipping />} />
               {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
               {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>

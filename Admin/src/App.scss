@@ -21,6 +21,16 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: $sidebar-width;
+  transition: margin-left 0.3s ease;
+
+  &.sidebar-collapsed {
+    margin-left: $sidebar-collapsed-width;
+  }
+
+  @include responsive(tablet) {
+    margin-left: 0;
+  }
 }
 
 // Header Styles
@@ -105,102 +115,7 @@ body {
   }
 }
 
-// Sidebar Styles
-.sidebar {
-  width: 280px;
-  background: white;
-  border-right: 1px solid #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  
-  .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #e2e8f0;
-    
-    .logo {
-      display: flex;
-      align-items: center;
-      
-      .logo-icon {
-        width: 40px;
-        height: 40px;
-        background: #dc2626;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 18px;
-      }
-    }
-  }
-  
-  .sidebar-nav {
-    flex: 1;
-    padding: 16px 0;
-  }
-  
-  .menu-item {
-    margin-bottom: 4px;
-    
-    .menu-item-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #64748b;
-      
-      &:hover {
-        background: #f8fafc;
-        color: #1e293b;
-      }
-      
-      &.active {
-        background: #eff6ff;
-        color: #2563eb;
-        border-right: 3px solid #2563eb;
-      }
-      
-      .menu-label {
-        flex: 1;
-        font-weight: 500;
-        font-size: 14px;
-      }
-      
-      .expand-icon {
-        color: #94a3b8;
-      }
-    }
-    
-    .submenu {
-      background: #f8fafc;
-      
-      .submenu-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 20px 10px 52px;
-        cursor: pointer;
-        transition: all 0.2s;
-        color: #64748b;
-        font-size: 14px;
-        
-        &:hover {
-          background: #f1f5f9;
-          color: #1e293b;
-        }
-        
-        &.active {
-          background: #dbeafe;
-          color: #2563eb;
-        }
-      }
-    }
-  }
-}
+// Sidebar styles are imported from components/sidebar.scss
 
 // Content Area Styles
 .content-area {

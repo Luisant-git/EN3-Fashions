@@ -131,7 +131,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       {/* Header */}
       <header className="dashboard-header">
-        <h1 className="header-title">Overview</h1>
+        <h1 className="header-title">Dashboard</h1>
         <div className="header-actions">
           <div className="search-bar">
             <Search size={20} className="search-icon" />
@@ -156,6 +156,54 @@ const Dashboard = () => {
         {statsData.length > 0 && statsData.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
+
+        {/* Recent Orders */}
+        <div className="card recent-orders">
+          <div className="card-header">
+            <h3>Recent Orders</h3>
+            <span className="order-count">{recentOrders.length} orders</span>
+          </div>
+          <div className="orders-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Products</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.id}</td>
+                    <td>
+                      <div className="customer-info">
+                        <div className="customer-name">{order.customer}</div>
+                        <div className="customer-email">{order.email}</div>
+                        <div className="customer-phone">{order.phone}</div>
+                      </div>
+                    </td>
+                    <td>{order.items} items</td>
+                    <td>{order.total}</td>
+                    <td>
+                      <span className={`order-status ${order.status}`}>
+                        {order.status === 'pending' && <Clock size={16} />}
+                        {order.status === 'processing' && <Package size={16} />}
+                        {order.status === 'shipped' && <Truck size={16} />}
+                        {order.status === 'delivered' && <CheckCircle size={16} />}
+                        <span>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                      </span>
+                    </td>
+                    <td>{order.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         {/* Sales Analytics */}
         <div className="card sales-analytics">
@@ -189,54 +237,6 @@ const Dashboard = () => {
                     className={`progress ${offer.type}`}
                     style={{ width: `${offer.progress}%`}}
                   ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="card recent-orders">
-          <div className="card-header">
-            <h3>Recent Orders</h3>
-            <span className="order-count">{recentOrders.length} orders</span>
-          </div>
-          <div className="orders-list">
-            {recentOrders.map((order, index) => (
-              <div key={order.id} className="order-item">
-                <div className="order-number">
-                  <Package size={18} />
-                  <span>#{String(order.id).slice(0, 8)}</span>
-                </div>
-                <div className="order-content">
-                  <div className="order-main">
-                    <div className="customer-section">
-                      <div className="customer-avatar">
-                        {order.customer.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="customer-details">
-                        <span className="customer-name">{order.customer}</span>
-                        <span className="customer-email">{order.email}</span>
-                        <span className='customer-phone'>{order.phone}</span>
-                      </div>
-                    </div>
-                    <div className="order-info">
-                      <div className="info-item">
-                        <span className="info-label">Amount</span>
-                        <span className="info-value amount">{order.total}</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Status</span>
-                        <span className={`status-badge ${order.status}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </span>
-                      </div>
-                      <div className="info-item">
-                        <Clock size={14} />
-                        <span className="info-value date">{order.date}</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             ))}

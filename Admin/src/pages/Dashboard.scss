@@ -377,6 +377,77 @@ body {
       font-weight: 500;
     }
   }
+  .orders-table {
+    width: 100%;
+    overflow-x: auto;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      thead {
+        background: #f9fafb;
+        tr th {
+          padding: 12px;
+          text-align: left;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: var(--text-light);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border-bottom: 2px solid var(--border-color);
+        }
+      }
+      tbody {
+        tr {
+          border-bottom: 1px solid var(--border-color);
+          transition: background 0.2s;
+          &:hover {
+            background: #f9fafb;
+          }
+          td {
+            padding: 16px 12px;
+            font-size: 0.9rem;
+            .customer-info {
+              .customer-name {
+                font-weight: 600;
+                color: var(--text-dark);
+                margin-bottom: 4px;
+              }
+              .customer-email, .customer-phone {
+                font-size: 0.8rem;
+                color: var(--text-light);
+                display: block;
+              }
+            }
+            .order-status {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 6px 12px;
+              border-radius: 20px;
+              font-size: 0.8rem;
+              font-weight: 600;
+              &.pending {
+                background: #fef3c7;
+                color: #92400e;
+              }
+              &.processing {
+                background: #dbeafe;
+                color: #1e40af;
+              }
+              &.shipped {
+                background: #e0e7ff;
+                color: #3730a3;
+              }
+              &.delivered {
+                background: #d1fae5;
+                color: #065f46;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   .orders-list {
     display: flex;
     flex-direction: column;
@@ -522,6 +593,16 @@ body {
               border: 1px solid #fecaca;
             }
           }
+        }
+      }
+    }
+  }
+  @media (max-width: 768px) {
+    .orders-table {
+      table {
+        font-size: 0.8rem;
+        thead tr th, tbody tr td {
+          padding: 8px;
         }
       }
     }

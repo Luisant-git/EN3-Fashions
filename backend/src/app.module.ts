@@ -19,10 +19,11 @@ import { WhatsappSessionModule } from './whatsapp-session/whatsapp-session.modul
 import { DashboardModule } from './dashboard/dashboard.module';
 import { OverviewModule } from './overview/overview.module';
 import { PincodeModule } from './pincode.module';
+import { ShippingController } from './shipping.controller';
 
 @Module({
   imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule, PincodeModule],
-  controllers: [AppController],
+  controllers: [AppController, ShippingController],
   providers: [AppService],
 })
 export class AppModule {}
