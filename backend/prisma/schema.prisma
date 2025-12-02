@@ -280,3 +280,11 @@ model Pincode {
 
   @@index([pincode])
 }
+
+model ShippingRule {
+  id               Int      @id @default(autoincrement())
+  state            String   @unique
+  flatShippingRate Float
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
