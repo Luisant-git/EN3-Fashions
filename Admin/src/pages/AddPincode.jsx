@@ -76,7 +76,7 @@ const AddPincode = () => {
         <div className="header-actions">
           <label className="btn btn-success" style={{ cursor: 'pointer' }}>
             <Upload size={20} />
-            Upload Excel
+            Upload Pincode
             <input
               type="file"
               accept=".xlsx,.xls"

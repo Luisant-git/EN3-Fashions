@@ -13,7 +13,6 @@ const CheckoutPage = () => {
     // const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
     const { user, token } = useContext(AuthContext);
-    const [paymentMethod, setPaymentMethod] = useState('card');
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -155,27 +154,6 @@ const CheckoutPage = () => {
                              <input type="tel" placeholder="Mobile Number" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} required />
                         </section>
                         <section>
-                            <h2>Payment Method</h2>
-                            <div className="payment-methods">
-                                <div className={`payment-method-card ${paymentMethod === 'card' ? 'selected' : ''}`} onClick={() => setPaymentMethod('card')}>
-                                    <h4>Credit/Debit Card</h4>
-                                </div>
-                                <div className={`payment-method-card ${paymentMethod === 'upi' ? 'selected' : ''}`} onClick={() => setPaymentMethod('upi')}>
-                                    <h4>UPI / Wallets</h4>
-                                    <p className="upi-icons">GPay, PhonePe, Paytm</p>
-                                </div>
-                            </div>
-                             {paymentMethod === 'card' && (
-                                <div className="card-details">
-                                    <input type="text" placeholder="Card Number" />
-                                    <div className="form-row">
-                                        <input type="text" placeholder="MM/YY" />
-                                        <input type="text" placeholder="CVC" />
-                                    </div>
-                                </div>
-                            )}
-                        </section>
-                        <section>
                             <h2>Available Coupons</h2>
                             {availableCoupons.length > 0 && (
                                 <div className="available-coupons">
@@ -263,7 +241,7 @@ const CheckoutPage = () => {
                             )}
                         </section>
                         <button type="submit" className="confirm-pay-btn" disabled={isPlacingOrder}>
-                            {isPlacingOrder ? <LoadingSpinner /> : 'Confirm & Pay'}
+                            {isPlacingOrder ? <LoadingSpinner /> : 'Make Payment'}
                         </button>
                     </form>
                 </div>
