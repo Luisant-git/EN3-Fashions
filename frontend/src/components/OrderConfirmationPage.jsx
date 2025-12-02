@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const OrderConfirmationPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const order = location.state?.order;
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     return (
         <div className="order-confirmation-page">
             <div className="confirmation-box">
