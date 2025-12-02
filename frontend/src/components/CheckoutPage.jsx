@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { CartContext } from '../contexts/CartContext';
 import { AuthContext } from '../contexts/AuthContext';
@@ -20,6 +21,7 @@ const CheckoutPage = () => {
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState([]);
     const couponInputRef = useRef(null);
+    const [selectedState, setSelectedState] = useState(null);
     const [formData, setFormData] = useState({
         fullName: '',
         addressLine1: '',
@@ -28,6 +30,16 @@ const CheckoutPage = () => {
         pincode: '',
         mobile: ''
     });
+
+    const stateOptions = [
+        'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+        'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+        'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+        'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+        'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+        'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+        'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+    ].map(state => ({ value: state, label: state }));
 
     useEffect(() => {
         if (user?.shippingAddress) {
@@ -39,6 +51,9 @@ const CheckoutPage = () => {
                 pincode: user.shippingAddress.pincode || '',
                 mobile: user.shippingAddress.mobile || user.phone || ''
             });
+            if (user.shippingAddress.state) {
+                setSelectedState({ value: user.shippingAddress.state, label: user.shippingAddress.state });
+            }
         } else if (user) {
             setFormData(prev => ({
                 ...prev,
@@ -66,6 +81,10 @@ const CheckoutPage = () => {
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
         if (isPlacingOrder) return;
+        if (!selectedState) {
+            toast.error('Please select a state');
+            return;
+        }
 
         setIsPlacingOrder(true);
         try {
@@ -94,7 +113,7 @@ const CheckoutPage = () => {
                                 total: finalTotal.toString(),
                                 couponCode: appliedCoupon?.code || undefined,
                                 paymentMethod: 'razorpay',
-                                shippingAddress: formData,
+                                shippingAddress: { ...formData, state: selectedState.value },
                                 deliveryOption: { fee: 0, name: 'Standard Delivery' }
                             };
                             
@@ -147,10 +166,24 @@ const CheckoutPage = () => {
                             <input type="text" placeholder="Full Name" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} required />
                             <input type="text" placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} required />
                             <input type="text" placeholder="Address Line 2" value={formData.addressLine2} onChange={(e) => setFormData({...formData, addressLine2: e.target.value})} />
-                            <div className="form-row">
-                                <input type="text" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
-                                <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} required />
-                            </div>
+                            <input type="text" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
+                            <Select
+                                options={stateOptions}
+                                value={selectedState}
+                                onChange={setSelectedState}
+                                placeholder="Select State"
+                                isSearchable
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        padding: '4px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        marginBottom: '15px'
+                                    })
+                                }}
+                            />
+                            <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} required />
                              <input type="tel" placeholder="Mobile Number" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} required />
                         </section>
                         <section>

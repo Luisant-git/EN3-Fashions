@@ -261,6 +261,11 @@ const ProductList = () => {
         <p>
           <strong>Base Price:</strong> ₹{product.basePrice}
         </p>
+        {product.hsnCode && (
+          <p>
+            <strong>HSN Code:</strong> {product.hsnCode}
+          </p>
+        )}
         <p>
           <strong>Status:</strong> {product.status}
         </p>
@@ -295,6 +300,7 @@ const ProductList = () => {
       name: product.name,
       description: product.description || "",
       basePrice: product.basePrice,
+      hsnCode: product.hsnCode || "",
       status: product.status,
       categoryId: product.categoryId,
       subCategoryId: product.subCategoryId || "",
@@ -420,6 +426,17 @@ const ProductList = () => {
               setForm((f) => ({ ...f, basePrice: e.target.value }))
             }
             required
+          />
+        </label>
+        <label>
+          HSN Code
+          <input
+            type="text"
+            value={form.hsnCode}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, hsnCode: e.target.value }))
+            }
+            placeholder="Optional"
           />
         </label>
         <div style={{ marginBottom: '16px' }}>

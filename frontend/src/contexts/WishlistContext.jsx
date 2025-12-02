@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { addToWishlist, removeFromWishlist, getWishlist } from '../api/wishlistApi';
 import { AuthContext } from './AuthContext';
+import { toast } from 'react-toastify';
 
 export const WishlistContext = createContext(null);
 
@@ -12,7 +13,10 @@ export const WishlistProvider = ({ children }) => {
     useEffect(() => {
         if (token) {
             getWishlist(token)
-                .then(data => setWishlist(Array.isArray(data) ? data : []))
+                .then(data => {
+                    setWishlist(Array.isArray(data) ? data : []);
+                    processPendingWishlistItem();
+                })
                 .catch(err => {
                     console.error(err);
                     setWishlist([]);
@@ -22,8 +26,31 @@ export const WishlistProvider = ({ children }) => {
         }
     }, [token]);
 
+    const processPendingWishlistItem = async () => {
+        const pendingItem = localStorage.getItem('pendingWishlistItem');
+        if (pendingItem) {
+            try {
+                const productId = JSON.parse(pendingItem);
+                localStorage.removeItem('pendingWishlistItem');
+                await addToWishlist(productId, token);
+                const data = await getWishlist(token);
+                setWishlist(Array.isArray(data) ? data : []);
+                toast.success('Item added to wishlist!');
+            } catch (error) {
+                console.error('Error adding pending wishlist item:', error);
+            }
+        }
+    };
+
     const toggleWishlist = async (product) => {
-        if (!token) return;
+        if (!token) {
+            localStorage.setItem('pendingWishlistItem', JSON.stringify(product.id));
+            toast.error('Please login to add items to wishlist');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1000);
+            return;
+        }
         
         setLoadingProductId(product.id);
         const exists = Array.isArray(wishlist) && wishlist.some(item => item.id === product.id);

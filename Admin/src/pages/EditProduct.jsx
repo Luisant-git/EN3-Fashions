@@ -16,6 +16,7 @@ const EditProduct = () => {
     subCategoryId: '',
     brandId: '',
     basePrice: '',
+    hsnCode: '',
     bundleOffers: [],
     tags: [],
     gallery: [],
@@ -360,6 +361,17 @@ const EditProduct = () => {
                 onChange={(e) => handleInputChange('basePrice', e.target.value)}
                 placeholder="499.00"
                 required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">HSN Code</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.hsnCode || ''}
+                onChange={(e) => handleInputChange('hsnCode', e.target.value)}
+                placeholder="Enter HSN code (optional)"
               />
             </div>
 

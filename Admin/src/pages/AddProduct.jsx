@@ -14,6 +14,7 @@ const AddProduct = () => {
     subCategoryId: '',
     brandId: '',
     basePrice: '',
+    hsnCode: '',
     bundleOffers: [],
     tags: [],
     gallery: [],
@@ -211,6 +212,7 @@ const AddProduct = () => {
         subCategoryId: formData.subCategoryId ? parseInt(formData.subCategoryId) : null,
         brandId: formData.brandId ? parseInt(formData.brandId) : null,
         basePrice: formData.basePrice,
+        hsnCode: formData.hsnCode || null,
         bundleOffers: formData.bundleOffers,
         tags: formData.tags,
         gallery: formData.gallery,
@@ -230,6 +232,7 @@ const AddProduct = () => {
         subCategoryId: '',
         brandId: '',
         basePrice: '',
+        hsnCode: '',
         bundleOffers: [],
         tags: [],
         gallery: [],
@@ -359,6 +362,17 @@ const AddProduct = () => {
                 onChange={(e) => handleInputChange('basePrice', e.target.value)}
                 placeholder="499.00"
                 required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">HSN Code</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.hsnCode}
+                onChange={(e) => handleInputChange('hsnCode', e.target.value)}
+                placeholder="Enter HSN code (optional)"
               />
             </div>
 

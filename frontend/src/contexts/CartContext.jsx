@@ -23,10 +23,26 @@ const CartProviderInner = ({ children }) => {
     useEffect(() => {
         if (user && token) {
             fetchCart();
+            processPendingCartItem();
         } else {
             setCart([]);
         }
     }, [user, token]);
+
+    const processPendingCartItem = async () => {
+        const pendingItem = localStorage.getItem('pendingCartItem');
+        if (pendingItem) {
+            try {
+                const product = JSON.parse(pendingItem);
+                localStorage.removeItem('pendingCartItem');
+                await addToCartAPI(product);
+                await fetchCart();
+                toast.success('Item added to cart!');
+            } catch (error) {
+                console.error('Error adding pending item:', error);
+            }
+        }
+    };
 
     const fetchCart = async () => {
         try {
@@ -40,7 +56,11 @@ const CartProviderInner = ({ children }) => {
 
     const addToCart = async (product) => {
         if (!user) {
+            localStorage.setItem('pendingCartItem', JSON.stringify(product));
             toast.error('Please login to add items to cart');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1000);
             return;
         }
         

@@ -53,6 +53,7 @@ model Product {
   subCategoryId Int?
   brandId       Int?
   basePrice     String
+  hsnCode       String?
   bundleOffers  Json[] // [{colorCount: 1, price: "499"}, {colorCount: 2, price: "800"}, {colorCount: 3, price: "1000"}]
   tags          String[]
   gallery       Json[]

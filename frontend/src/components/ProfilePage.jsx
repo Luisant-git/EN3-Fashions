@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import { AuthContext } from '../contexts/AuthContext';
 import { updateShippingAddress, updateProfile } from '../api/authApi';
 import LoadingSpinner from './LoadingSpinner';
@@ -10,6 +11,23 @@ const ProfilePage = () => {
     const { user, logout, loading } = useContext(AuthContext);
     const [profileLoading, setProfileLoading] = useState(false);
     const [addressLoading, setAddressLoading] = useState(false);
+    const [selectedState, setSelectedState] = useState(null);
+
+    const stateOptions = [
+        'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+        'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+        'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+        'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+        'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+        'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+        'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+    ].map(state => ({ value: state, label: state }));
+
+    React.useEffect(() => {
+        if (user?.shippingAddress?.state) {
+            setSelectedState({ value: user.shippingAddress.state, label: user.shippingAddress.state });
+        }
+    }, [user]);
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
@@ -31,12 +49,17 @@ const ProfilePage = () => {
 
     const handleAddressUpdate = async (e) => {
         e.preventDefault();
+        if (!selectedState) {
+            toast.error('Please select a state');
+            return;
+        }
         setAddressLoading(true);
         const formData = new FormData(e.target);
         const address = {
             name: formData.get('name'),
             addressLine: formData.get('addressLine'),
             city: formData.get('city'),
+            state: selectedState.value,
             pincode: formData.get('pincode'),
             mobile: formData.get('mobile')
         };
@@ -86,8 +109,24 @@ const ProfilePage = () => {
                         <input type="text" name="addressLine" placeholder="Address Line 1" defaultValue={user?.shippingAddress?.addressLine} required />
                         <div className="form-row">
                            <input type="text" name="city" placeholder="City" defaultValue={user?.shippingAddress?.city} required />
-                           <input type="text" name="pincode" placeholder="Pincode" defaultValue={user?.shippingAddress?.pincode} required />
                         </div>
+                        <Select
+                            options={stateOptions}
+                            value={selectedState}
+                            onChange={setSelectedState}
+                            placeholder="Select State"
+                            isSearchable
+                            styles={{
+                                control: (base) => ({
+                                    ...base,
+                                    padding: '4px',
+                                    marginBottom: '10px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ddd'
+                                })
+                            }}
+                        />
+                        <input type="text" name="pincode" placeholder="Pincode" defaultValue={user?.shippingAddress?.pincode} required />
                         <input type="tel" name="mobile" placeholder="Mobile Number" defaultValue={user?.shippingAddress?.mobile || user?.phone} required />
                         <button type="submit" disabled={addressLoading}>
                             {addressLoading ? <LoadingSpinner /> : 'Save Address'}
