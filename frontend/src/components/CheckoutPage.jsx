@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Select from 'react-select';
+
 import { toast } from 'react-toastify';
 import { CartContext } from '../contexts/CartContext';
 import { AuthContext } from '../contexts/AuthContext';
@@ -229,43 +229,16 @@ const CheckoutPage = () => {
                             <input type="text" placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} required />
                             <input type="text" placeholder="Address Line 2" value={formData.addressLine2} onChange={(e) => setFormData({...formData, addressLine2: e.target.value})} />
                             <input type="text" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
-                            <Select
-                                options={stateOptions}
-                                value={selectedState}
-                                onChange={setSelectedState}
-                                placeholder="Select State"
-                                isSearchable
-                                styles={{
-                                    control: (base, state) => ({
-                                        ...base,
-                                        minHeight: '44px',
-                                        borderRadius: '5px',
-                                        border: state.isFocused ? '1px solid #2e2e2e' : '1px solid #e0e0e0',
-                                        marginBottom: '1rem',
-                                        boxShadow: 'none',
-                                        fontFamily: 'Montserrat, sans-serif',
-                                        fontSize: '1rem',
-                                        '&:hover': {
-                                            borderColor: state.isFocused ? '#2e2e2e' : '#e0e0e0'
-                                        }
-                                    }),
-                                    placeholder: (base) => ({
-                                        ...base,
-                                        fontFamily: 'Montserrat, sans-serif',
-                                        fontSize: '1rem'
-                                    }),
-                                    singleValue: (base) => ({
-                                        ...base,
-                                        fontFamily: 'Montserrat, sans-serif',
-                                        fontSize: '1rem'
-                                    }),
-                                    input: (base) => ({
-                                        ...base,
-                                        fontFamily: 'Montserrat, sans-serif',
-                                        fontSize: '1rem'
-                                    })
-                                }}
-                            />
+                            <select 
+                                value={selectedState?.value || ''} 
+                                onChange={(e) => setSelectedState(e.target.value ? { value: e.target.value, label: e.target.value } : null)}
+                                required
+                            >
+                                <option value="">Select State</option>
+                                {stateOptions.map(state => (
+                                    <option key={state.value} value={state.value}>{state.label}</option>
+                                ))}
+                            </select>
                             <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} required />
                              <input type="tel" placeholder="Mobile Number" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} required />
                         </section>
