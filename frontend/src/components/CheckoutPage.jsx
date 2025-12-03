@@ -96,14 +96,19 @@ const CheckoutPage = () => {
             const stateEnum = selectedState.value.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
             const rule = shippingRules.find(r => r.state === stateEnum);
             if (rule) {
-                setDeliveryFee(rule.flatShippingRate);
+                const subtotalAfterDiscount = subtotal - discount;
+                if (subtotalAfterDiscount >= 999) {
+                    setDeliveryFee(0);
+                } else {
+                    setDeliveryFee(rule.flatShippingRate);
+                }
                 setDeliveryAvailable(true);
             } else {
                 setDeliveryFee(0);
                 setDeliveryAvailable(false);
             }
         }
-    }, [selectedState, shippingRules]);
+    }, [selectedState, shippingRules, subtotal, discount]);
 
     const BUSINESS_STATE = 'Tamil Nadu';
     const GST_RATE = 0.05; // 5%
@@ -375,7 +380,13 @@ const CheckoutPage = () => {
                     {selectedState && deliveryAvailable && (
                         <div className="summary-row">
                             <span>Delivery Fee</span>
-                            <span>₹{deliveryFee.toFixed(2)}</span>
+                            <span>
+                                {deliveryFee === 0 && subtotalAfterDiscount >= 999 ? (
+                                    <span style={{ color: '#4CAF50', fontWeight: '600' }}>FREE</span>
+                                ) : (
+                                    `₹${deliveryFee.toFixed(2)}`
+                                )}
+                            </span>
                         </div>
                     )}
                     {selectedState && !deliveryAvailable && (
