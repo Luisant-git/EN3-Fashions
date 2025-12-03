@@ -1595,13 +1595,16 @@ button:disabled {
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border-color);
 }
-.checkout-form input {
+.checkout-form input,
+.checkout-form select {
     width: 100%;
     padding: 12px;
     margin-bottom: 1rem;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     box-sizing: border-box;
+    font-family: var(--font-family);
+    font-size: 1rem;
 }
 .form-row {
     display: flex;
