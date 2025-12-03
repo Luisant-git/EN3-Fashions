@@ -45,6 +45,7 @@ export class OrderService {
     const order = await this.prisma.order.create({
       data: {
         userId,
+        status: 'Placed',
         subtotal: createOrderDto.subtotal,
         deliveryFee: createOrderDto.deliveryFee,
         discount,

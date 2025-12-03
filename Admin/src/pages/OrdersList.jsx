@@ -145,10 +145,10 @@ const OrdersList = () => {
   };
 
   const generateAllPackageSlips = () => {
-    const processingOrders = orders.filter(order => order.status === 'Processing');
+    const placedOrders = orders.filter(order => order.status === 'Placed');
     
-    if (processingOrders.length === 0) {
-      alert('No processing orders found');
+    if (placedOrders.length === 0) {
+      alert('No placed orders found');
       return;
     }
 
@@ -156,7 +156,7 @@ const OrdersList = () => {
     let currentY = 0;
     let isFirstSlip = true;
 
-    processingOrders.forEach((order, orderIndex) => {
+    placedOrders.forEach((order, orderIndex) => {
       // Calculate slip height
       const itemCount = order.items?.reduce((count, item) => {
         return count + (item.type === 'bundle' && item.bundleItems ? item.bundleItems.length : 1);
@@ -180,7 +180,7 @@ const OrdersList = () => {
       currentY = cutY + 10;
     });
 
-    pdf.save(`all-package-slips-processing.pdf`);
+    pdf.save(`all-package-slips-placed.pdf`);
   };
 
   const generateCompactPackageSlip = (pdf, order, yOffset) => {
@@ -414,7 +414,7 @@ const OrdersList = () => {
   const getStatusCounts = () => {
     return {
       pending: orders.filter((o) => o.status === "pending").length,
-      processing: orders.filter((o) => o.status === "Processing").length,
+      placed: orders.filter((o) => o.status === "Placed").length,
       shipped: orders.filter((o) => o.status === "Shipped").length,
       delivered: orders.filter((o) => o.status === "Delivered").length,
     };
@@ -426,7 +426,7 @@ const OrdersList = () => {
     switch (status) {
       case "pending":
         return <Clock size={16} />;
-      case "processing":
+      case "placed":
         return <Package size={16} />;
       case "shipped":
         return <Truck size={16} />;
@@ -507,7 +507,7 @@ const OrdersList = () => {
           >
             <Edit size={16} />
           </button>
-          {(row.status === 'Processing' || row.status === 'Shipped' || row.status === 'Delivered') && (
+          {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
             <>
               <button
                 className="action-btn download"
@@ -553,14 +553,14 @@ const OrdersList = () => {
         </div>
         <div
           className="stat-card"
-          onClick={() => setStatusFilter("processing")}
+          onClick={() => setStatusFilter("placed")}
         >
-          <div className="stat-icon processing">
+          <div className="stat-icon placed">
             <Package size={24} />
           </div>
           <div className="stat-content">
-            <h3>{statusCounts.processing}</h3>
-            <p>Processing</p>
+            <h3>{statusCounts.placed}</h3>
+            <p>Placed</p>
           </div>
         </div>
         <div className="stat-card" onClick={() => setStatusFilter("shipped")}>
@@ -597,10 +597,10 @@ const OrdersList = () => {
           Pending
         </button>
         <button
-          className={statusFilter === "processing" ? "tab active" : "tab"}
-          onClick={() => setStatusFilter("processing")}
+          className={statusFilter === "placed" ? "tab active" : "tab"}
+          onClick={() => setStatusFilter("placed")}
         >
-          Processing
+          Placed
         </button>
         <button
           className={statusFilter === "shipped" ? "tab active" : "tab"}
@@ -632,7 +632,7 @@ const OrdersList = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-          {statusFilter === "processing" && (
+          {statusFilter === "placed" && (
             <button
               className="download-all-btn"
               onClick={generateAllPackageSlips}
@@ -732,7 +732,7 @@ const OrdersList = () => {
                 onChange={(e) => setNewStatus(e.target.value)}
               >
                 <option value="Pending">Pending</option>
-                <option value="Processing">Processing</option>
+                <option value="Placed">Placed</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
