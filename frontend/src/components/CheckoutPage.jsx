@@ -236,12 +236,25 @@ const CheckoutPage = () => {
                                 placeholder="Select State"
                                 isSearchable
                                 styles={{
-                                    control: (base) => ({
+                                    control: (base, state) => ({
                                         ...base,
                                         padding: '4px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #ddd',
-                                        marginBottom: '15px'
+                                        borderRadius: '5px',
+                                        border: state.isFocused ? '1px solid #000' : '1px solid #e0e0e0',
+                                        marginBottom: '15px',
+                                        boxShadow: 'none',
+                                        fontFamily: 'Montserrat, sans-serif',
+                                        '&:hover': {
+                                            borderColor: state.isFocused ? '#000' : '#e0e0e0'
+                                        }
+                                    }),
+                                    placeholder: (base) => ({
+                                        ...base,
+                                        fontFamily: 'Montserrat, sans-serif'
+                                    }),
+                                    singleValue: (base) => ({
+                                        ...base,
+                                        fontFamily: 'Montserrat, sans-serif'
                                     })
                                 }}
                             />

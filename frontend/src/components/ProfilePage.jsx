@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
-    const { user, logout, loading } = useContext(AuthContext);
+    const { user, logout, loading, refreshUser } = useContext(AuthContext);
     const [profileLoading, setProfileLoading] = useState(false);
     const [addressLoading, setAddressLoading] = useState(false);
     const [selectedState, setSelectedState] = useState(null);
@@ -65,6 +65,7 @@ const ProfilePage = () => {
         };
         try {
             await updateShippingAddress(localStorage.getItem('token'), address);
+            await refreshUser();
             toast.success('Shipping address updated successfully!');
         } catch (error) {
             toast.error('Failed to update address');
@@ -117,12 +118,25 @@ const ProfilePage = () => {
                             placeholder="Select State"
                             isSearchable
                             styles={{
-                                control: (base) => ({
+                                control: (base, state) => ({
                                     ...base,
                                     padding: '4px',
                                     marginBottom: '10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #ddd'
+                                    borderRadius: '5px',
+                                    border: state.isFocused ? '1px solid #000' : '1px solid #e0e0e0',
+                                    boxShadow: 'none',
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    '&:hover': {
+                                        borderColor: state.isFocused ? '#000' : '#e0e0e0'
+                                    }
+                                }),
+                                placeholder: (base) => ({
+                                    ...base,
+                                    fontFamily: 'Montserrat, sans-serif'
+                                }),
+                                singleValue: (base) => ({
+                                    ...base,
+                                    fontFamily: 'Montserrat, sans-serif'
                                 })
                             }}
                         />
