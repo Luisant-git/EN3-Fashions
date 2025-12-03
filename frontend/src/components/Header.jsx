@@ -5,7 +5,7 @@ import { WishlistContext } from '../contexts/WishlistContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { getCategories } from '../api/categoryApi';
 import { searchProducts } from '../api/productApi';
-import logo from '/EN3 TRENDS-LOGO.png';
+import logo from '/EN3 FASHIONS.png';
 
 const Header = () => {
     const navigate = useNavigate();
