@@ -123,20 +123,28 @@ const ProfilePage = () => {
                                     padding: '4px',
                                     marginBottom: '10px',
                                     borderRadius: '5px',
-                                    border: state.isFocused ? '1px solid #000' : '1px solid #e0e0e0',
+                                    border: state.isFocused ? '1px solid #2e2e2e' : '1px solid #e0e0e0',
                                     boxShadow: 'none',
                                     fontFamily: 'Montserrat, sans-serif',
+                                    fontSize: '1rem',
                                     '&:hover': {
-                                        borderColor: state.isFocused ? '#000' : '#e0e0e0'
+                                        borderColor: state.isFocused ? '#2e2e2e' : '#e0e0e0'
                                     }
                                 }),
                                 placeholder: (base) => ({
                                     ...base,
-                                    fontFamily: 'Montserrat, sans-serif'
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    fontSize: '1rem'
                                 }),
                                 singleValue: (base) => ({
                                     ...base,
-                                    fontFamily: 'Montserrat, sans-serif'
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    fontSize: '1rem'
+                                }),
+                                input: (base) => ({
+                                    ...base,
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    fontSize: '1rem'
                                 })
                             }}
                         />
