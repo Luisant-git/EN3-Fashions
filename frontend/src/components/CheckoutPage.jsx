@@ -163,7 +163,7 @@ const CheckoutPage = () => {
                                 total: finalTotal.toString(),
                                 discount: discount.toString(),
                                 couponCode: appliedCoupon?.code || undefined,
-                                paymentMethod: 'razorpay',
+                                paymentMethod: verification.paymentMethod || 'online',
                                 shippingAddress: { ...formData, state: selectedState.value },
                                 deliveryOption: { 
                                     fee: deliveryFee, 
@@ -207,6 +207,40 @@ const CheckoutPage = () => {
                 setIsPlacingOrder(false);
                 toast.error('Payment failed: ' + (response.error?.description || 'Please try again'));
             });
+            
+            options.modal = {
+                ondismiss: async () => {
+                    setIsPlacingOrder(false);
+                    try {
+                        const abandonedData = {
+                            subtotal: subtotal.toString(),
+                            deliveryFee: deliveryFee.toString(),
+                            total: finalTotal.toString(),
+                            discount: discount.toString(),
+                            couponCode: appliedCoupon?.code || undefined,
+                            paymentMethod: 'abandoned',
+                            status: 'Abandoned',
+                            shippingAddress: { ...formData, state: selectedState.value },
+                            deliveryOption: { 
+                                fee: deliveryFee, 
+                                name: 'Standard Delivery',
+                                gst: {
+                                    rate: GST_RATE,
+                                    amount: gstAmount,
+                                    cgst: cgst,
+                                    sgst: sgst,
+                                    igst: igst,
+                                    isSameState: isSameState
+                                }
+                            }
+                        };
+                        await createOrder(abandonedData);
+                    } catch (error) {
+                        console.error('Failed to save abandoned checkout:', error);
+                    }
+                }
+            };
+            
             rzp.open();
             setIsPlacingOrder(false);
         } catch (error) {

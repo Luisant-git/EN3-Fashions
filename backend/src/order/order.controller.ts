@@ -74,6 +74,7 @@ export class OrderController {
   @ApiOperation({ summary: 'Verify Razorpay payment' })
   async verifyPayment(@Body() body: { orderId: string; paymentId: string; signature: string }) {
     const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
-    return { success: isValid };
+    const paymentMethod = isValid ? await this.paymentService.getPaymentMethod(body.paymentId) : 'online';
+    return { success: isValid, paymentMethod };
   }
 }

@@ -264,6 +264,9 @@
         font-size: 14px;
         line-height: 1.6;
         color: $gray-700;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        white-space: nowrap;
 
         strong {
           color: $gray-900;

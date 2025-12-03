@@ -36,4 +36,14 @@ export class PaymentService {
       .digest('hex');
     return generated_signature === signature;
   }
+
+  async getPaymentMethod(paymentId: string): Promise<string> {
+    try {
+      const payment = await this.razorpay.payments.fetch(paymentId);
+      return payment.method || 'online';
+    } catch (error) {
+      console.error('Error fetching payment method:', error);
+      return 'online';
+    }
+  }
 }

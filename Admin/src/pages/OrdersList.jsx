@@ -417,6 +417,7 @@ const OrdersList = () => {
       placed: orders.filter((o) => o.status === "Placed").length,
       shipped: orders.filter((o) => o.status === "Shipped").length,
       delivered: orders.filter((o) => o.status === "Delivered").length,
+      abandoned: orders.filter((o) => o.status === "Abandoned").length,
     };
   };
 
@@ -620,6 +621,12 @@ const OrdersList = () => {
         >
           Cancelled
         </button>
+        <button
+          className={statusFilter === "abandoned" ? "tab active" : "tab"}
+          onClick={() => setStatusFilter("abandoned")}
+        >
+          Abandoned ({statusCounts.abandoned})
+        </button>
       </div>
 
       <div className="filters-section">
@@ -676,14 +683,9 @@ const OrdersList = () => {
                   <h4>Shipping Address</h4>
                   {selectedOrder.shippingAddress ? (
                     <div>
-                      <p><strong>Name:</strong> {selectedOrder.shippingAddress.fullName || 'N/A'}</p>
-                      <p><strong>Phone:</strong> {selectedOrder.shippingAddress.mobile || 'N/A'}</p>
-                      <p><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || ''}</p>
-                      {selectedOrder.shippingAddress.addressLine2 && (
-                        <p><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
-                      )}
-                      <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
-                      <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
+                      <p><strong>Ship ID:</strong> {selectedOrder.shippingAddress.id || selectedOrder.id}</p>
+                      <p><strong>Location:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
+                      <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
                     </div>
                   ) : (
                     <p>No shipping address provided</p>
