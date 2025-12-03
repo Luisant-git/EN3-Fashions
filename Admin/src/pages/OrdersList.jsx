@@ -670,7 +670,7 @@ const OrdersList = () => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="order-details-grid">
+              <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="order-info">
                   <h4>Order Information</h4>
                   <p><strong>Customer:</strong> {selectedOrder.user?.name}</p>
