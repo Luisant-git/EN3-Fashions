@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Select from 'react-select';
+
 import { AuthContext } from '../contexts/AuthContext';
 import { updateShippingAddress, updateProfile } from '../api/authApi';
 import LoadingSpinner from './LoadingSpinner';
@@ -111,43 +111,16 @@ const ProfilePage = () => {
                         <div className="form-row">
                            <input type="text" name="city" placeholder="City" defaultValue={user?.shippingAddress?.city} required />
                         </div>
-                        <Select
-                            options={stateOptions}
-                            value={selectedState}
-                            onChange={setSelectedState}
-                            placeholder="Select State"
-                            isSearchable
-                            styles={{
-                                control: (base, state) => ({
-                                    ...base,
-                                    padding: '4px',
-                                    marginBottom: '10px',
-                                    borderRadius: '5px',
-                                    border: state.isFocused ? '1px solid #2e2e2e' : '1px solid #e0e0e0',
-                                    boxShadow: 'none',
-                                    fontFamily: 'Montserrat, sans-serif',
-                                    fontSize: '1rem',
-                                    '&:hover': {
-                                        borderColor: state.isFocused ? '#2e2e2e' : '#e0e0e0'
-                                    }
-                                }),
-                                placeholder: (base) => ({
-                                    ...base,
-                                    fontFamily: 'Montserrat, sans-serif',
-                                    fontSize: '1rem'
-                                }),
-                                singleValue: (base) => ({
-                                    ...base,
-                                    fontFamily: 'Montserrat, sans-serif',
-                                    fontSize: '1rem'
-                                }),
-                                input: (base) => ({
-                                    ...base,
-                                    fontFamily: 'Montserrat, sans-serif',
-                                    fontSize: '1rem'
-                                })
-                            }}
-                        />
+                        <select 
+                            value={selectedState?.value || ''} 
+                            onChange={(e) => setSelectedState(e.target.value ? { value: e.target.value, label: e.target.value } : null)}
+                            required
+                        >
+                            <option value="">Select State</option>
+                            {stateOptions.map(state => (
+                                <option key={state.value} value={state.value}>{state.label}</option>
+                            ))}
+                        </select>
                         <input type="text" name="pincode" placeholder="Pincode" defaultValue={user?.shippingAddress?.pincode} required />
                         <input type="tel" name="mobile" placeholder="Mobile Number" defaultValue={user?.shippingAddress?.mobile || user?.phone} required />
                         <button type="submit" disabled={addressLoading}>
