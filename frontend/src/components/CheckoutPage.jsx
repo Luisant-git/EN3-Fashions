@@ -238,10 +238,10 @@ const CheckoutPage = () => {
                                 styles={{
                                     control: (base, state) => ({
                                         ...base,
-                                        padding: '4px',
+                                        minHeight: '44px',
                                         borderRadius: '5px',
                                         border: state.isFocused ? '1px solid #2e2e2e' : '1px solid #e0e0e0',
-                                        marginBottom: '15px',
+                                        marginBottom: '1rem',
                                         boxShadow: 'none',
                                         fontFamily: 'Montserrat, sans-serif',
                                         fontSize: '1rem',
