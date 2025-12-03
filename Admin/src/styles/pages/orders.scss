@@ -107,6 +107,11 @@
       color: #92400e;
     }
 
+    &.placed {
+      background: #fed7aa;
+      color: #9a3412;
+    }
+
     &.processing {
       background: #dbeafe;
       color: #1e40af;
@@ -130,6 +135,11 @@
     &.canceled {
       background: #fee2e2;
       color: #991b1b;
+    }
+
+    &.abandoned {
+      background: #fef3c7;
+      color: #92400e;
     }
   }
 

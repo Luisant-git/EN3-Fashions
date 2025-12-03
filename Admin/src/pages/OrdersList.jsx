@@ -543,15 +543,6 @@ const OrdersList = () => {
       </div>
 
       <div className="orders-stats">
-        <div className="stat-card" onClick={() => setStatusFilter("pending")}>
-          <div className="stat-icon pending">
-            <Clock size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>{statusCounts.pending}</h3>
-            <p>Pending Orders</p>
-          </div>
-        </div>
         <div
           className="stat-card"
           onClick={() => setStatusFilter("placed")}
@@ -590,12 +581,6 @@ const OrdersList = () => {
           onClick={() => setStatusFilter("all")}
         >
           All
-        </button>
-        <button
-          className={statusFilter === "pending" ? "tab active" : "tab"}
-          onClick={() => setStatusFilter("pending")}
-        >
-          Pending
         </button>
         <button
           className={statusFilter === "placed" ? "tab active" : "tab"}
@@ -677,15 +662,19 @@ const OrdersList = () => {
                   <p><strong>Email:</strong> {selectedOrder.user?.email}</p>
                   <p><strong>Status:</strong> {selectedOrder.status}</p>
                   <p><strong>Payment:</strong> {selectedOrder.paymentMethod}</p>
+                  {selectedOrder.couponCode && (
+                    <p><strong>Coupon:</strong> {selectedOrder.couponCode}</p>
+                  )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
                 </div>
                 <div className="shipping-address">
                   <h4>Shipping Address</h4>
                   {selectedOrder.shippingAddress ? (
                     <div>
-                      <p><strong>Ship ID:</strong> {selectedOrder.shippingAddress.id || selectedOrder.id}</p>
-                      <p><strong>Location:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
+                      <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
+        
                       <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
+                      <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
                     </div>
                   ) : (
                     <p>No shipping address provided</p>
@@ -733,7 +722,6 @@ const OrdersList = () => {
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value)}
               >
-                <option value="Pending">Pending</option>
                 <option value="Placed">Placed</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
