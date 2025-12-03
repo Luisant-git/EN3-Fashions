@@ -91,6 +91,11 @@ const CheckoutPage = () => {
         fetchShippingRules();
     }, []);
 
+    const BUSINESS_STATE = 'Tamil Nadu';
+    const GST_RATE = 0.05; // 5%
+
+    const subtotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0;
+
     useEffect(() => {
         if (selectedState) {
             const stateEnum = selectedState.value.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
@@ -109,11 +114,6 @@ const CheckoutPage = () => {
             }
         }
     }, [selectedState, shippingRules, subtotal, discount]);
-
-    const BUSINESS_STATE = 'Tamil Nadu';
-    const GST_RATE = 0.05; // 5%
-
-    const subtotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) : 0;
     const subtotalAfterDiscount = subtotal - discount;
     
     const isSameState = selectedState?.value === BUSINESS_STATE;
