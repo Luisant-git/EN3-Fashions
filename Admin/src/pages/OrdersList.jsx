@@ -135,18 +135,21 @@ const OrdersList = () => {
     order.items?.forEach((item) => {
       if (item.type === 'bundle' && item.bundleItems) {
         item.bundleItems.forEach((bundleItem) => {
-          pdf.text(`${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`, 20, yPos);
+          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
+          const lines = pdf.splitTextToSize(itemName, 95);
+          pdf.text(lines, 20, yPos);
           pdf.text(bundleItem.size || 'N/A', 120, yPos);
           pdf.text('1', 160, yPos);
-          yPos += 8;
+          yPos += lines.length * 5 + 3;
           itemCounter++;
         });
       } else {
-        const itemName = item.color ? `${item.name} (${item.color})` : item.name;
-        pdf.text(`${itemCounter}. ${itemName}`, 20, yPos);
+        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+        const lines = pdf.splitTextToSize(itemName, 95);
+        pdf.text(lines, 20, yPos);
         pdf.text(item.size || 'N/A', 120, yPos);
         pdf.text(item.quantity?.toString() || '1', 160, yPos);
-        yPos += 8;
+        yPos += lines.length * 5 + 3;
         itemCounter++;
       }
     });
@@ -264,18 +267,21 @@ const OrdersList = () => {
     order.items?.forEach((item) => {
       if (item.type === 'bundle' && item.bundleItems) {
         item.bundleItems.forEach((bundleItem) => {
-          pdf.text(`${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`, 20, yPos);
+          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
+          const lines = pdf.splitTextToSize(itemName, 95);
+          pdf.text(lines, 20, yPos);
           pdf.text(bundleItem.size || 'N/A', 120, yPos);
           pdf.text('1', 160, yPos);
-          yPos += 6;
+          yPos += lines.length * 4 + 2;
           itemCounter++;
         });
       } else {
-        const itemName = item.color ? `${item.name} (${item.color})` : item.name;
-        pdf.text(`${itemCounter}. ${itemName}`, 20, yPos);
+        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+        const lines = pdf.splitTextToSize(itemName, 95);
+        pdf.text(lines, 20, yPos);
         pdf.text(item.size || 'N/A', 120, yPos);
         pdf.text(item.quantity?.toString() || '1', 160, yPos);
-        yPos += 6;
+        yPos += lines.length * 4 + 2;
         itemCounter++;
       }
     });
@@ -473,13 +479,14 @@ const OrdersList = () => {
       const itemDesc = item.size && item.color ? 
         `${item.name} - ${item.size}, ${item.color}` : 
         item.name || 'N/A';
-      pdf.text(itemDesc.substring(0, 50), 30, yPos);
+      const lines = pdf.splitTextToSize(itemDesc, 85);
+      pdf.text(lines, 30, yPos);
       
       pdf.text(`Rs.${itemPrice.toFixed(2)}`, 120, yPos);
       pdf.text(itemQty.toString(), 150, yPos);
       pdf.text(`Rs.${itemTotal.toFixed(2)}`, 170, yPos);
       
-      yPos += 8;
+      yPos += lines.length * 5 + 3;
     });
     
     // Get values from order
@@ -487,14 +494,18 @@ const OrdersList = () => {
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
     const total = parseFloat(order.total) || 0;
+    const deliveryGst = order.deliveryOption?.gst || {};
+    const isSameState = deliveryGst.isSameState !== false;
     
     // Calculate GST (reverse calculate from total)
     const afterDiscount = subtotal - discount;
     const totalWithDelivery = afterDiscount + deliveryFee;
     const gstAmount = total - totalWithDelivery;
-    const cgstAmount = gstAmount / 2;
-    const sgstAmount = gstAmount / 2;
+    const cgstAmount = isSameState ? (gstAmount / 2) : 0;
+    const sgstAmount = isSameState ? (gstAmount / 2) : 0;
+    const igstAmount = !isSameState ? gstAmount : 0;
     const taxRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100 / 2).toFixed(2) : 2.5;
+    const igstRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100).toFixed(2) : 5;
     
     // Subtotal row
     pdf.setFont(undefined, 'normal');
@@ -514,15 +525,23 @@ const OrdersList = () => {
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 170, yPos);
     yPos += 6;
     
-    // Add CGST row
-    pdf.text(`CGST (${taxRate}%)`, 30, yPos);
-    pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 170, yPos);
-    yPos += 6;
-    
-    // Add SGST row
-    pdf.text(`SGST (${taxRate}%)`, 30, yPos);
-    pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 170, yPos);
-    yPos += 8;
+    // GST rows based on isSameState
+    if (isSameState) {
+      // Add CGST row
+      pdf.text(`CGST (${taxRate}%)`, 30, yPos);
+      pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 170, yPos);
+      yPos += 6;
+      
+      // Add SGST row
+      pdf.text(`SGST (${taxRate}%)`, 30, yPos);
+      pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 170, yPos);
+      yPos += 8;
+    } else {
+      // Add IGST row
+      pdf.text(`IGST (${igstRate}%)`, 30, yPos);
+      pdf.text(`Rs.${igstAmount.toFixed(2)}`, 170, yPos);
+      yPos += 8;
+    }
     
     // Total Row
     pdf.setFont(undefined, 'bold');
@@ -534,7 +553,7 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Amount in Words:', 15, yPos);
     pdf.setFont(undefined, 'normal');
-    const amountInWords = convertToWords(Math.round(total));
+    const amountInWords = convertToWords(total);
     pdf.text(amountInWords, 15, yPos + 5);
     
     // Authorized Signatory
@@ -562,14 +581,18 @@ const OrdersList = () => {
     pdf.save(`invoice-${order.id}.pdf`);
   };
   
-  const convertToWords = (num) => {
+  const convertToWords = (amount) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
     const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     
-    if (num === 0) return 'Zero only';
+    const rupees = Math.floor(amount);
+    const paise = Math.round((amount - rupees) * 100);
+    
+    if (rupees === 0 && paise === 0) return 'Zero only';
     
     let words = '';
+    let num = rupees;
     
     if (num >= 100000) {
       words += ones[Math.floor(num / 100000)] + ' Lakh ';
@@ -603,6 +626,23 @@ const OrdersList = () => {
     
     if (num > 0) {
       words += ones[num] + ' ';
+    }
+    
+    if (rupees > 0) {
+      words += 'Rupees ';
+    }
+    
+    if (paise > 0) {
+      if (rupees > 0) words += 'and ';
+      if (paise >= 20) {
+        words += tens[Math.floor(paise / 10)] + ' ';
+        if (paise % 10 > 0) words += ones[paise % 10] + ' ';
+      } else if (paise >= 10) {
+        words += teens[paise - 10] + ' ';
+      } else {
+        words += ones[paise] + ' ';
+      }
+      words += 'Paise ';
     }
     
     return words.trim() + ' only';
