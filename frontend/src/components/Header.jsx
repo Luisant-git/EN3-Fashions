@@ -5,6 +5,7 @@ import { WishlistContext } from '../contexts/WishlistContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { getCategories } from '../api/categoryApi';
 import { searchProducts } from '../api/productApi';
+import { generateCategoryUrl, generateSubcategoryUrl, generateProductUrl } from '../utils/slugify';
 import logo from '/EN3 FASHIONS.png';
 
 const Header = () => {
@@ -88,11 +89,11 @@ const Header = () => {
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/new-arrivals'); }}>New Arrivals</a>
                     {categories.map((category) => (
                         <div key={category.id} className="nav-item">
-                            <a href="#" onClick={(e) => { e.preventDefault(); navigate(`/category/${category.id}`); }}>{category.name}</a>
+                            <a href="#" onClick={(e) => { e.preventDefault(); navigate(generateCategoryUrl(category.name, category.id)); }}>{category.name}</a>
                             {category.subCategories && category.subCategories.length > 0 && (
                                 <div className="dropdown-menu">
                                     {category.subCategories.map((subcat) => (
-                                        <a key={subcat.id} href="#" onClick={(e) => { e.preventDefault(); navigate(`/category/${category.id}/products?sub=${subcat.id}`); }}>
+                                        <a key={subcat.id} href="#" onClick={(e) => { e.preventDefault(); navigate(generateSubcategoryUrl(subcat.name, subcat.id)); }}>
                                             <img src={subcat.image} alt={subcat.name} />
                                             {subcat.name}
                                         </a>
@@ -136,7 +137,7 @@ const Header = () => {
                         <div className="desktop-search-recommendations">
                             {desktopSearchRecommendations.map(product => (
                                 <div key={product.id} className="desktop-search-recommendation" onClick={() => {
-                                    navigate(`/product/${product.id}`);
+                                    navigate(generateProductUrl(product.name, product.id));
                                     setSearchQuery('');
                                     setDesktopSearchRecommendations([]);
                                 }}>
@@ -181,7 +182,7 @@ const Header = () => {
                             <a href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick('/'); }}>Home</a>
                             <a href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick('/new-arrivals'); }}>New Arrivals</a>
                             {categories.map((category) => (
-                                <a key={category.id} href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick(`/category/${category.id}`); }}>{category.name}</a>
+                                <a key={category.id} href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick(generateCategoryUrl(category.name, category.id)); }}>{category.name}</a>
                             ))}
                           
                             <a href="#" className="login-btn" onClick={(e) => { e.preventDefault(); handleMobileLinkClick(user ? '/profile' : '/login'); }}>{user ? 'Profile' : 'Login'}</a>
@@ -214,7 +215,7 @@ const Header = () => {
                         <div className="mobile-search-recommendations">
                             {searchRecommendations.map(product => (
                                 <div key={product.id} className="search-recommendation" onClick={() => {
-                                    navigate(`/product/${product.id}`);
+                                    navigate(generateProductUrl(product.name, product.id));
                                     setIsMobileSearchOpen(false);
                                     setSearchQuery('');
                                     setSearchRecommendations([]);

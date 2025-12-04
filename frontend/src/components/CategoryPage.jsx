@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getActiveProducts } from "../api/productApi";
 import ProductCard from "./ProductCard";
 import FiltersComponent from "./FiltersComponent";
 import LoadingSpinner from "./LoadingSpinner";
 
 const CategoryPage = () => {
-  const { categoryName } = useParams();
-  const [searchParams] = useSearchParams();
+  const { categoryId, subcategoryId } = useParams();
   const navigate = useNavigate();
   const [filters, setFilters] = useState({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -16,22 +15,19 @@ const CategoryPage = () => {
   const [products, setProducts] = useState([]);
   const [categoryInfo, setCategoryInfo] = useState(null);
   const firstRender = useRef(true);
-  const subCategoryId = searchParams.get("sub");
+  const subCategoryId = subcategoryId;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const data = await getActiveProducts();
-        const categoryId = parseInt(categoryName);
+        const catId = parseInt(categoryId || subcategoryId);
         const filtered = data.filter((p) => {
           if (subCategoryId) {
-            return (
-              p.categoryId === categoryId &&
-              p.subCategoryId === parseInt(subCategoryId)
-            );
+            return p.subCategoryId === parseInt(subCategoryId);
           }
-          return p.categoryId === categoryId;
+          return p.categoryId === catId;
         });
         setProducts(filtered);
         if (filtered.length > 0) {
@@ -48,7 +44,7 @@ const CategoryPage = () => {
       }
     };
     fetchProducts();
-  }, [categoryName, subCategoryId]);
+  }, [categoryId, subCategoryId]);
 
   useEffect(() => {
     if (isFilterOpen) {

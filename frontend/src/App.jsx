@@ -44,9 +44,10 @@ const App = () => {
                                 <Routes>
                                     <Route path="/" element={<HomePage />} />
                                     <Route path="/new-arrivals" element={<NewArrivalsPage />} />
-                                    <Route path="/category/:categoryName" element={<SubcategoryPage />} />
-                                    <Route path="/category/:categoryName/products" element={<CategoryPage />} />
-                                    <Route path="/product/:productId" element={<ProductDetailPage />} />
+                                    <Route path="/category/:categorySlug/:categoryId" element={<SubcategoryPage />} />
+                                    <Route path="/category/:categorySlug/:categoryId/products" element={<CategoryPage />} />
+                                    <Route path="/subcategory/:subcategorySlug/:subcategoryId" element={<CategoryPage />} />
+                                    <Route path="/product/:productSlug/:productId" element={<ProductDetailPage />} />
                                     <Route path="/cart" element={<CartPage />} />
                                     <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
                                     <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
