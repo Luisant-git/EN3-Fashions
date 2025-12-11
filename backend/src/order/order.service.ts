@@ -67,7 +67,8 @@ export class OrderService {
             color: item.color,
             quantity: item.quantity,
             type: item.type,
-            bundleItems: item.bundleItems ? JSON.parse(JSON.stringify(item.bundleItems)) : undefined
+            bundleItems: item.bundleItems ? JSON.parse(JSON.stringify(item.bundleItems)) : undefined,
+            hsnCode: item.hsnCode
           }))
         }
       },

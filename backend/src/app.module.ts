@@ -20,9 +20,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { OverviewModule } from './overview/overview.module';
 import { PincodeModule } from './pincode.module';
 import { ShippingModule } from './shipping.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule, PincodeModule, ShippingModule],
+  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule, PincodeModule, ShippingModule, SettingsModule],
   controllers: [AppController],
   providers: [AppService],
 })
