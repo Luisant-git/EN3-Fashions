@@ -40,6 +40,7 @@ import WhatsAppChat from './pages/WhatsAppChat'
 import ShippingSettings from './pages/ShippingSettings'
 import AddShipping from './pages/AddShipping'
 import EditShipping from './pages/EditShipping'
+import Settings from './pages/Settings'
 // import BulkWhatsApp from './pages/BulkWhatsApps'
 
 // Import all SCSS files
@@ -65,6 +66,7 @@ import './styles/pages/list-pages.scss'
 import './styles/pages/create-combo.scss'
 import './styles/pages/add-shipping.scss'
 import './styles/WhatsAppChat.scss'
+import './styles/pages/settings.scss'
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -146,6 +148,7 @@ function App() {
               <Route path="/shipping-settings" element={<ShippingSettings />} />
               <Route path="/add-shipping" element={<AddShipping />} />
               <Route path="/edit-shipping/:id" element={<EditShipping />} />
+              <Route path="/settings" element={<Settings />} />
               {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
               {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>

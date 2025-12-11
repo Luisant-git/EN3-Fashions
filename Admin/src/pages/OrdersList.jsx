@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile } from "../api/order";
+import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 
 const OrdersList = () => {
@@ -30,10 +31,24 @@ const OrdersList = () => {
   const [courierName, setCourierName] = useState("");
   const [trackingId, setTrackingId] = useState("");
   const [trackingLink, setTrackingLink] = useState("");
+  const [signatureUrl, setSignatureUrl] = useState("");
 
   useEffect(() => {
     fetchOrders();
+    fetchSignature();
   }, []);
+
+  const fetchSignature = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/settings`);
+      const data = await response.json();
+      if (data.signatureUrl) {
+        setSignatureUrl(data.signatureUrl);
+      }
+    } catch (error) {
+      console.error('Failed to fetch signature:', error);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -80,7 +95,7 @@ const OrdersList = () => {
           const logo = new Image();
           logo.src = '/EN3 LOGO PNG.png';
           try {
-            invoicePdf.addImage(logo, 'PNG', 15, 15, 30, 15);
+            invoicePdf.addImage(logo, 'PNG', 25, 15, 30, 15);
           } catch (e) {
             console.log('Logo not loaded');
           }
@@ -189,9 +204,10 @@ const OrdersList = () => {
           invoicePdf.setFont(undefined, 'bold');
           invoicePdf.text('Sl.', 17, tableTop + 5);
           invoicePdf.text('Description', 30, tableTop + 5);
-          invoicePdf.text('Unit Price', 120, tableTop + 5);
-          invoicePdf.text('Qty', 150, tableTop + 5);
-          invoicePdf.text('Total Amount', 170, tableTop + 5);
+          invoicePdf.text('HSN', 105, tableTop + 5);
+          invoicePdf.text('Unit Price', 125, tableTop + 5);
+          invoicePdf.text('Qty', 155, tableTop + 5);
+          invoicePdf.text('Total', 175, tableTop + 5);
           
           invoicePdf.setDrawColor(0);
           invoicePdf.rect(15, tableTop, 180, 8);
@@ -206,11 +222,12 @@ const OrdersList = () => {
             
             invoicePdf.text((index + 1).toString(), 17, yPos);
             const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
-            const lines = invoicePdf.splitTextToSize(itemDesc, 85);
+            const lines = invoicePdf.splitTextToSize(itemDesc, 70);
             invoicePdf.text(lines, 30, yPos);
-            invoicePdf.text(`Rs.${itemPrice.toFixed(2)}`, 120, yPos);
-            invoicePdf.text(itemQty.toString(), 150, yPos);
-            invoicePdf.text(`Rs.${itemTotal.toFixed(2)}`, 170, yPos);
+            invoicePdf.text(item.hsnCode || 'N/A', 105, yPos);
+            invoicePdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
+            invoicePdf.text(itemQty.toString(), 155, yPos);
+            invoicePdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
             yPos += lines.length * 5 + 3;
           });
           
@@ -269,20 +286,28 @@ const OrdersList = () => {
           const amountInWords = convertToWords(total);
           invoicePdf.text(amountInWords, 15, yPos + 5);
           
-          yPos += 20;
+          const footerY = 270;
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('For EN3 FASHIONS:', 140, yPos);
+          invoicePdf.text('For EN3 FASHIONS:', 140, footerY - 30);
+          if (signatureUrl) {
+            const signatureImg = new Image();
+            signatureImg.src = signatureUrl;
+            try {
+              invoicePdf.addImage(signatureImg, 'PNG', 140, footerY - 25, 40, 15);
+            } catch (e) {
+              console.log('Signature not loaded');
+            }
+          }
           invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('Authorized Signatory', 140, yPos + 15);
+          invoicePdf.text('Authorized Signatory', 140, footerY - 5);
           
-          yPos += 25;
           invoicePdf.setFontSize(8);
           invoicePdf.setDrawColor(0);
-          invoicePdf.rect(15, yPos, 180, 10);
+          invoicePdf.rect(15, footerY, 180, 10);
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Date & Time:', 20, yPos + 6);
+          invoicePdf.text('Date & Time:', 20, footerY + 6);
           invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleString('en-GB'), 45, yPos + 6);
+          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleString('en-GB'), 45, footerY + 6);
           
           const invoiceBlob = generatePDFBlob(invoicePdf);
           const invoiceFile = new File([invoiceBlob], `invoice-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
@@ -298,7 +323,7 @@ const OrdersList = () => {
           packagePdf.setTextColor(0, 0, 0);
           
           try {
-            packagePdf.addImage(logo, 'PNG', 20, 18, 25, 12);
+            packagePdf.addImage(logo, 'PNG', 30, 18, 25, 12);
           } catch (e) {
             console.log('Logo not loaded');
           }
@@ -672,7 +697,7 @@ const OrdersList = () => {
     const logo = new Image();
     logo.src = '/EN3 LOGO PNG.png';
     try {
-      pdf.addImage(logo, 'PNG', 15, 15, 30, 15);
+      pdf.addImage(logo, 'PNG', 15, 15, 15, 15);
     } catch (e) {
       console.log('Logo not loaded');
     }
@@ -792,9 +817,10 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Sl.', 17, tableTop + 5);
     pdf.text('Description', 30, tableTop + 5);
-    pdf.text('Unit Price', 120, tableTop + 5);
-    pdf.text('Qty', 150, tableTop + 5);
-    pdf.text('Total Amount', 170, tableTop + 5);
+    pdf.text('HSN', 105, tableTop + 5);
+    pdf.text('Unit Price', 125, tableTop + 5);
+    pdf.text('Qty', 155, tableTop + 5);
+    pdf.text('Total', 175, tableTop + 5);
     
     // Table Border
     pdf.setDrawColor(0);
@@ -815,12 +841,13 @@ const OrdersList = () => {
       const itemDesc = item.size && item.color ? 
         `${item.name} - ${item.size}, ${item.color}` : 
         item.name || 'N/A';
-      const lines = pdf.splitTextToSize(itemDesc, 85);
+      const lines = pdf.splitTextToSize(itemDesc, 70);
       pdf.text(lines, 30, yPos);
       
-      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 120, yPos);
-      pdf.text(itemQty.toString(), 150, yPos);
-      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 170, yPos);
+      pdf.text(item.hsnCode || 'N/A', 105, yPos);
+      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
+      pdf.text(itemQty.toString(), 155, yPos);
+      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
       
       yPos += lines.length * 5 + 3;
     });
@@ -892,25 +919,31 @@ const OrdersList = () => {
     const amountInWords = convertToWords(total);
     pdf.text(amountInWords, 15, yPos + 5);
     
-    // Authorized Signatory
-    yPos += 20;
+    // Authorized Signatory and Footer at bottom
+    const footerY = 270;
     pdf.setFont(undefined, 'bold');
-    pdf.text('For EN3 FASHIONS:', 140, yPos);
+    pdf.text('For EN3 FASHIONS:', 140, footerY - 30);
+    if (signatureUrl) {
+      const signatureImg = new Image();
+      signatureImg.src = signatureUrl;
+      try {
+        pdf.addImage(signatureImg, 'PNG', 140, footerY - 25, 40, 15);
+      } catch (e) {
+        console.log('Signature not loaded');
+      }
+    }
     pdf.setFont(undefined, 'normal');
-    pdf.text('Authorized Signatory', 140, yPos + 15);
+    pdf.text('Authorized Signatory', 140, footerY - 5);
     
     // Footer with Date & Time box
-    yPos += 25;
     pdf.setFontSize(8);
-    
-    // Draw box for Date & Time
     pdf.setDrawColor(0);
-    pdf.rect(15, yPos, 180, 10);
+    pdf.rect(15, footerY, 180, 10);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Date & Time:', 20, yPos + 6);
+    pdf.text('Date & Time:', 20, footerY + 6);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleString('en-GB'), 45, yPos + 6);
+    pdf.text(new Date(order.createdAt).toLocaleString('en-GB'), 45, footerY + 6);
     
 
     

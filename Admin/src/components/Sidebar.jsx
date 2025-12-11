@@ -63,6 +63,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       children: [
         { key: 'customer-list', icon: List, label: 'Customer List', path: '/customer-list' }
       ]
+    },
+    {
+      key: 'settings',
+      icon: Settings,
+      label: 'Settings',
+      path: '/settings'
     }
   ]
 
