@@ -24,9 +24,9 @@ export class WhatsAppService {
               },
               {
                 type: 'button',
-                sub_type: 'copy_code',
+                sub_type: 'url',
                 index: '0',
-                parameters: [{ type: 'coupon_code', coupon_code: otp }]
+                parameters: [{ type: 'text', text: otp }]
               }
             ]
           }
