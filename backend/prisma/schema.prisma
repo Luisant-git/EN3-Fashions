@@ -207,6 +207,11 @@ model Order {
   paymentMethod   String
   shippingAddress Json
   deliveryOption  Json
+  invoiceUrl      String?
+  packageSlipUrl  String?
+  courierName     String?
+  trackingId      String?
+  trackingLink    String?
   items           OrderItem[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

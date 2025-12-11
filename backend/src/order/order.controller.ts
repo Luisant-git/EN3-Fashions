@@ -57,7 +57,15 @@ export class OrderController {
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   async updateOrderStatus(@Param('orderId') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
-    return this.orderService.updateOrderStatus(parseInt(orderId), updateOrderStatusDto.status);
+    return this.orderService.updateOrderStatus(
+      parseInt(orderId), 
+      updateOrderStatusDto.status, 
+      updateOrderStatusDto.invoiceUrl, 
+      updateOrderStatusDto.packageSlipUrl,
+      updateOrderStatusDto.courierName,
+      updateOrderStatusDto.trackingId,
+      updateOrderStatusDto.trackingLink
+    );
   }
 
   @Post('payment/create')

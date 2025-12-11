@@ -108,10 +108,17 @@ export class OrderService {
     });
   }
 
-  async updateOrderStatus(orderId: number, status: string) {
+  async updateOrderStatus(orderId: number, status: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string) {
+    const updateData: any = { status };
+    if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
+    if (packageSlipUrl) updateData.packageSlipUrl = packageSlipUrl;
+    if (courierName) updateData.courierName = courierName;
+    if (trackingId) updateData.trackingId = trackingId;
+    if (trackingLink) updateData.trackingLink = trackingLink;
+    
     return this.prisma.order.update({
       where: { id: orderId },
-      data: { status },
+      data: updateData,
       include: { items: true }
     });
   }
