@@ -4,7 +4,7 @@ import axios from 'axios';
 @Injectable()
 export class WhatsAppService {
   private readonly phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  private readonly token = process.env.WHATSAPP_TOKEN;
+  private readonly token = process.env.WHATSAPP_ACCESS_TOKEN;
  
   async sendOtp(phone: string, otp: string): Promise<boolean> {
     try {
@@ -15,7 +15,7 @@ export class WhatsAppService {
           to: phone,
           type: 'template',
           template: {
-            name: 'viha_login_otp',
+            name: 'otp_en3_auth',
             language: { code: 'en' },
             components: [
               {
@@ -24,9 +24,9 @@ export class WhatsAppService {
               },
               {
                 type: 'button',
-                sub_type: 'url',
+                sub_type: 'copy_code',
                 index: '0',
-                parameters: [{ type: 'text', text: otp }]
+                parameters: [{ type: 'coupon_code', coupon_code: otp }]
               }
             ]
           }
