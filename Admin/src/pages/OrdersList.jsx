@@ -369,7 +369,7 @@ const OrdersList = () => {
           packagePdf.text('Thank you for shopping with us!', 105, pkgYPos + 6, { align: 'center' });
           
           const packageBlob = generatePDFBlob(packagePdf);
-          const packageFile = new File([packageBlob], `package-slip-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
+          const packageFile = new File([packageBlob], `packageslip-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
           const packageResult = await uploadFile(packageFile);
           packageSlipUrl = packageResult.url;
         } catch (uploadError) {
