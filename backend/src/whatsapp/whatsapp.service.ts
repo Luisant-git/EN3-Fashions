@@ -381,7 +381,7 @@ export class WhatsappService {
           to: phoneNumber,
           type: 'template',
           template: {
-            name: 'order_received_v1',
+            name: 'order_status_en3',
             language: { code: 'en' },
             components: [
               {
@@ -389,7 +389,8 @@ export class WhatsappService {
                 parameters: [
                   { type: 'text', text: name },
                   { type: 'text', text: order.id.toString() },
-                  { type: 'text', text: order.total }
+                  { type: 'text', text: order.total },
+                  { type: 'text', text: order.paymentMethod }
                 ]
               }
             ]
@@ -414,6 +415,114 @@ export class WhatsappService {
       });
  
       console.log(`WhatsApp message sent to ${phoneNumber}:`, response.data);
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }) {
+    const phoneNumber = order.shippingAddress.mobile;
+    const name = order.shippingAddress.fullName;
+ 
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: phoneNumber,
+          type: 'template',
+          template: {
+            name: 'order_shipped_utility_en3',
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: name },
+                  { type: 'text', text: order.id.toString() },
+                  { type: 'text', text: trackingInfo.courier },
+                  { type: 'text', text: trackingInfo.trackingId },
+                  { type: 'text', text: trackingInfo.trackingUrl }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+ 
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: phoneNumber,
+          message: `Order ${order.id} shipped notification sent`,
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+ 
+      console.log(`WhatsApp shipped message sent to ${phoneNumber}:`, response.data);
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async sendOrderDelivered(order: any, invoiceUrl: string) {
+    const phoneNumber = order.shippingAddress.mobile;
+    const name = order.shippingAddress.fullName;
+ 
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: phoneNumber,
+          type: 'template',
+          template: {
+            name: 'order_delivered_invoice',
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: name },
+                  { type: 'text', text: order.id.toString() },
+                  { type: 'text', text: order.total },
+                  { type: 'text', text: order.paymentMethod },
+                  { type: 'text', text: invoiceUrl }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+ 
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: phoneNumber,
+          message: `Order ${order.id} delivered notification sent`,
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+ 
+      console.log(`WhatsApp delivered message sent to ${phoneNumber}:`, response.data);
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);

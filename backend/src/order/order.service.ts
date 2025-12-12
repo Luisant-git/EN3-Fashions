@@ -108,11 +108,20 @@ export class OrderService {
     });
   }
 
-  async updateOrderStatus(orderId: number, status: string) {
-    return this.prisma.order.update({
+  async updateOrderStatus(orderId: number, status: string, trackingInfo?: { courier: string; trackingId: string; trackingUrl: string }, invoiceUrl?: string) {
+    const order = await this.prisma.order.update({
       where: { id: orderId },
       data: { status },
       include: { items: true }
     });
+
+    // Send WhatsApp notification based on status
+    if (status === 'Shipped' && trackingInfo) {
+      await this.whatsappService.sendOrderShipped(order, trackingInfo);
+    } else if (status === 'Delivered' && invoiceUrl) {
+      await this.whatsappService.sendOrderDelivered(order, invoiceUrl);
+    }
+
+    return order;
   }
 }

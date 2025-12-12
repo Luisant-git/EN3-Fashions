@@ -26,6 +26,8 @@ const OrdersList = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [trackingInfo, setTrackingInfo] = useState({ courier: "", trackingId: "", trackingUrl: "" });
+  const [invoiceUrl, setInvoiceUrl] = useState("");
 
   useEffect(() => {
     fetchOrders();
@@ -50,12 +52,21 @@ const OrdersList = () => {
   const handleEditOrder = (order) => {
     setSelectedOrder(order);
     setNewStatus(order.status);
+    setTrackingInfo({ courier: "", trackingId: "", trackingUrl: "" });
+    setInvoiceUrl("");
     setShowEditModal(true);
   };
 
   const handleUpdateStatus = async () => {
     try {
-      await updateOrderStatus(selectedOrder.id, newStatus);
+      const payload = { status: newStatus };
+      if (newStatus === "Shipped" && trackingInfo.courier && trackingInfo.trackingId) {
+        payload.trackingInfo = trackingInfo;
+      }
+      if (newStatus === "Delivered" && invoiceUrl) {
+        payload.invoiceUrl = invoiceUrl;
+      }
+      await updateOrderStatus(selectedOrder.id, payload);
       await fetchOrders();
       setShowEditModal(false);
     } catch (error) {
@@ -975,6 +986,47 @@ const OrdersList = () => {
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
+
+              {newStatus === "Shipped" && (
+                <div style={{ marginTop: "15px" }}>
+                  <h4>Tracking Information</h4>
+                  <label>Courier</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Blue Dart"
+                    value={trackingInfo.courier}
+                    onChange={(e) => setTrackingInfo({ ...trackingInfo, courier: e.target.value })}
+                  />
+                  <label>Tracking ID</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 1234"
+                    value={trackingInfo.trackingId}
+                    onChange={(e) => setTrackingInfo({ ...trackingInfo, trackingId: e.target.value })}
+                  />
+                  <label>Tracking URL</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., https://tracking.bluedart.com/123456"
+                    value={trackingInfo.trackingUrl}
+                    onChange={(e) => setTrackingInfo({ ...trackingInfo, trackingUrl: e.target.value })}
+                  />
+                </div>
+              )}
+
+              {newStatus === "Delivered" && (
+                <div style={{ marginTop: "15px" }}>
+                  <h4>Invoice Information</h4>
+                  <label>Invoice URL</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., https://en3fashion.api.luisant.cloud/uploads/invoice-11.pdf"
+                    value={invoiceUrl}
+                    onChange={(e) => setInvoiceUrl(e.target.value)}
+                  />
+                </div>
+              )}
+
               <button className="btn btn-primary" onClick={handleUpdateStatus}>
                 Update Status
               </button>
