@@ -124,11 +124,15 @@ export class OrderService {
     });
 
     // Send WhatsApp notification based on status
-    if (status === 'Shipped' && trackingId) {
-      const trackingInfo = { courier: courierName || '', trackingId, trackingUrl: trackingLink || '' };
+    if (status === 'Shipped') {
+      const trackingInfo = { 
+        courier: courierName || 'N/A', 
+        trackingId: trackingId || 'N/A', 
+        trackingUrl: trackingLink || 'N/A' 
+      };
       await this.whatsappService.sendOrderShipped(order, trackingInfo);
-    } else if (status === 'Delivered' && invoiceUrl) {
-      await this.whatsappService.sendOrderDelivered(order, invoiceUrl);
+    } else if (status === 'Delivered') {
+      await this.whatsappService.sendOrderDelivered(order, invoiceUrl || 'N/A');
     }
 
     return order;

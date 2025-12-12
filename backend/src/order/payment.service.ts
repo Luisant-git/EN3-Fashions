@@ -18,7 +18,7 @@ export class PaymentService {
 
   async createOrder(amount: number, currency: string = 'INR') {
     const options = {
-      amount: amount * 100,
+      amount: Math.round(amount * 100),
       currency,
       receipt: `receipt_${Date.now()}`,
     };
