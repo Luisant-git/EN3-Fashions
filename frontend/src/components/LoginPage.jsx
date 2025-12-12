@@ -27,12 +27,16 @@ const LoginPage = () => {
 
     const requestOtp = async (e) => {
         e.preventDefault();
+        if (!/^\d{10}$/.test(phone)) {
+            toast.error('Phone number must be exactly 10 digits');
+            return;
+        }
         setLoading(true);
         try {
             const { data } = await axios.post(`${API_URL}/auth/otp/request`, { phone });
             setIsNewUser(data.isNewUser || false);
             toast.success('OTP sent to WhatsApp!');
-            setTimer(180);
+            setTimer(300);
             setStep(2);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to send OTP');
@@ -62,7 +66,7 @@ const LoginPage = () => {
                 <h2>Login</h2>
                 {step === 1 ? (
                     <form onSubmit={requestOtp}>
-                        <input type="tel" placeholder="Enter Mobile Number" value={phone} onChange={e => setPhone(e.target.value)} required/>
+                        <input type="tel" placeholder="Enter Mobile Number" value={phone} onChange={e => setPhone(e.target.value)} maxLength={10} required/>
                         <button type="submit" disabled={loading}>
                             {loading ? <LoadingSpinner /> : 'Send OTP'}
                         </button>

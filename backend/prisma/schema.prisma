@@ -188,6 +188,7 @@ model CartItem {
   quantity     Int      @default(1)
   type         String   @default("single") // "single" or "bundle"
   bundleItems  Json?    // For bundle items: [{color, size, originalPrice, colorImage}]
+  hsnCode      String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -207,6 +208,11 @@ model Order {
   paymentMethod   String
   shippingAddress Json
   deliveryOption  Json
+  invoiceUrl      String?
+  packageSlipUrl  String?
+  courierName     String?
+  trackingId      String?
+  trackingLink    String?
   items           OrderItem[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -226,6 +232,7 @@ model OrderItem {
   quantity    Int
   type        String  @default("single")
   bundleItems Json?
+  hsnCode     String?
 
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
@@ -303,6 +310,13 @@ model WhatsappSession {
   createdAt  DateTime @default(now())
 
   @@index([phone])
+}
+
+model AppSettings {
+  id           Int      @id @default(autoincrement())
+  signatureUrl String?
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
 }
 
 model Pincode {

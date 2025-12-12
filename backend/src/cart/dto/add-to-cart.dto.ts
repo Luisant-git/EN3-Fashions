@@ -49,4 +49,8 @@ export class AddToCartDto {
   @ValidateNested({ each: true })
   @Type(() => BundleItemDto)
   items?: BundleItemDto[];
+
+  @IsOptional()
+  @IsString()
+  hsnCode?: string;
 }

@@ -67,7 +67,8 @@ export class OrderService {
             color: item.color,
             quantity: item.quantity,
             type: item.type,
-            bundleItems: item.bundleItems ? JSON.parse(JSON.stringify(item.bundleItems)) : undefined
+            bundleItems: item.bundleItems ? JSON.parse(JSON.stringify(item.bundleItems)) : undefined,
+            hsnCode: item.hsnCode
           }))
         }
       },
@@ -108,15 +109,23 @@ export class OrderService {
     });
   }
 
-  async updateOrderStatus(orderId: number, status: string, trackingInfo?: { courier: string; trackingId: string; trackingUrl: string }, invoiceUrl?: string) {
+  async updateOrderStatus(orderId: number, status: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string) {
+    const updateData: any = { status };
+    if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
+    if (packageSlipUrl) updateData.packageSlipUrl = packageSlipUrl;
+    if (courierName) updateData.courierName = courierName;
+    if (trackingId) updateData.trackingId = trackingId;
+    if (trackingLink) updateData.trackingLink = trackingLink;
+    
     const order = await this.prisma.order.update({
       where: { id: orderId },
-      data: { status },
+      data: updateData,
       include: { items: true }
     });
 
     // Send WhatsApp notification based on status
-    if (status === 'Shipped' && trackingInfo) {
+    if (status === 'Shipped' && trackingId) {
+      const trackingInfo = { courier: courierName || '', trackingId, trackingUrl: trackingLink || '' };
       await this.whatsappService.sendOrderShipped(order, trackingInfo);
     } else if (status === 'Delivered' && invoiceUrl) {
       await this.whatsappService.sendOrderDelivered(order, invoiceUrl);

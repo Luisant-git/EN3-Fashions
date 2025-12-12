@@ -14,7 +14,8 @@ import {
   Receipt,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
-import { fetchOrders as fetchOrdersApi, updateOrderStatus } from "../api/order";
+import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile } from "../api/order";
+import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 
 const OrdersList = () => {
@@ -26,12 +27,28 @@ const OrdersList = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
-  const [trackingInfo, setTrackingInfo] = useState({ courier: "", trackingId: "", trackingUrl: "" });
-  const [invoiceUrl, setInvoiceUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [courierName, setCourierName] = useState("");
+  const [trackingId, setTrackingId] = useState("");
+  const [trackingLink, setTrackingLink] = useState("");
+  const [signatureUrl, setSignatureUrl] = useState("");
 
   useEffect(() => {
     fetchOrders();
+    fetchSignature();
   }, []);
+
+  const fetchSignature = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/settings`);
+      const data = await response.json();
+      if (data.signatureUrl) {
+        setSignatureUrl(data.signatureUrl);
+      }
+    } catch (error) {
+      console.error('Failed to fetch signature:', error);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -52,25 +69,358 @@ const OrdersList = () => {
   const handleEditOrder = (order) => {
     setSelectedOrder(order);
     setNewStatus(order.status);
-    setTrackingInfo({ courier: "", trackingId: "", trackingUrl: "" });
-    setInvoiceUrl("");
+    setCourierName("");
+    setTrackingId("");
+    setTrackingLink("");
     setShowEditModal(true);
+  };
+
+  const generatePDFBlob = (pdf) => {
+    return pdf.output('blob');
   };
 
   const handleUpdateStatus = async () => {
     try {
-      const payload = { status: newStatus };
-      if (newStatus === "Shipped" && trackingInfo.courier && trackingInfo.trackingId) {
-        payload.trackingInfo = trackingInfo;
+      setUploading(true);
+      let invoiceUrl = null;
+      let packageSlipUrl = null;
+
+      if (selectedOrder.status === 'Placed' && newStatus === 'Shipped') {
+        try {
+          // Generate invoice PDF
+          const invoicePdf = new jsPDF();
+          const address = selectedOrder.shippingAddress;
+          
+          // Generate invoice content (reuse existing logic)
+          const logo = new Image();
+          logo.src = '/EN3 LOGO PNG.png';
+          try {
+            invoicePdf.addImage(logo, 'PNG', 25, 15, 30, 15);
+          } catch (e) {
+            console.log('Logo not loaded');
+          }
+          
+          invoicePdf.setFontSize(20);
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('INVOICE', 105, 20, { align: 'center' });
+          
+          invoicePdf.setFontSize(9);
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Sold By :', 15, 40);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text('KPG APPARELS', 15, 45);
+          invoicePdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 50);
+          invoicePdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 55);
+          invoicePdf.text('IN', 15, 60);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('PAN No:', 15, 68);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text('AARFK8101F', 35, 68);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('GST Registration No:', 15, 73);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text('33AARFK8101F1ZG', 55, 73);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Billing Address :', 120, 35);
+          invoicePdf.setFont(undefined, 'normal');
+          if (address) {
+            let billingY = 40;
+            invoicePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 120, billingY);
+            billingY += 5;
+            invoicePdf.text(address.addressLine1 || '', 120, billingY);
+            billingY += 5;
+            if (address.addressLine2) {
+              invoicePdf.text(address.addressLine2, 120, billingY);
+              billingY += 5;
+            }
+            invoicePdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, billingY);
+            billingY += 5;
+            invoicePdf.text('IN', 120, billingY);
+          }
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Shipping Address :', 120, 75);
+          invoicePdf.setFont(undefined, 'normal');
+          if (address) {
+            let shippingY = 80;
+            invoicePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 120, shippingY);
+            shippingY += 5;
+            invoicePdf.text(address.mobile || selectedOrder.user?.phone || 'N/A', 120, shippingY);
+            shippingY += 5;
+            invoicePdf.text(address.addressLine1 || '', 120, shippingY);
+            shippingY += 5;
+            if (address.addressLine2) {
+              invoicePdf.text(address.addressLine2, 120, shippingY);
+              shippingY += 5;
+            }
+            invoicePdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, shippingY);
+            shippingY += 5;
+            invoicePdf.text('IN', 120, shippingY);
+            shippingY += 5;
+            invoicePdf.setFont(undefined, 'bold');
+            invoicePdf.text('Place of supply:', 120, shippingY);
+            invoicePdf.setFont(undefined, 'normal');
+            invoicePdf.text(address.state?.toUpperCase() || 'N/A', 148, shippingY);
+            shippingY += 5;
+            invoicePdf.setFont(undefined, 'bold');
+            invoicePdf.text('Place of delivery:', 120, shippingY);
+            invoicePdf.setFont(undefined, 'normal');
+            invoicePdf.text(address.state?.toUpperCase() || 'N/A', 152, shippingY);
+          }
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Order Number:', 15, 80);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(`ORD-${new Date().getFullYear()}-${selectedOrder.id}`, 45, 80);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Order Date:', 15, 85);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleDateString('en-GB'), 38, 85);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Invoice Number :', 15, 90);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(`IN-${selectedOrder.id}`, 50, 90);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Invoice Date :', 15, 95);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleDateString('en-GB'), 45, 95);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Mode of Payment:', 15, 100);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(selectedOrder.paymentMethod || 'Online', 52, 100);
+          
+          const tableTop = 128;
+          invoicePdf.setFillColor(220, 220, 220);
+          invoicePdf.rect(15, tableTop, 180, 8, 'F');
+          
+          invoicePdf.setFontSize(8);
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Sl.', 17, tableTop + 5);
+          invoicePdf.text('Description', 30, tableTop + 5);
+          invoicePdf.text('HSN', 105, tableTop + 5);
+          invoicePdf.text('Unit Price', 125, tableTop + 5);
+          invoicePdf.text('Qty', 155, tableTop + 5);
+          invoicePdf.text('Total', 175, tableTop + 5);
+          
+          invoicePdf.setDrawColor(0);
+          invoicePdf.rect(15, tableTop, 180, 8);
+          
+          invoicePdf.setFont(undefined, 'normal');
+          let yPos = tableTop + 15;
+          
+          selectedOrder.items?.forEach((item, index) => {
+            const itemPrice = parseFloat(item.price) || 0;
+            const itemQty = item.quantity || 1;
+            const itemTotal = itemPrice * itemQty;
+            
+            invoicePdf.text((index + 1).toString(), 17, yPos);
+            const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
+            const lines = invoicePdf.splitTextToSize(itemDesc, 70);
+            invoicePdf.text(lines, 30, yPos);
+            invoicePdf.text(item.hsnCode || 'N/A', 105, yPos);
+            invoicePdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
+            invoicePdf.text(itemQty.toString(), 155, yPos);
+            invoicePdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
+            yPos += lines.length * 5 + 3;
+          });
+          
+          const subtotal = parseFloat(selectedOrder.subtotal) || 0;
+          const discount = parseFloat(selectedOrder.discount) || 0;
+          const deliveryFee = parseFloat(selectedOrder.deliveryFee) || 0;
+          const total = parseFloat(selectedOrder.total) || 0;
+          const deliveryGst = selectedOrder.deliveryOption?.gst || {};
+          const isSameState = deliveryGst.isSameState !== false;
+          
+          const afterDiscount = subtotal - discount;
+          const totalWithDelivery = afterDiscount + deliveryFee;
+          const gstAmount = total - totalWithDelivery;
+          const cgstAmount = isSameState ? (gstAmount / 2) : 0;
+          const sgstAmount = isSameState ? (gstAmount / 2) : 0;
+          const igstAmount = !isSameState ? gstAmount : 0;
+          const taxRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100 / 2).toFixed(2) : 2.5;
+          const igstRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100).toFixed(2) : 5;
+          
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text('Subtotal:', 30, yPos);
+          invoicePdf.text(`Rs.${subtotal.toFixed(2)}`, 170, yPos);
+          yPos += 6;
+          
+          if (discount > 0) {
+            invoicePdf.text(`Discount (${selectedOrder.couponCode || ''})`, 30, yPos);
+            invoicePdf.text(`- Rs.${discount.toFixed(2)}`, 170, yPos);
+            yPos += 6;
+          }
+          
+          invoicePdf.text('Delivery Fee:', 30, yPos);
+          invoicePdf.text(`Rs.${deliveryFee.toFixed(2)}`, 170, yPos);
+          yPos += 6;
+          
+          if (isSameState) {
+            invoicePdf.text(`CGST (${taxRate}%)`, 30, yPos);
+            invoicePdf.text(`Rs.${cgstAmount.toFixed(2)}`, 170, yPos);
+            yPos += 6;
+            invoicePdf.text(`SGST (${taxRate}%)`, 30, yPos);
+            invoicePdf.text(`Rs.${sgstAmount.toFixed(2)}`, 170, yPos);
+            yPos += 8;
+          } else {
+            invoicePdf.text(`IGST (${igstRate}%)`, 30, yPos);
+            invoicePdf.text(`Rs.${igstAmount.toFixed(2)}`, 170, yPos);
+            yPos += 8;
+          }
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('TOTAL:', 17, yPos);
+          invoicePdf.text(`Rs.${total.toFixed(2)}`, 170, yPos);
+          
+          yPos += 8;
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Amount in Words:', 15, yPos);
+          invoicePdf.setFont(undefined, 'normal');
+          const amountInWords = convertToWords(total);
+          invoicePdf.text(amountInWords, 15, yPos + 5);
+          
+          const footerY = 270;
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('For EN3 FASHIONS:', 140, footerY - 30);
+          if (signatureUrl) {
+            const signatureImg = new Image();
+            signatureImg.src = signatureUrl;
+            try {
+              invoicePdf.addImage(signatureImg, 'PNG', 140, footerY - 25, 40, 15);
+            } catch (e) {
+              console.log('Signature not loaded');
+            }
+          }
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text('Authorized Signatory', 140, footerY - 5);
+          
+          invoicePdf.setFontSize(8);
+          invoicePdf.setDrawColor(0);
+          invoicePdf.rect(15, footerY, 180, 10);
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Date & Time:', 20, footerY + 6);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleString('en-GB'), 45, footerY + 6);
+          
+          const invoiceBlob = generatePDFBlob(invoicePdf);
+          const invoiceFile = new File([invoiceBlob], `invoice-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
+          const invoiceResult = await uploadFile(invoiceFile);
+          invoiceUrl = invoiceResult.url;
+
+          // Generate package slip PDF
+          const packagePdf = new jsPDF();
+          packagePdf.setFontSize(14);
+          packagePdf.setFont(undefined, 'bold');
+          packagePdf.setTextColor(41, 98, 255);
+          packagePdf.text('PACKING SLIP', 20, 15);
+          packagePdf.setTextColor(0, 0, 0);
+          
+          try {
+            packagePdf.addImage(logo, 'PNG', 30, 18, 25, 12);
+          } catch (e) {
+            console.log('Logo not loaded');
+          }
+          
+          packagePdf.setFontSize(8);
+          packagePdf.setFont(undefined, 'bold');
+          packagePdf.text('KPG APPARELS', 20, 33);
+          packagePdf.setFont(undefined, 'normal');
+          packagePdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37);
+          packagePdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41);
+          packagePdf.text('IN', 20, 45);
+          
+          packagePdf.setDrawColor(200, 200, 200);
+          packagePdf.rect(120, 30, 70, 25);
+          packagePdf.setFont(undefined, 'bold');
+          packagePdf.text('SHIP TO', 125, 35);
+          packagePdf.setFont(undefined, 'normal');
+          if (address) {
+            packagePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 125, 40);
+            packagePdf.text(address.mobile || selectedOrder.user?.phone || 'N/A', 125, 44);
+            packagePdf.text(address.addressLine1 || '', 125, 48);
+            packagePdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52);
+          }
+          
+          packagePdf.text('Sales Order No', 20, 60);
+          packagePdf.text(`: ORD-${new Date().getFullYear()}-${selectedOrder.id}`, 50, 60);
+          packagePdf.text('Order Date', 20, 65);
+          packagePdf.text(`: ${new Date(selectedOrder.createdAt).toLocaleDateString('en-GB')}`, 50, 65);
+          
+          const pkgTableTop = 73;
+          packagePdf.setFillColor(220, 230, 255);
+          packagePdf.rect(20, pkgTableTop, 170, 8, 'F');
+          packagePdf.setDrawColor(200, 200, 200);
+          packagePdf.rect(20, pkgTableTop, 170, 8);
+          
+          packagePdf.setFont(undefined, 'bold');
+          packagePdf.text('Item', 25, pkgTableTop + 5);
+          packagePdf.text('Size', 120, pkgTableTop + 5);
+          packagePdf.text('Qty', 160, pkgTableTop + 5);
+          packagePdf.line(20, pkgTableTop + 8, 190, pkgTableTop + 8);
+          
+          packagePdf.setFont(undefined, 'normal');
+          let pkgYPos = pkgTableTop + 14;
+          let itemCounter = 1;
+          selectedOrder.items?.forEach((item) => {
+            if (item.type === 'bundle' && item.bundleItems) {
+              item.bundleItems.forEach((bundleItem) => {
+                const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
+                const lines = packagePdf.splitTextToSize(itemName, 95);
+                packagePdf.text(lines, 20, pkgYPos);
+                packagePdf.text(bundleItem.size || 'N/A', 120, pkgYPos);
+                packagePdf.text('1', 160, pkgYPos);
+                pkgYPos += lines.length * 4 + 2;
+                itemCounter++;
+              });
+            } else {
+              const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+              const lines = packagePdf.splitTextToSize(itemName, 95);
+              packagePdf.text(lines, 20, pkgYPos);
+              packagePdf.text(item.size || 'N/A', 120, pkgYPos);
+              packagePdf.text(item.quantity?.toString() || '1', 160, pkgYPos);
+              pkgYPos += lines.length * 4 + 2;
+              itemCounter++;
+            }
+          });
+          
+          packagePdf.setFont(undefined, 'italic');
+          packagePdf.text('Thank you for shopping with us!', 105, pkgYPos + 6, { align: 'center' });
+          
+          const packageBlob = generatePDFBlob(packagePdf);
+          const packageFile = new File([packageBlob], `packageslip-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
+          const packageResult = await uploadFile(packageFile);
+          packageSlipUrl = packageResult.url;
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          alert('Failed to upload documents. Status will not be changed.');
+          setUploading(false);
+          return;
+        }
       }
-      if (newStatus === "Delivered" && invoiceUrl) {
-        payload.invoiceUrl = invoiceUrl;
-      }
-      await updateOrderStatus(selectedOrder.id, payload);
+
+      await updateOrderStatus(
+        selectedOrder.id, 
+        newStatus, 
+        invoiceUrl, 
+        packageSlipUrl, 
+        courierName || "not provided", 
+        trackingId || "not provided", 
+        trackingLink || "not provided"
+      );
       await fetchOrders();
       setShowEditModal(false);
     } catch (error) {
       console.error("Error updating status:", error);
+      alert('Failed to update order status');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -347,7 +697,7 @@ const OrdersList = () => {
     const logo = new Image();
     logo.src = '/EN3 LOGO PNG.png';
     try {
-      pdf.addImage(logo, 'PNG', 15, 15, 30, 15);
+      pdf.addImage(logo, 'PNG', 15, 15, 15, 15);
     } catch (e) {
       console.log('Logo not loaded');
     }
@@ -467,9 +817,10 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Sl.', 17, tableTop + 5);
     pdf.text('Description', 30, tableTop + 5);
-    pdf.text('Unit Price', 120, tableTop + 5);
-    pdf.text('Qty', 150, tableTop + 5);
-    pdf.text('Total Amount', 170, tableTop + 5);
+    pdf.text('HSN', 105, tableTop + 5);
+    pdf.text('Unit Price', 125, tableTop + 5);
+    pdf.text('Qty', 155, tableTop + 5);
+    pdf.text('Total', 175, tableTop + 5);
     
     // Table Border
     pdf.setDrawColor(0);
@@ -490,12 +841,13 @@ const OrdersList = () => {
       const itemDesc = item.size && item.color ? 
         `${item.name} - ${item.size}, ${item.color}` : 
         item.name || 'N/A';
-      const lines = pdf.splitTextToSize(itemDesc, 85);
+      const lines = pdf.splitTextToSize(itemDesc, 70);
       pdf.text(lines, 30, yPos);
       
-      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 120, yPos);
-      pdf.text(itemQty.toString(), 150, yPos);
-      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 170, yPos);
+      pdf.text(item.hsnCode || 'N/A', 105, yPos);
+      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
+      pdf.text(itemQty.toString(), 155, yPos);
+      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
       
       yPos += lines.length * 5 + 3;
     });
@@ -567,25 +919,31 @@ const OrdersList = () => {
     const amountInWords = convertToWords(total);
     pdf.text(amountInWords, 15, yPos + 5);
     
-    // Authorized Signatory
-    yPos += 20;
+    // Authorized Signatory and Footer at bottom
+    const footerY = 270;
     pdf.setFont(undefined, 'bold');
-    pdf.text('For EN3 FASHIONS:', 140, yPos);
+    pdf.text('For EN3 FASHIONS:', 140, footerY - 30);
+    if (signatureUrl) {
+      const signatureImg = new Image();
+      signatureImg.src = signatureUrl;
+      try {
+        pdf.addImage(signatureImg, 'PNG', 140, footerY - 25, 40, 15);
+      } catch (e) {
+        console.log('Signature not loaded');
+      }
+    }
     pdf.setFont(undefined, 'normal');
-    pdf.text('Authorized Signatory', 140, yPos + 15);
+    pdf.text('Authorized Signatory', 140, footerY - 5);
     
     // Footer with Date & Time box
-    yPos += 25;
     pdf.setFontSize(8);
-    
-    // Draw box for Date & Time
     pdf.setDrawColor(0);
-    pdf.rect(15, yPos, 180, 10);
+    pdf.rect(15, footerY, 180, 10);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Date & Time:', 20, yPos + 6);
+    pdf.text('Date & Time:', 20, footerY + 6);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleString('en-GB'), 45, yPos + 6);
+    pdf.text(new Date(order.createdAt).toLocaleString('en-GB'), 45, footerY + 6);
     
 
     
@@ -767,7 +1125,7 @@ const OrdersList = () => {
           >
             <Edit size={16} />
           </button>
-          {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
+          {(row.status === 'Shipped' || row.status === 'Delivered') && (
             <>
               <button
                 className="action-btn download"
@@ -968,68 +1326,73 @@ const OrdersList = () => {
 
       {showEditModal && selectedOrder && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', width: '90%' }}>
             <div className="modal-header">
               <h2>Update Order Status - #ORD-{selectedOrder.id}</h2>
               <button onClick={() => setShowEditModal(false)}>
                 <X size={20} />
               </button>
             </div>
-            <div className="modal-body">
-              <label>Status</label>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-              >
-                <option value="Placed">Placed</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-
-              {newStatus === "Shipped" && (
-                <div style={{ marginTop: "15px" }}>
-                  <h4>Tracking Information</h4>
-                  <label>Courier</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Blue Dart"
-                    value={trackingInfo.courier}
-                    onChange={(e) => setTrackingInfo({ ...trackingInfo, courier: e.target.value })}
-                  />
-                  <label>Tracking ID</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., 1234"
-                    value={trackingInfo.trackingId}
-                    onChange={(e) => setTrackingInfo({ ...trackingInfo, trackingId: e.target.value })}
-                  />
-                  <label>Tracking URL</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., https://tracking.bluedart.com/123456"
-                    value={trackingInfo.trackingUrl}
-                    onChange={(e) => setTrackingInfo({ ...trackingInfo, trackingUrl: e.target.value })}
-                  />
+            <div className="modal-body" style={{ padding: '30px' }}>
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <div style={{ flex: '0 0 200px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Status</label>
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                  >
+                    <option value="Placed">Placed</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
                 </div>
-              )}
-
-              {newStatus === "Delivered" && (
-                <div style={{ marginTop: "15px" }}>
-                  <h4>Invoice Information</h4>
-                  <label>Invoice URL</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., https://en3fashion.api.luisant.cloud/uploads/invoice-11.pdf"
-                    value={invoiceUrl}
-                    onChange={(e) => setInvoiceUrl(e.target.value)}
-                  />
+                {selectedOrder.status === 'Placed' && newStatus === 'Shipped' && (
+                  <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                    <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
+                      📄 Invoice and package slip will be automatically generated and uploaded.
+                    </p>
+                    <div style={{ marginBottom: '15px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name (Optional)</label>
+                      <input
+                        type="text"
+                        value={courierName}
+                        onChange={(e) => setCourierName(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div style={{ marginBottom: '15px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID (Optional)</label>
+                      <input
+                        type="text"
+                        value={trackingId}
+                        onChange={(e) => setTrackingId(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link (Optional)</label>
+                      <input
+                        type="text"
+                        value={trackingLink}
+                        onChange={(e) => setTrackingLink(e.target.value)}
+                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleUpdateStatus}
+                    disabled={uploading}
+                    style={{ width: '100%', padding: '15px 20px', marginTop: '20px', fontSize: '14px', fontWeight: '600', borderRadius: '6px', border: 'none', backgroundColor: '#4169E1', color: 'white', cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}
+                  >
+                    {uploading ? 'Uploading...' : 'Update Status'}
+                  </button>
                 </div>
-              )}
-
-              <button className="btn btn-primary" onClick={handleUpdateStatus}>
-                Update Status
-              </button>
+              </div>
             </div>
           </div>
         </div>

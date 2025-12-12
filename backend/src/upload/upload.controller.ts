@@ -10,8 +10,13 @@ export class UploadController {
     storage: diskStorage({
       destination: './uploads',
       filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
+        const originalName = file.originalname;
+        if (originalName.startsWith('invoice-') || originalName.startsWith('packageslip-')) {
+          cb(null, originalName);
+        } else {
+          const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        }
       },
     }),
   }))

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateOrderStatusDto {
@@ -6,13 +6,28 @@ export class UpdateOrderStatusDto {
   @IsString()
   status: string;
 
-  @ApiProperty({ required: false, example: { courier: 'Blue Dart', trackingId: '1234', trackingUrl: 'https://tracking.bluedart.com/123456' } })
-  @IsOptional()
-  @IsObject()
-  trackingInfo?: { courier: string; trackingId: string; trackingUrl: string };
-
-  @ApiProperty({ required: false, example: 'https://en3fashion.api.luisant.cloud/uploads/invoice-11.pdf' })
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   invoiceUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  packageSlipUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  courierName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  trackingId?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  trackingLink?: string;
 }

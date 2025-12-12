@@ -54,7 +54,8 @@ export class CartService {
         color: addToCartDto.color,
         quantity: addToCartDto.quantity || 1,
         type: addToCartDto.type || 'single',
-        bundleItems: addToCartDto.items ? JSON.parse(JSON.stringify(addToCartDto.items)) : undefined
+        bundleItems: addToCartDto.items ? JSON.parse(JSON.stringify(addToCartDto.items)) : undefined,
+        hsnCode: addToCartDto.hsnCode
       }
     });
   }

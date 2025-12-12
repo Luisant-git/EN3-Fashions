@@ -59,9 +59,12 @@ export class OrderController {
   async updateOrderStatus(@Param('orderId') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
     return this.orderService.updateOrderStatus(
       parseInt(orderId), 
-      updateOrderStatusDto.status,
-      updateOrderStatusDto.trackingInfo,
-      updateOrderStatusDto.invoiceUrl
+      updateOrderStatusDto.status, 
+      updateOrderStatusDto.invoiceUrl, 
+      updateOrderStatusDto.packageSlipUrl,
+      updateOrderStatusDto.courierName,
+      updateOrderStatusDto.trackingId,
+      updateOrderStatusDto.trackingLink
     );
   }
 
