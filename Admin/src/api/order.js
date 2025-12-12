@@ -17,11 +17,7 @@ export const fetchOrders = async () => {
   }
 };
 
-<<<<<<< HEAD
-export const updateOrderStatus = async (orderId, payload) => {
-=======
 export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink) => {
->>>>>>> d4cb65668ad16ad125ecb0b04309daacde396059
   try {
     const body = { status };
     if (invoiceUrl) body.invoiceUrl = invoiceUrl;
@@ -33,11 +29,7 @@ export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlip
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-<<<<<<< HEAD
-      body: JSON.stringify(payload),
-=======
       body: JSON.stringify(body),
->>>>>>> d4cb65668ad16ad125ecb0b04309daacde396059
     });
 
     if (!response.ok) {
