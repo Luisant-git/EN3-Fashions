@@ -117,12 +117,14 @@ const CheckoutPage = () => {
     const subtotalAfterDiscount = subtotal - discount;
     
     const isSameState = selectedState?.value === BUSINESS_STATE;
-    const gstAmount = subtotalAfterDiscount * GST_RATE;
+    // GST Inclusive calculation
+    const baseAmount = subtotalAfterDiscount / (1 + GST_RATE);
+    const gstAmount = subtotalAfterDiscount - baseAmount;
     const cgst = isSameState ? gstAmount / 2 : 0;
     const sgst = isSameState ? gstAmount / 2 : 0;
     const igst = !isSameState ? gstAmount : 0;
     
-    const finalTotal = subtotalAfterDiscount + gstAmount + deliveryFee;
+    const finalTotal = subtotalAfterDiscount + deliveryFee;
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
@@ -376,13 +378,19 @@ const CheckoutPage = () => {
                     ))}
                     <hr/>
                     <div className="summary-row">
-                        <span>Subtotal</span>
+                        <span>Subtotal (incl. GST)</span>
                         <span>₹{subtotal.toFixed(2)}</span>
                     </div>
                     {discount > 0 && (
                         <div className="summary-row discount">
                             <span>Discount</span>
                             <span>-₹{discount.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {selectedState && (
+                        <div className="summary-row">
+                            <span>Taxable Amount</span>
+                            <span>₹{baseAmount.toFixed(2)}</span>
                         </div>
                     )}
                     {selectedState && isSameState && (

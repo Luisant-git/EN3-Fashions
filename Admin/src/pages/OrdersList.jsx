@@ -238,17 +238,22 @@ const OrdersList = () => {
           const deliveryGst = selectedOrder.deliveryOption?.gst || {};
           const isSameState = deliveryGst.isSameState !== false;
           
+          // GST Inclusive calculation
+          const gstRate = 5; // 5% GST rate
           const afterDiscount = subtotal - discount;
           const totalWithDelivery = afterDiscount + deliveryFee;
-          const gstAmount = total - totalWithDelivery;
+          
+          // Calculate GST inclusive amounts
+          const baseAmount = totalWithDelivery / (1 + gstRate / 100);
+          const gstAmount = totalWithDelivery - baseAmount;
           const cgstAmount = isSameState ? (gstAmount / 2) : 0;
           const sgstAmount = isSameState ? (gstAmount / 2) : 0;
           const igstAmount = !isSameState ? gstAmount : 0;
-          const taxRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100 / 2).toFixed(2) : 2.5;
-          const igstRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100).toFixed(2) : 5;
+          const taxRate = (gstRate / 2).toFixed(2);
+          const igstRate = gstRate.toFixed(2);
           
           invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('Subtotal:', 30, yPos);
+          invoicePdf.text('Subtotal (incl. GST):', 30, yPos);
           invoicePdf.text(`Rs.${subtotal.toFixed(2)}`, 170, yPos);
           yPos += 6;
           
@@ -258,8 +263,12 @@ const OrdersList = () => {
             yPos += 6;
           }
           
-          invoicePdf.text('Delivery Fee:', 30, yPos);
+          invoicePdf.text('Delivery Fee (incl. GST):', 30, yPos);
           invoicePdf.text(`Rs.${deliveryFee.toFixed(2)}`, 170, yPos);
+          yPos += 6;
+          
+          invoicePdf.text('Taxable Amount:', 30, yPos);
+          invoicePdf.text(`Rs.${baseAmount.toFixed(2)}`, 170, yPos);
           yPos += 6;
           
           if (isSameState) {
@@ -860,19 +869,23 @@ const OrdersList = () => {
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
     
-    // Calculate GST (reverse calculate from total)
+    // GST Inclusive calculation
+    const gstRate = 5; // 5% GST rate
     const afterDiscount = subtotal - discount;
     const totalWithDelivery = afterDiscount + deliveryFee;
-    const gstAmount = total - totalWithDelivery;
+    
+    // Calculate GST inclusive amounts
+    const baseAmount = totalWithDelivery / (1 + gstRate / 100);
+    const gstAmount = totalWithDelivery - baseAmount;
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
     const sgstAmount = isSameState ? (gstAmount / 2) : 0;
     const igstAmount = !isSameState ? gstAmount : 0;
-    const taxRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100 / 2).toFixed(2) : 2.5;
-    const igstRate = totalWithDelivery > 0 ? ((gstAmount / totalWithDelivery) * 100).toFixed(2) : 5;
+    const taxRate = (gstRate / 2).toFixed(2);
+    const igstRate = gstRate.toFixed(2);
     
     // Subtotal row
     pdf.setFont(undefined, 'normal');
-    pdf.text('Subtotal:', 30, yPos);
+    pdf.text('Subtotal (incl. GST):', 30, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 170, yPos);
     yPos += 6;
     
@@ -884,8 +897,13 @@ const OrdersList = () => {
     }
     
     // Delivery Fee row
-    pdf.text('Delivery Fee:', 30, yPos);
+    pdf.text('Delivery Fee (incl. GST):', 30, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 170, yPos);
+    yPos += 6;
+    
+    // Taxable Amount row
+    pdf.text('Taxable Amount:', 30, yPos);
+    pdf.text(`Rs.${baseAmount.toFixed(2)}`, 170, yPos);
     yPos += 6;
     
     // GST rows based on isSameState
