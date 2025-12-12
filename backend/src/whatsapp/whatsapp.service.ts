@@ -374,11 +374,6 @@ export class WhatsappService {
   }
  
   async sendOrderConfirmation(order: any) {
-    if (!this.apiUrl || !this.phoneNumberId || !this.accessToken) {
-      console.log('WhatsApp not configured, skipping message');
-      return { success: false, error: 'WhatsApp not configured' };
-    }
-
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
  
@@ -432,11 +427,6 @@ export class WhatsappService {
   }
 
   async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }) {
-    if (!this.apiUrl || !this.phoneNumberId || !this.accessToken) {
-      console.log('WhatsApp not configured, skipping message');
-      return { success: false, error: 'WhatsApp not configured' };
-    }
-
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
  
@@ -491,11 +481,6 @@ export class WhatsappService {
   }
 
   async sendOrderDelivered(order: any, invoiceUrl: string) {
-    if (!this.apiUrl || !this.phoneNumberId || !this.accessToken) {
-      console.log('WhatsApp not configured, skipping message');
-      return { success: false, error: 'WhatsApp not configured' };
-    }
-
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
  
