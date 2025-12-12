@@ -132,8 +132,8 @@ export class OrderService {
       };
       await this.whatsappService.sendOrderShipped(order, trackingInfo);
     } else if (status === 'Delivered') {
-      const finalInvoiceUrl = order.invoiceUrl || invoiceUrl || `https://en3fashion.api.luisant.cloud/uploads/invoice-${order.id}.pdf`;
-      await this.whatsappService.sendOrderDelivered(order, finalInvoiceUrl);
+      const invoiceFilename = `invoice-${order.id}.pdf`;
+      await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
     }
 
     return order;
