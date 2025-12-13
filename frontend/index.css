@@ -329,6 +329,7 @@ button:disabled {
     color: var(--secondary-color);
     position: relative;
     transition: color 0.3s ease;
+    text-transform: uppercase;
 }
 .navigation a:hover {
     color: var(--primary-color);
@@ -348,6 +349,23 @@ button:disabled {
 }
 .navigation a.sale-link {
     color: var(--primary-color);
+}
+
+.navigation a.offer-link {
+    display: flex;
+    align-items: center;
+}
+
+.navigation a.offer-link svg {
+    color: #FFD700;
+}
+
+.navigation a.offer-link:hover {
+    color: #FFD700;
+}
+
+.navigation a.offer-link:hover::after {
+    background-color: #FFD700;
 }
 
 /* Dropdown Menu Styles */
@@ -2132,6 +2150,19 @@ button:disabled {
     }
     .mobile-nav nav a:hover::after {
         width: 100%;
+    }
+    .mobile-nav nav a.offer-link {
+        display: flex;
+        align-items: center;
+    }
+    .mobile-nav nav a.offer-link svg {
+        color: #FFD700;
+    }
+    .mobile-nav nav a.offer-link:hover {
+        color: #FFD700;
+    }
+    .mobile-nav nav a.offer-link:hover::after {
+        background-color: #FFD700;
     }
     .mobile-nav nav a.login-btn {
         background: linear-gradient(135deg, #1a1a1a, #333);

@@ -207,9 +207,10 @@ const OrdersList = () => {
           invoicePdf.rect(15, tableTop, 180, 8);
           
           invoicePdf.setFont(undefined, 'normal');
-          let yPos = tableTop + 15;
+          let yPos = tableTop + 13;
           
           const tableStartY = yPos;
+          let prevRowEndY = tableTop + 8;
           selectedOrder.items?.forEach((item, index) => {
             const itemPrice = parseFloat(item.price) || 0;
             const itemQty = item.quantity || 1;
@@ -224,7 +225,18 @@ const OrdersList = () => {
             invoicePdf.text(itemQty.toString(), 155, yPos);
             invoicePdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
             
-            yPos += lines.length * 5 + 3;
+            const rowHeight = lines.length * 5 + 5;
+            const rowEndY = yPos + rowHeight - 5;
+            
+            invoicePdf.line(15, rowEndY, 195, rowEndY);
+            invoicePdf.line(25, prevRowEndY, 25, rowEndY);
+            invoicePdf.line(100, prevRowEndY, 100, rowEndY);
+            invoicePdf.line(120, prevRowEndY, 120, rowEndY);
+            invoicePdf.line(150, prevRowEndY, 150, rowEndY);
+            invoicePdf.line(170, prevRowEndY, 170, rowEndY);
+            
+            prevRowEndY = rowEndY;
+            yPos += rowHeight;
           });
           
           const subtotal = parseFloat(selectedOrder.subtotal) || 0;
@@ -247,6 +259,8 @@ const OrdersList = () => {
           const igstAmount = !isSameState ? gstAmount : 0;
           const taxRate = (gstRate / 2).toFixed(2);
           const igstRate = gstRate.toFixed(2);
+          
+          yPos += 5;
           
           invoicePdf.setFont(undefined, 'normal');
           invoicePdf.text('Subtotal (incl. GST):', 30, yPos);
@@ -286,16 +300,21 @@ const OrdersList = () => {
           
           yPos += 8;
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Amount in Words:', 15, yPos);
+          invoicePdf.text('Amount in Words:', 30, yPos);
           invoicePdf.setFont(undefined, 'normal');
           const amountInWords = convertToWords(total);
-          invoicePdf.text(amountInWords, 15, yPos + 5);
+          invoicePdf.text(amountInWords, 30, yPos + 5);
           
           // Draw full table border covering all details
           const tableHeight = (yPos + 10) - tableStartY;
           invoicePdf.rect(15, tableStartY, 180, tableHeight);
           
-          const footerY = 270;
+          // Check if signature and footer fit on current page
+          let footerY = yPos + 50;
+          if (footerY > 250) {
+            invoicePdf.addPage();
+            footerY = 30;
+          }
           invoicePdf.setFont(undefined, 'bold');
           invoicePdf.text('For EN3 FASHIONS:', 140, footerY - 30);
           if (signatureUrl) {
@@ -728,7 +747,7 @@ const OrdersList = () => {
     pdf.text('33AARFK8101F1ZG', 35, 68);
     
     // Add separator line below Sold By section
-    pdf.line(15, 75, 190, 75);
+    pdf.line(15, 73, 190, 73);
     
     // Billing Address (Right Top)
     pdf.setFont(undefined, 'bold');
@@ -830,25 +849,27 @@ const OrdersList = () => {
     pdf.text('Qty', 155, tableTop + 5);
     pdf.text('Total', 175, tableTop + 5);
     
-    // Column separators for header
-    pdf.setDrawColor(0);
-
-    
     // Table Border
     pdf.setDrawColor(0);
     pdf.rect(15, tableTop, 180, 8);
     
+    // Column separators for header
+    pdf.line(25, tableTop, 25, tableTop + 8);
+    pdf.line(100, tableTop, 100, tableTop + 8);
+    pdf.line(120, tableTop, 120, tableTop + 8);
+    pdf.line(150, tableTop, 150, tableTop + 8);
+    pdf.line(170, tableTop, 170, tableTop + 8);
+    
     // Items
     pdf.setFont(undefined, 'normal');
-    let yPos = tableTop + 15;
+    let yPos = tableTop + 13;
     
     const tableStartY = yPos;
+    let prevRowEndY = tableTop + 8;
     order.items?.forEach((item, index) => {
       const itemPrice = parseFloat(item.price) || 0;
       const itemQty = item.quantity || 1;
       const itemTotal = itemPrice * itemQty;
-      
-      const rowStartY = yPos - 3;
       
       pdf.text((index + 1).toString(), 17, yPos);
       
@@ -864,12 +885,20 @@ const OrdersList = () => {
       pdf.text(itemQty.toString(), 160, yPos, { align: 'center' });
       pdf.text(`Rs.${itemTotal.toFixed(2)}`, 190, yPos, { align: 'right' });
       
-      const rowHeight = lines.length * 5 + 3;
+      const rowHeight = lines.length * 5 + 5;
+      const rowEndY = yPos + rowHeight - 5;
       
-
+      // Draw row border
+      pdf.line(15, rowEndY, 195, rowEndY);
       
-
+      // Draw column separators for this row
+      pdf.line(25, prevRowEndY, 25, rowEndY);
+      pdf.line(100, prevRowEndY, 100, rowEndY);
+      pdf.line(120, prevRowEndY, 120, rowEndY);
+      pdf.line(150, prevRowEndY, 150, rowEndY);
+      pdf.line(170, prevRowEndY, 170, rowEndY);
       
+      prevRowEndY = rowEndY;
       yPos += rowHeight;
     });
     
@@ -897,12 +926,12 @@ const OrdersList = () => {
     const taxRate = (gstRate / 2).toFixed(2);
     const igstRate = gstRate.toFixed(2);
     
+    yPos += 5;
+    
     // Subtotal row
     pdf.setFont(undefined, 'normal');
     pdf.text('Subtotal (incl. GST):', 30, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 190, yPos, { align: 'right' });
-    
-
     yPos += 6;
     
     // Discount row (if applicable)
@@ -948,17 +977,21 @@ const OrdersList = () => {
     // Amount in Words
     yPos += 8;
     pdf.setFont(undefined, 'bold');
-    pdf.text('Amount in Words:', 17, yPos);
+    pdf.text('Amount in Words:', 30, yPos);
     pdf.setFont(undefined, 'normal');
     const amountInWords = convertToWords(total);
-    pdf.text(amountInWords, 17, yPos + 5);
+    pdf.text(amountInWords, 30, yPos + 5);
     
     // Draw full table border covering all details
     const finalTableHeight = (yPos + 10) - tableTop;
     pdf.rect(15, tableTop, 180, finalTableHeight);
     
-    // Authorized Signatory and Footer at bottom
-    const footerY = 270;
+    // Check if signature and footer fit on current page
+    let footerY = yPos + 50;
+    if (footerY > 250) {
+      pdf.addPage();
+      footerY = 30;
+    }
     pdf.setFont(undefined, 'bold');
     pdf.text('For EN3 FASHIONS:', 140, footerY - 30);
     if (signatureUrl) {
@@ -973,11 +1006,8 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'normal');
     pdf.text('Authorized Signatory', 140, footerY - 5);
     
-    // Footer with Date & Time box
+    // Footer with Date & Time
     pdf.setFontSize(8);
-    pdf.setDrawColor(0);
-    pdf.rect(15, footerY, 180, 10);
-    
     pdf.setFont(undefined, 'bold');
     pdf.text('Date & Time:', 20, footerY + 6);
     pdf.setFont(undefined, 'normal');
