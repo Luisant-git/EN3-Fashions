@@ -163,7 +163,10 @@ const ProductDetailPage = () => {
             </div>
             <div className="pdp-details-section">
                 <h1>{product.name}</h1>
-                <p className="pdp-price">₹{selectedSize?.price || product.basePrice}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+                    {product.mrp && <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.5rem' }}>₹{product.mrp}</span>}
+                    <p className="pdp-price" style={{ margin: 0 }}>₹{selectedSize?.price || product.basePrice}</p>
+                </div>
                 <p className="pdp-description">{product.description}</p>
 
                 <div className="pdp-selector-group">
