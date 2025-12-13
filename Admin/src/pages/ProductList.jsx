@@ -143,6 +143,22 @@ const ProductList = () => {
     }
   };
 
+  const handleDiscountToggle = async (product) => {
+    try {
+      const updatedProduct = { ...product, discount: !product.discount };
+      await updateProduct(product.id, updatedProduct);
+      setProducts(
+        products.map((p) =>
+          p.id === product.id ? updatedProduct : p
+        )
+      );
+      toast.success(`Product ${updatedProduct.discount ? 'marked as' : 'removed from'} Discount!`);
+    } catch (err) {
+      console.error("Error updating product:", err);
+      toast.error(`Failed to update product: ${err.message}`);
+    }
+  };
+
   const columns = [
     {
       key: "gallery",
@@ -183,6 +199,18 @@ const ProductList = () => {
           type="checkbox"
           checked={value || false}
           onChange={() => handleNewArrivalsToggle(row)}
+          style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+        />
+      ),
+    },
+    {
+      key: "discount",
+      label: "Discount",
+      render: (value, row) => (
+        <input
+          type="checkbox"
+          checked={value || false}
+          onChange={() => handleDiscountToggle(row)}
           style={{ cursor: 'pointer', width: '18px', height: '18px' }}
         />
       ),

@@ -87,6 +87,7 @@ const Header = () => {
                 <nav className="navigation">
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Home</a>
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/new-arrivals'); }}>New Arrivals</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/discount'); }}>Discount</a>
                     {categories.map((category) => (
                         <div key={category.id} className="nav-item">
                             <a href="#" onClick={(e) => { e.preventDefault(); navigate(generateCategoryUrl(category.name, category.id)); }}>{category.name}</a>
@@ -181,6 +182,7 @@ const Header = () => {
                         <nav>
                             <a href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick('/'); }}>Home</a>
                             <a href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick('/new-arrivals'); }}>New Arrivals</a>
+                            <a href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick('/discount'); }}>Discount</a>
                             {categories.map((category) => (
                                 <a key={category.id} href="#" onClick={(e) => { e.preventDefault(); handleMobileLinkClick(generateCategoryUrl(category.name, category.id)); }}>{category.name}</a>
                             ))}

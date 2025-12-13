@@ -23,7 +23,8 @@ const EditProduct = () => {
     gallery: [],
     colors: [],
     status: 'active',
-    newArrivals: false
+    newArrivals: false,
+    discount: false
   })
 
   const [newTag, setNewTag] = useState('')
@@ -51,7 +52,8 @@ const EditProduct = () => {
           tags: productData.tags || [],
           gallery: productData.gallery || [],
           colors: productData.colors || [],
-          newArrivals: productData.newArrivals || false
+          newArrivals: productData.newArrivals || false,
+          discount: productData.discount || false
         })
         setCategories(categoriesData)
         setSubCategories(subCategoriesData)
@@ -344,6 +346,18 @@ const EditProduct = () => {
                   style={{ width: '18px', height: '18px' }}
                 />
                 <span className="form-label" style={{ margin: 0 }}>Mark as New Arrival</span>
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.discount}
+                  onChange={(e) => handleInputChange('discount', e.target.checked)}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span className="form-label" style={{ margin: 0 }}>Mark as Discount Product</span>
               </label>
             </div>
           </div>

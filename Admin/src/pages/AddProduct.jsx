@@ -20,7 +20,9 @@ const AddProduct = () => {
     tags: [],
     gallery: [],
     colors: [],
-    status: 'active'
+    status: 'active',
+    newArrivals: false,
+    discount: false
   })
 
   const [newTag, setNewTag] = useState('')
@@ -240,7 +242,9 @@ const AddProduct = () => {
         tags: [],
         gallery: [],
         colors: [],
-        status: 'active'
+        status: 'active',
+        newArrivals: false,
+        discount: false
       });
       setCurrentColor({ name: '', code: '', images: [], sizes: [] });
       setCurrentSize({ size: '', price: '', quantity: 0, image: '' });
@@ -348,6 +352,30 @@ const AddProduct = () => {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.newArrivals}
+                  onChange={(e) => handleInputChange('newArrivals', e.target.checked)}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span className="form-label" style={{ margin: 0 }}>Mark as New Arrival</span>
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.discount}
+                  onChange={(e) => handleInputChange('discount', e.target.checked)}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span className="form-label" style={{ margin: 0 }}>Mark as Discount Product</span>
+              </label>
             </div>
           </div>
 

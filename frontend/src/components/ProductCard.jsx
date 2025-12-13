@@ -3,9 +3,22 @@ import { WishlistContext } from '../contexts/WishlistContext';
 import { generateProductUrl } from '../utils/slugify';
 import LoadingSpinner from './LoadingSpinner';
 
-const ProductCard = ({ product, navigate }) => {
+const ProductCard = ({ product, navigate, showDiscount = false }) => {
     const [hover, setHover] = useState(false);
     const { toggleWishlist, isInWishlist, loadingProductId } = useContext(WishlistContext);
+    
+    const calculateDiscount = () => {
+        if (product.mrp && product.price) {
+            const mrp = parseFloat(product.mrp);
+            const price = parseFloat(product.price);
+            if (mrp > price) {
+                return Math.round(((mrp - price) / mrp) * 100);
+            }
+        }
+        return null;
+    };
+
+    const discountPercentage = calculateDiscount();
     
     return (
         <div className="product-card">
@@ -14,7 +27,11 @@ const ProductCard = ({ product, navigate }) => {
                  onMouseLeave={() => setHover(false)}
                  onClick={() => navigate(generateProductUrl(product.name, product.id))}>
                 <img src={hover && product.altImageUrl ? product.altImageUrl : product.imageUrl} alt={product.name} />
-                <div className="bundle-tag">Bundle Available</div>
+                {showDiscount && discountPercentage ? (
+                    <div className="bundle-tag">{discountPercentage}% OFF</div>
+                ) : (
+                    <div className="bundle-tag">Bundle Available</div>
+                )}
                  <button 
                     className={`wishlist-toggle ${isInWishlist(product.id) ? 'active' : ''}`}
                     onClick={(e) => { 

@@ -9,6 +9,7 @@ import HomePage from './components/HomePage';
 import CategoryPage from './components/CategoryPage';
 import SubcategoryPage from './components/SubcategoryPage';
 import NewArrivalsPage from './components/NewArrivalsPage';
+import DiscountPage from './components/DiscountPage';
 import ProductDetailPage from './components/ProductDetailPage';
 import CartPage from './components/CartPage';
 import WishlistPage from './components/WishlistPage';
@@ -44,6 +45,7 @@ const App = () => {
                                 <Routes>
                                     <Route path="/" element={<HomePage />} />
                                     <Route path="/new-arrivals" element={<NewArrivalsPage />} />
+                                    <Route path="/discount" element={<DiscountPage />} />
                                     <Route path="/category/:categorySlug/:categoryId" element={<SubcategoryPage />} />
                                     <Route path="/category/:categorySlug/:categoryId/products" element={<CategoryPage />} />
                                     <Route path="/subcategory/:subcategorySlug/:subcategoryId" element={<CategoryPage />} />

@@ -99,4 +99,9 @@ export class CreateProductDto {
   @IsOptional()
   @IsBoolean()
   newArrivals?: boolean;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  discount?: boolean;
 }
