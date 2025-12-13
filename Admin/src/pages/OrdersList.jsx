@@ -1219,7 +1219,7 @@ const OrdersList = () => {
             <p>Shipped</p>
           </div>
         </div>
-        <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
+        {/* <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
           <div className="stat-icon delivered">
             <CheckCircle size={24} />
           </div>
@@ -1227,7 +1227,7 @@ const OrdersList = () => {
             <h3>{statusCounts.delivered}</h3>
             <p>Delivered</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="status-tabs">
@@ -1249,12 +1249,12 @@ const OrdersList = () => {
         >
           Shipped
         </button>
-        <button
+        {/* <button
           className={statusFilter === "delivered" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("delivered")}
         >
           Delivered
-        </button>
+        </button> */}
         <button
           className={statusFilter === "cancelled" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("cancelled")}
