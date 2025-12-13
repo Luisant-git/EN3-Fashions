@@ -89,8 +89,8 @@ const HomePage = () => {
                 {banners.length > 0 && (
                     <div style={{ cursor: 'pointer' }} className="hero-content">
                         <h1>{banners[currentSlide]?.title || 'Elevate Your Style'}</h1>
-                        <p>Discover the latest trends in men's and boys' fashion, shop now and redefine your wardrobe.</p>
-                        <button onClick={() => navigate('/category/new-arrivals')}>Shop Now</button>
+                        {/* <p>Discover the latest trends in men's and boys' fashion, shop now and redefine your wardrobe.</p>
+                        <button onClick={() => navigate('/category/new-arrivals')}>Shop Now</button> */}
                     </div>
                 )}
                 <div className="hero-dots">
