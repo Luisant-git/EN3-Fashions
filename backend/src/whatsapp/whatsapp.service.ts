@@ -452,7 +452,8 @@ export class WhatsappService {
                   { type: 'text', text: order.id.toString() },
                   { type: 'text', text: trackingInfo.courier },
                   { type: 'text', text: trackingInfo.trackingId },
-                  { type: 'text', text: trackingInfo.trackingUrl }
+                  { type: 'text', text: trackingInfo.trackingUrl },
+                  { type: 'text', text: invoiceFilename }
                 ]
               },
               {
@@ -500,7 +501,8 @@ export class WhatsappService {
                 { type: 'text', text: order.id.toString() },
                 { type: 'text', text: trackingInfo.courier },
                 { type: 'text', text: trackingInfo.trackingId },
-                { type: 'text', text: trackingInfo.trackingUrl }
+                { type: 'text', text: trackingInfo.trackingUrl },
+                { type: 'text', text: invoiceFilename }
               ]
             },
             {
