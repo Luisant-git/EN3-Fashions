@@ -457,7 +457,7 @@ export class WhatsappService {
                 sub_type: 'url',
                 index: 0,
                 parameters: [
-                  { type: 'payload', payload: invoiceUrl }
+                  { type: 'text', text: invoiceUrl }
                 ]
               }
             ]
