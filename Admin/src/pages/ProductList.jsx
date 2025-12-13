@@ -152,7 +152,7 @@ const ProductList = () => {
           p.id === product.id ? updatedProduct : p
         )
       );
-      toast.success(`Product ${updatedProduct.discount ? 'marked as' : 'removed from'} Discount!`);
+      toast.success(`Product ${updatedProduct.discount ? 'marked as' : 'removed from'} Offer!`);
     } catch (err) {
       console.error("Error updating product:", err);
       toast.error(`Failed to update product: ${err.message}`);
@@ -205,7 +205,7 @@ const ProductList = () => {
     },
     {
       key: "discount",
-      label: "Discount",
+      label: "Offer",
       render: (value, row) => (
         <input
           type="checkbox"

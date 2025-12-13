@@ -5,7 +5,7 @@ import ProductCard from './ProductCard';
 import FiltersComponent from './FiltersComponent';
 import LoadingSpinner from './LoadingSpinner';
 
-const DiscountPage = () => {
+const OfferPage = () => {
     const navigate = useNavigate();
     const [filters, setFilters] = useState({});
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -83,7 +83,7 @@ const DiscountPage = () => {
 
     return (
         <div className="category-page">
-            <h1 className="category-title">Discount Products</h1>
+            <h1 className="category-title">Offer Products</h1>
             <button className="mobile-filter-trigger" onClick={() => setIsFilterOpen(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
                 <span>Filters</span>
@@ -131,7 +131,7 @@ const DiscountPage = () => {
                             })}
                              </div>
                         ) : (
-                                <p className="no-results-message">No discount products found.</p>
+                                <p className="no-results-message">No offer products found.</p>
                         )}
                    
                 </div>
@@ -140,4 +140,4 @@ const DiscountPage = () => {
     );
 };
 
-export default DiscountPage;
+export default OfferPage;
