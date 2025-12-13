@@ -85,7 +85,7 @@ const OrdersList = () => {
       let invoiceUrl = null;
       let packageSlipUrl = null;
 
-      if (selectedOrder.status === 'Placed' && newStatus === 'Shipped') {
+      if (newStatus === 'Shipped' && selectedOrder.status !== 'Shipped') {
         try {
           // Generate invoice PDF
           const invoicePdf = new jsPDF();
