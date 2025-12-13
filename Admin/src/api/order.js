@@ -61,3 +61,39 @@ export const uploadFile = async (file) => {
     throw error;
   }
 };
+
+export const deleteFile = async (url) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/upload/file`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete file');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteOrderFiles = async (orderId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/upload/order-files`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete order files');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
