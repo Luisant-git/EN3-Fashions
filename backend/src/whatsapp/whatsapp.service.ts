@@ -431,7 +431,8 @@ export class WhatsappService {
     const name = order.shippingAddress.fullName;
  
     try {
-      console.log('Sending shipped notification with invoice:', invoiceUrl);
+      const invoiceFilename = invoiceUrl.includes('/') ? invoiceUrl.split('/').pop() : invoiceUrl;
+      console.log('Sending shipped notification with invoice:', invoiceFilename);
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
         {
@@ -457,7 +458,7 @@ export class WhatsappService {
                 sub_type: 'url',
                 index: 0,
                 parameters: [
-                  { type: 'text', text: invoiceUrl }
+                  { type: 'text', text: invoiceFilename }
                 ]
               }
             ]
