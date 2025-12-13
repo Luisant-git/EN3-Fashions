@@ -130,11 +130,11 @@ export class OrderService {
         trackingId: trackingId || 'N/A', 
         trackingUrl: trackingLink || 'N/A' 
       };
-      const invoiceFullUrl = `https://en3fashion.api.luisant.cloud/uploads/invoice-${order.id}.pdf`;
-      await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFullUrl);
+      const invoiceFilename = `invoice-${order.id}.pdf`;
+      await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
     } else if (status === 'Delivered') {
-      const invoiceFullUrl = `https://en3fashion.api.luisant.cloud/uploads/invoice-${order.id}.pdf`;
-      await this.whatsappService.sendOrderDelivered(order, invoiceFullUrl);
+      const invoiceFilename = `invoice-${order.id}.pdf`;
+      await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
     }
 
     return order;
