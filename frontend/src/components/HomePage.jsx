@@ -15,9 +15,7 @@ const HomePage = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     
-    const desktopImages = [bg7, bg9, bg10];
-    const mobileImages = [m1, m2, bg3];
-    const heroImages = isMobile ? mobileImages : desktopImages;
+
     
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -52,53 +50,56 @@ const HomePage = () => {
         fetchData();
     }, []);
 
-    const handleBannerClick = (link, event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log('Banner clicked, link:', link);
-        
+    const handleBannerClick = (link) => {
+        console.log('Banner clicked with link:', link);
         if (link) {
-            // Try multiple approaches for better compatibility
-            try {
-                window.open(link, '_blank', 'noopener,noreferrer');
-            } catch (error) {
-                console.error('Failed to open link:', error);
-                // Fallback to location.href
-                window.location.href = link;
-            }
+            console.log('Opening link:', link);
+            window.open(link, '_blank', 'noopener,noreferrer');
         }
     };
 
     return (
         <div className="home-page">
-            <section className="hero-section">
-                <div className="hero-slider">
-                    {Array.isArray(banners) && banners.map((banner, index) => {
-                        const bannerImage = isMobile && banner.mobileImage ? banner.mobileImage : banner.image;
-                        return (
-                            <div 
-                                key={banner.id}
-                                className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
-                                style={{ backgroundImage: `url(${bannerImage})`, cursor: 'pointer', zIndex: 1 }}
-                                onClick={(e) => handleBannerClick(banner.link, e)}
-                                title={banner.title}
-                            />
-                        );
-                    })}
-                </div>
-                {banners.length > 0 && (
-                    <div style={{ cursor: 'pointer' }} className="hero-content">
-                        <h1>{banners[currentSlide]?.title || 'Elevate Your Style'}</h1>
-                        {/* <p>Discover the latest trends in men's and boys' fashion, shop now and redefine your wardrobe.</p>
-                        <button onClick={() => navigate('/category/new-arrivals')}>Shop Now</button> */}
+            <section style={{ position: 'relative', width: '100%', height: isMobile ? '400px' : '600px', overflow: 'hidden' }}>
+                {Array.isArray(banners) && banners.map((banner, index) => {
+                    const bannerImage = isMobile && banner.mobileImage ? banner.mobileImage : banner.image;
+                    return (
+                        <img
+                            key={banner.id}
+                            src={bannerImage}
+                            alt={banner.title || 'Banner'}
+                            onClick={() => banner.link && handleBannerClick(banner.link)}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                opacity: index === currentSlide ? 1 : 0,
+                                transition: 'opacity 1s ease-in-out',
+                                cursor: banner.link ? 'pointer' : 'default'
+                            }}
+                        />
+                    );
+                })}
+                {banners.length > 0 && banners[currentSlide]?.title && (
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 2, pointerEvents: 'none', textAlign: 'center', color: 'white' }}>
+                        <h1 style={{ fontSize: isMobile ? '2rem' : '3.5rem', fontWeight: 700, margin: 0 }}>{banners[currentSlide].title}</h1>
                     </div>
                 )}
-                <div className="hero-dots">
+                <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px', zIndex: 3 }}>
                     {Array.isArray(banners) && banners.map((_, index) => (
-                        <div 
+                        <div
                             key={index}
-                            className={`hero-dot ${index === currentSlide ? 'active' : ''}`}
                             onClick={() => setCurrentSlide(index)}
+                            style={{
+                                width: '12px',
+                                height: '12px',
+                                borderRadius: '50%',
+                                background: index === currentSlide ? 'white' : 'rgba(255,255,255,0.5)',
+                                cursor: 'pointer'
+                            }}
                         />
                     ))}
                 </div>

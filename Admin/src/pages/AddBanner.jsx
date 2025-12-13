@@ -114,14 +114,13 @@ const AddBanner = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Banner Title *</label>
+              <label className="form-label">Banner Title</label>
               <input
                 type="text"
                 className="form-input"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="Enter banner title"
-                required
               />
             </div>
 

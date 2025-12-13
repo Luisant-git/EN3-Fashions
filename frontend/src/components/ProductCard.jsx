@@ -33,7 +33,10 @@ const ProductCard = ({ product, navigate }) => {
             </div>
             <div className="product-info" onClick={() => navigate(generateProductUrl(product.name, product.id))}>
                 <h3 className="product-name">{product.name}</h3>
-                <p className="product-price">₹{product.price}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {product.mrp && <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.85rem' }}>₹{product.mrp}</span>}
+                    <p className="product-price" style={{ margin: 0 }}>₹{product.price}</p>
+                </div>
             </div>
         </div>
     );

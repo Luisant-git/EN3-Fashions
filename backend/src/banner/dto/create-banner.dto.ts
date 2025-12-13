@@ -2,13 +2,15 @@ import { IsString, IsBoolean, IsOptional, IsInt } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBannerDto {
-  @ApiProperty({ description: 'Banner title', example: 'Summer Sale Banner' })
+  @ApiPropertyOptional({ description: 'Banner title', example: 'Summer Sale Banner' })
   @IsString()
-  title: string;
+  @IsOptional()
+  title?: string;
 
-  @ApiProperty({ description: 'Banner link URL', example: 'https://example.com/sale' })
+  @ApiPropertyOptional({ description: 'Banner link URL', example: 'https://example.com/sale' })
   @IsString()
-  link: string;
+  @IsOptional()
+  link?: string;
 
   @ApiPropertyOptional({ description: 'Banner active status', example: true, default: true })
   @IsBoolean()

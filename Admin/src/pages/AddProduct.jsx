@@ -13,6 +13,7 @@ const AddProduct = () => {
     categoryId: '',
     subCategoryId: '',
     brandId: '',
+    mrp: '',
     basePrice: '',
     hsnCode: '',
     bundleOffers: [],
@@ -211,6 +212,7 @@ const AddProduct = () => {
         categoryId: parseInt(formData.categoryId),
         subCategoryId: formData.subCategoryId ? parseInt(formData.subCategoryId) : null,
         brandId: formData.brandId ? parseInt(formData.brandId) : null,
+        mrp: formData.mrp,
         basePrice: formData.basePrice,
         hsnCode: formData.hsnCode || null,
         bundleOffers: formData.bundleOffers,
@@ -231,6 +233,7 @@ const AddProduct = () => {
         categoryId: '',
         subCategoryId: '',
         brandId: '',
+        mrp: '',
         basePrice: '',
         hsnCode: '',
         bundleOffers: [],
@@ -354,7 +357,19 @@ const AddProduct = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Base Price *</label>
+              <label className="form-label">MRP *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.mrp}
+                onChange={(e) => handleInputChange('mrp', e.target.value)}
+                placeholder="599.00"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Selling Price *</label>
               <input
                 type="text"
                 className="form-input"

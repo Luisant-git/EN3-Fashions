@@ -15,6 +15,7 @@ const EditProduct = () => {
     categoryId: '',
     subCategoryId: '',
     brandId: '',
+    mrp: '',
     basePrice: '',
     hsnCode: '',
     bundleOffers: [],
@@ -353,7 +354,19 @@ const EditProduct = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Base Price *</label>
+              <label className="form-label">MRP *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.mrp || ''}
+                onChange={(e) => handleInputChange('mrp', e.target.value)}
+                placeholder="599.00"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Selling Price *</label>
               <input
                 type="text"
                 className="form-input"

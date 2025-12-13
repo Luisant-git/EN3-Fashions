@@ -179,6 +179,7 @@ const CategoryPage = () => {
                       id: product.id,
                       name: product.name,
                       price: firstSize?.price || product.basePrice,
+                      mrp: product.mrp,
                       imageUrl: firstColor?.image || product.gallery[0]?.url,
                       altImageUrl: product.gallery[1]?.url || firstColor?.image,
                     }}
