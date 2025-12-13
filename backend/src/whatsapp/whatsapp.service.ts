@@ -430,6 +430,7 @@ export class WhatsappService {
     const phoneNumber = order.shippingAddress.mobile;
  
     try {
+      console.log('Sending shipped notification with invoice:', invoiceUrl);
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
         {
