@@ -52,7 +52,7 @@ const ProductCard = ({ product, navigate, showDiscount = false }) => {
                 <h3 className="product-name">{product.name}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {product.mrp && <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.85rem' }}>₹{product.mrp}</span>}
-                    <p className="product-price" style={{ margin: 0 }}>₹{product.price}</p>
+                    <p style={{ margin: 0, color: '#f44336', fontWeight: 700, fontSize: '0.9rem' }}>₹{product.price}</p>
                 </div>
             </div>
         </div>
