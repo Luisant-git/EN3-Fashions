@@ -428,6 +428,7 @@ export class WhatsappService {
 
   async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }, invoiceUrl: string) {
     const phoneNumber = order.shippingAddress.mobile;
+    const name = order.shippingAddress.fullName;
  
     try {
       console.log('Sending shipped notification with invoice:', invoiceUrl);
@@ -444,6 +445,7 @@ export class WhatsappService {
               {
                 type: 'body',
                 parameters: [
+                  { type: 'text', text: name },
                   { type: 'text', text: order.id.toString() },
                   { type: 'text', text: trackingInfo.courier },
                   { type: 'text', text: trackingInfo.trackingId },
