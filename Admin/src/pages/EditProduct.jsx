@@ -357,7 +357,7 @@ const EditProduct = () => {
                   onChange={(e) => handleInputChange('discount', e.target.checked)}
                   style={{ width: '18px', height: '18px' }}
                 />
-                <span className="form-label" style={{ margin: 0 }}>Mark as Discount Product</span>
+                <span className="form-label" style={{ margin: 0 }}>Mark as Offer Product</span>
               </label>
             </div>
           </div>
@@ -368,14 +368,13 @@ const EditProduct = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">MRP *</label>
+              <label className="form-label">MRP</label>
               <input
                 type="text"
                 className="form-input"
                 value={formData.mrp || ''}
                 onChange={(e) => handleInputChange('mrp', e.target.value)}
                 placeholder="599.00"
-                required
               />
             </div>
 
