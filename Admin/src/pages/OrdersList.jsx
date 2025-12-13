@@ -110,7 +110,7 @@ const OrdersList = () => {
           invoicePdf.text('AARFK8101F', 35, 63);
           
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('GST Registration No:', 15, 68);
+          invoicePdf.text('GST No:', 15, 68);
           invoicePdf.setFont(undefined, 'normal');
           invoicePdf.text('33AARFK8101F1ZG', 55, 68);
           
@@ -723,9 +723,9 @@ const OrdersList = () => {
     pdf.text('AARFK8101F', 35, 63);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('GST Registration No:', 15, 68);
+    pdf.text('GST No:', 15, 68);
     pdf.setFont(undefined, 'normal');
-    pdf.text('33AARFK8101F1ZG', 55, 68);
+    pdf.text('33AARFK8101F1ZG', 35, 68);
     
     // Add separator line below Sold By section
     pdf.line(15, 75, 190, 75);
