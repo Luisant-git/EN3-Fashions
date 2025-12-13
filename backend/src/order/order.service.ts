@@ -130,7 +130,8 @@ export class OrderService {
         trackingId: trackingId || 'N/A', 
         trackingUrl: trackingLink || 'N/A' 
       };
-      await this.whatsappService.sendOrderShipped(order, trackingInfo);
+      const invoiceFilename = `invoice-${order.id}.pdf`;
+      await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
     } else if (status === 'Delivered') {
       const invoiceFilename = `invoice-${order.id}.pdf`;
       await this.whatsappService.sendOrderDelivered(order, invoiceFilename);

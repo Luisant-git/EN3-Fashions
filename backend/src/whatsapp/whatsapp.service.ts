@@ -426,9 +426,8 @@ export class WhatsappService {
     }
   }
 
-  async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }) {
+  async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }, invoiceUrl: string) {
     const phoneNumber = order.shippingAddress.mobile;
-    const name = order.shippingAddress.fullName;
  
     try {
       const response = await axios.post(
@@ -438,17 +437,24 @@ export class WhatsappService {
           to: phoneNumber,
           type: 'template',
           template: {
-            name: 'order_shipped_utility_en3',
+            name: 'order_shipped_invoice',
             language: { code: 'en' },
             components: [
               {
                 type: 'body',
                 parameters: [
-                  { type: 'text', text: name },
                   { type: 'text', text: order.id.toString() },
                   { type: 'text', text: trackingInfo.courier },
                   { type: 'text', text: trackingInfo.trackingId },
                   { type: 'text', text: trackingInfo.trackingUrl }
+                ]
+              },
+              {
+                type: 'button',
+                sub_type: 'url',
+                index: '0',
+                parameters: [
+                  { type: 'text', text: invoiceUrl }
                 ]
               }
             ]
