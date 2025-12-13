@@ -92,6 +92,7 @@ model Product {
   subCategoryId Int?
   brandId       Int?
   basePrice     String
+  mrp           String?
   hsnCode       String?
   bundleOffers  Json[] // [{colorCount: 1, price: "499"}, {colorCount: 2, price: "800"}, {colorCount: 3, price: "1000"}]
   tags          String[]
@@ -154,8 +155,8 @@ model SubCategory {
 
 model Banner {
   id          Int      @id @default(autoincrement())
-  title       String
-  link        String
+  title       String?
+  link        String?
   isActive    Boolean  @default(false)
   image       String
   mobileImage String?

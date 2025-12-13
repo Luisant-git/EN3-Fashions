@@ -61,6 +61,21 @@ export class CreateProductDto {
   @IsString()
   basePrice: string;
 
+  @ApiPropertyOptional({ example: '599.00' })
+  @IsOptional()
+  @IsString()
+  mrp?: string;
+
+  @ApiPropertyOptional({ example: '6109' })
+  @IsOptional()
+  @IsString()
+  hsnCode?: string;
+
+  @ApiPropertyOptional({ example: [{ colorCount: 2, price: '800' }, { colorCount: 3, price: '1000' }] })
+  @IsOptional()
+  @IsArray()
+  bundleOffers?: any[];
+
   @ApiPropertyOptional({ example: ['tshirt', 'men'] })
   @IsOptional()
   @IsArray()
