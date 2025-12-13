@@ -442,7 +442,7 @@ export class WhatsappService {
           to: phoneNumber,
           type: 'template',
           template: {
-            name: 'order_shipped_invoice_v1',
+            name: 'order_shipped_invoice_v4',
             language: { code: 'en' },
             components: [
               {
