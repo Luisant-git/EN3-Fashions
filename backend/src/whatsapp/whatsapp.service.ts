@@ -431,8 +431,10 @@ export class WhatsappService {
     const name = order.shippingAddress.fullName;
  
     try {
+      console.log('Original invoiceUrl received:', invoiceUrl);
       const invoiceFilename = invoiceUrl.includes('/') ? invoiceUrl.split('/').pop() : invoiceUrl;
-      console.log('Sending shipped notification with invoice:', invoiceFilename);
+      console.log('Extracted filename:', invoiceFilename);
+      console.log('Sending to WhatsApp button parameter:', invoiceFilename);
       const response = await axios.post(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
         {
@@ -483,6 +485,35 @@ export class WhatsappService {
       });
  
       console.log(`WhatsApp shipped message sent to ${phoneNumber}:`, response.data);
+      console.log('Full request payload:', JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: phoneNumber,
+        type: 'template',
+        template: {
+          name: 'order_shipped_invoice_v1',
+          language: { code: 'en' },
+          components: [
+            {
+              type: 'body',
+              parameters: [
+                { type: 'text', text: name },
+                { type: 'text', text: order.id.toString() },
+                { type: 'text', text: trackingInfo.courier },
+                { type: 'text', text: trackingInfo.trackingId },
+                { type: 'text', text: trackingInfo.trackingUrl }
+              ]
+            },
+            {
+              type: 'button',
+              sub_type: 'url',
+              index: 0,
+              parameters: [
+                { type: 'text', text: invoiceFilename }
+              ]
+            }
+          ]
+        }
+      }, null, 2));
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
