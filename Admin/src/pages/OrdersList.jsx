@@ -91,37 +91,31 @@ const OrdersList = () => {
           const invoicePdf = new jsPDF();
           const address = selectedOrder.shippingAddress;
           
-          // Generate invoice content (reuse existing logic)
-          const logo = new Image();
-          logo.src = '/EN3 LOGO PNG.png';
-          try {
-            invoicePdf.addImage(logo, 'PNG', 25, 15, 30, 15);
-          } catch (e) {
-            console.log('Logo not loaded');
-          }
-          
           invoicePdf.setFontSize(20);
           invoicePdf.setFont(undefined, 'bold');
           invoicePdf.text('INVOICE', 105, 20, { align: 'center' });
           
           invoicePdf.setFontSize(9);
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Sold By :', 15, 40);
+          invoicePdf.text('Sold By :', 15, 35);
           invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('KPG APPARELS', 15, 45);
-          invoicePdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 50);
-          invoicePdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 55);
-          invoicePdf.text('IN', 15, 60);
+          invoicePdf.text('KPG APPARELS', 15, 40);
+          invoicePdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 45);
+          invoicePdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 50);
+          invoicePdf.text('IN', 15, 55);
           
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('PAN No:', 15, 68);
+          invoicePdf.text('PAN No:', 15, 63);
           invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('AARFK8101F', 35, 68);
+          invoicePdf.text('AARFK8101F', 35, 63);
           
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('GST Registration No:', 15, 73);
+          invoicePdf.text('GST Registration No:', 15, 68);
           invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('33AARFK8101F1ZG', 55, 73);
+          invoicePdf.text('33AARFK8101F1ZG', 55, 68);
+          
+          // Add separator line below Sold By section
+          invoicePdf.line(15, 75, 190, 75);
           
           invoicePdf.setFont(undefined, 'bold');
           invoicePdf.text('Billing Address :', 120, 35);
@@ -142,10 +136,15 @@ const OrdersList = () => {
           }
           
           invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Shipping Address :', 120, 75);
+          invoicePdf.text('Order Number:', 15, 80);
+          invoicePdf.setFont(undefined, 'normal');
+          invoicePdf.text(`ORD-${new Date().getFullYear()}-${selectedOrder.id}`, 45, 80);
+          
+          invoicePdf.setFont(undefined, 'bold');
+          invoicePdf.text('Shipping Address :', 120, 80);
           invoicePdf.setFont(undefined, 'normal');
           if (address) {
-            let shippingY = 80;
+            let shippingY = 85;
             invoicePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 120, shippingY);
             shippingY += 5;
             invoicePdf.text(address.mobile || selectedOrder.user?.phone || 'N/A', 120, shippingY);
@@ -170,11 +169,6 @@ const OrdersList = () => {
             invoicePdf.setFont(undefined, 'normal');
             invoicePdf.text(address.state?.toUpperCase() || 'N/A', 152, shippingY);
           }
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Order Number:', 15, 80);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(`ORD-${new Date().getFullYear()}-${selectedOrder.id}`, 45, 80);
           
           invoicePdf.setFont(undefined, 'bold');
           invoicePdf.text('Order Date:', 15, 85);
@@ -215,6 +209,7 @@ const OrdersList = () => {
           invoicePdf.setFont(undefined, 'normal');
           let yPos = tableTop + 15;
           
+          const tableStartY = yPos;
           selectedOrder.items?.forEach((item, index) => {
             const itemPrice = parseFloat(item.price) || 0;
             const itemQty = item.quantity || 1;
@@ -228,6 +223,7 @@ const OrdersList = () => {
             invoicePdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
             invoicePdf.text(itemQty.toString(), 155, yPos);
             invoicePdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
+            
             yPos += lines.length * 5 + 3;
           });
           
@@ -294,6 +290,10 @@ const OrdersList = () => {
           invoicePdf.setFont(undefined, 'normal');
           const amountInWords = convertToWords(total);
           invoicePdf.text(amountInWords, 15, yPos + 5);
+          
+          // Draw full table border covering all details
+          const tableHeight = (yPos + 10) - tableStartY;
+          invoicePdf.rect(15, tableStartY, 180, tableHeight);
           
           const footerY = 270;
           invoicePdf.setFont(undefined, 'bold');
@@ -702,15 +702,6 @@ const OrdersList = () => {
     
     const stateCode = getStateCode(address?.state);
     
-    // Logo (Left side)
-    const logo = new Image();
-    logo.src = '/EN3 LOGO PNG.png';
-    try {
-      pdf.addImage(logo, 'PNG', 15, 15, 15, 15);
-    } catch (e) {
-      console.log('Logo not loaded');
-    }
-    
     // Invoice Title (Centered)
     pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
@@ -719,22 +710,25 @@ const OrdersList = () => {
     // Sold By Section (Left)
     pdf.setFontSize(9);
     pdf.setFont(undefined, 'bold');
-    pdf.text('Sold By :', 15, 40);
+    pdf.text('Sold By :', 15, 35);
     pdf.setFont(undefined, 'normal');
-    pdf.text('KPG APPARELS', 15, 45);
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 50);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 55);
-    pdf.text('IN', 15, 60);
+    pdf.text('KPG APPARELS', 15, 40);
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 45);
+    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 50);
+    pdf.text('IN', 15, 55);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('PAN No:', 15, 68);
+    pdf.text('PAN No:', 15, 63);
     pdf.setFont(undefined, 'normal');
-    pdf.text('AARFK8101F', 35, 68);
+    pdf.text('AARFK8101F', 35, 63);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('GST Registration No:', 15, 73);
+    pdf.text('GST Registration No:', 15, 68);
     pdf.setFont(undefined, 'normal');
-    pdf.text('33AARFK8101F1ZG', 55, 73);
+    pdf.text('33AARFK8101F1ZG', 55, 68);
+    
+    // Add separator line below Sold By section
+    pdf.line(15, 75, 190, 75);
     
     // Billing Address (Right Top)
     pdf.setFont(undefined, 'bold');
@@ -755,12 +749,18 @@ const OrdersList = () => {
       pdf.text('IN', 120, billingY);
     }
     
+    // Order Details (Left Bottom)
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Number:', 15, 80);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 45, 80);
+    
     // Shipping Address (Right Bottom)
     pdf.setFont(undefined, 'bold');
-    pdf.text('Shipping Address :', 120, 75);
+    pdf.text('Shipping Address :', 120, 80);
     pdf.setFont(undefined, 'normal');
     if (address) {
-      let shippingY = 80;
+      let shippingY = 85;
       pdf.text(address.fullName || order.user?.name || 'N/A', 120, shippingY);
       shippingY += 5;
       pdf.text(address.mobile || order.user?.phone || 'N/A', 120, shippingY);
@@ -785,12 +785,6 @@ const OrdersList = () => {
       pdf.setFont(undefined, 'normal');
       pdf.text(address.state?.toUpperCase() || 'N/A', 152, shippingY);
     }
-    
-    // Order Details (Left Bottom)
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Order Number:', 15, 80);
-    pdf.setFont(undefined, 'normal');
-    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 45, 80);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date:', 15, 85);
@@ -821,6 +815,11 @@ const OrdersList = () => {
     pdf.setFillColor(220, 220, 220);
     pdf.rect(15, tableTop, 180, 8, 'F');
     
+    // Table borders (left and right only)
+    pdf.setDrawColor(0);
+    pdf.line(15, tableTop, 15, tableTop + 8); // Left border
+    pdf.line(195, tableTop, 195, tableTop + 8); // Right border
+    
     // Table Headers
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
@@ -831,6 +830,10 @@ const OrdersList = () => {
     pdf.text('Qty', 155, tableTop + 5);
     pdf.text('Total', 175, tableTop + 5);
     
+    // Column separators for header
+    pdf.setDrawColor(0);
+
+    
     // Table Border
     pdf.setDrawColor(0);
     pdf.rect(15, tableTop, 180, 8);
@@ -839,10 +842,13 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'normal');
     let yPos = tableTop + 15;
     
+    const tableStartY = yPos;
     order.items?.forEach((item, index) => {
       const itemPrice = parseFloat(item.price) || 0;
       const itemQty = item.quantity || 1;
       const itemTotal = itemPrice * itemQty;
+      
+      const rowStartY = yPos - 3;
       
       pdf.text((index + 1).toString(), 17, yPos);
       
@@ -850,16 +856,24 @@ const OrdersList = () => {
       const itemDesc = item.size && item.color ? 
         `${item.name} - ${item.size}, ${item.color}` : 
         item.name || 'N/A';
-      const lines = pdf.splitTextToSize(itemDesc, 70);
+      const lines = pdf.splitTextToSize(itemDesc, 65);
       pdf.text(lines, 30, yPos);
       
       pdf.text(item.hsnCode || 'N/A', 105, yPos);
-      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
-      pdf.text(itemQty.toString(), 155, yPos);
-      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
+      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 145, yPos, { align: 'right' });
+      pdf.text(itemQty.toString(), 160, yPos, { align: 'center' });
+      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 190, yPos, { align: 'right' });
       
-      yPos += lines.length * 5 + 3;
+      const rowHeight = lines.length * 5 + 3;
+      
+
+      
+
+      
+      yPos += rowHeight;
     });
+    
+
     
     // Get values from order
     const subtotal = parseFloat(order.subtotal) || 0;
@@ -886,56 +900,62 @@ const OrdersList = () => {
     // Subtotal row
     pdf.setFont(undefined, 'normal');
     pdf.text('Subtotal (incl. GST):', 30, yPos);
-    pdf.text(`Rs.${subtotal.toFixed(2)}`, 170, yPos);
+    pdf.text(`Rs.${subtotal.toFixed(2)}`, 190, yPos, { align: 'right' });
+    
+
     yPos += 6;
     
     // Discount row (if applicable)
     if (discount > 0) {
       pdf.text(`Discount (${order.couponCode || ''})`, 30, yPos);
-      pdf.text(`- Rs.${discount.toFixed(2)}`, 170, yPos);
+      pdf.text(`- Rs.${discount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
     }
     
     // Delivery Fee row
     pdf.text('Delivery Fee (incl. GST):', 30, yPos);
-    pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 170, yPos);
+    pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
     
     // Taxable Amount row
     pdf.text('Taxable Amount:', 30, yPos);
-    pdf.text(`Rs.${baseAmount.toFixed(2)}`, 170, yPos);
+    pdf.text(`Rs.${baseAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
     
     // GST rows based on isSameState
     if (isSameState) {
       // Add CGST row
       pdf.text(`CGST (${taxRate}%)`, 30, yPos);
-      pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 170, yPos);
+      pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
       
       // Add SGST row
       pdf.text(`SGST (${taxRate}%)`, 30, yPos);
-      pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 170, yPos);
+      pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 8;
     } else {
       // Add IGST row
       pdf.text(`IGST (${igstRate}%)`, 30, yPos);
-      pdf.text(`Rs.${igstAmount.toFixed(2)}`, 170, yPos);
+      pdf.text(`Rs.${igstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 8;
     }
     
     // Total Row
     pdf.setFont(undefined, 'bold');
-    pdf.text('TOTAL:', 17, yPos);
-    pdf.text(`Rs.${total.toFixed(2)}`, 170, yPos);
+    pdf.text('TOTAL:', 30, yPos);
+    pdf.text(`Rs.${total.toFixed(2)}`, 190, yPos, { align: 'right' });
     
     // Amount in Words
     yPos += 8;
     pdf.setFont(undefined, 'bold');
-    pdf.text('Amount in Words:', 15, yPos);
+    pdf.text('Amount in Words:', 17, yPos);
     pdf.setFont(undefined, 'normal');
     const amountInWords = convertToWords(total);
-    pdf.text(amountInWords, 15, yPos + 5);
+    pdf.text(amountInWords, 17, yPos + 5);
+    
+    // Draw full table border covering all details
+    const finalTableHeight = (yPos + 10) - tableTop;
+    pdf.rect(15, tableTop, 180, finalTableHeight);
     
     // Authorized Signatory and Footer at bottom
     const footerY = 270;
@@ -1143,7 +1163,7 @@ const OrdersList = () => {
           >
             <Edit size={16} />
           </button>
-          {(row.status === 'Shipped' || row.status === 'Delivered') && (
+          {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
             <>
               <button
                 className="action-btn download"
