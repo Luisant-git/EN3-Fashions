@@ -107,7 +107,7 @@ const App = () => {
                                         </div>
                                         <div className="whatsapp-modal-footer">
                                             <input type="text" placeholder="Type your message..." value={whatsappMessage} onChange={(e) => setWhatsappMessage(e.target.value)} />
-                                            <button className="whatsapp-send-btn" onClick={() => window.open(`https://wa.me/917010124370?text=${encodeURIComponent(whatsappMessage)}`, '_blank')}>
+                                            <button className="whatsapp-send-btn" onClick={() => window.open(`https://wa.me/919597689888?text=${encodeURIComponent(whatsappMessage)}`, '_blank')}>
                                                 <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
                                                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                                                 </svg>
