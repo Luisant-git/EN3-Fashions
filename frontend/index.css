@@ -352,20 +352,15 @@ button:disabled {
 }
 
 .navigation a.offer-link {
-    display: flex;
-    align-items: center;
-}
-
-.navigation a.offer-link svg {
-    color: #FFD700;
+    color: var(--primary-color);
 }
 
 .navigation a.offer-link:hover {
-    color: #FFD700;
+    color: var(--secondary-color);
 }
 
 .navigation a.offer-link:hover::after {
-    background-color: #FFD700;
+    background-color: var(--secondary-color);
 }
 
 /* Dropdown Menu Styles */
@@ -2152,17 +2147,13 @@ button:disabled {
         width: 100%;
     }
     .mobile-nav nav a.offer-link {
-        display: flex;
-        align-items: center;
-    }
-    .mobile-nav nav a.offer-link svg {
-        color: #FFD700;
+        color: var(--primary-color);
     }
     .mobile-nav nav a.offer-link:hover {
-        color: #FFD700;
+        color: var(--secondary-color);
     }
     .mobile-nav nav a.offer-link:hover::after {
-        background-color: #FFD700;
+        background-color: var(--secondary-color);
     }
     .mobile-nav nav a.login-btn {
         background: linear-gradient(135deg, #1a1a1a, #333);

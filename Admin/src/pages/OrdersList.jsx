@@ -14,7 +14,7 @@ import {
   Receipt,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
-import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile } from "../api/order";
+import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles } from "../api/order";
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 
@@ -79,647 +79,9 @@ const OrdersList = () => {
     return pdf.output('blob');
   };
 
-  const handleUpdateStatus = async () => {
-    try {
-      setUploading(true);
-      let invoiceUrl = null;
-      let packageSlipUrl = null;
-
-      if (selectedOrder.status === 'Placed' && newStatus === 'Shipped') {
-        try {
-          // Generate invoice PDF
-          const invoicePdf = new jsPDF();
-          const address = selectedOrder.shippingAddress;
-          
-          invoicePdf.setFontSize(20);
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('INVOICE', 105, 20, { align: 'center' });
-          
-          invoicePdf.setFontSize(9);
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Sold By :', 15, 35);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('KPG APPARELS', 15, 40);
-          invoicePdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 45);
-          invoicePdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 50);
-          invoicePdf.text('IN', 15, 55);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('PAN No:', 15, 63);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('AARFK8101F', 35, 63);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('GST No:', 15, 68);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('33AARFK8101F1ZG', 55, 68);
-          
-          // Add separator line below Sold By section
-          invoicePdf.line(15, 75, 190, 75);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Billing Address :', 120, 35);
-          invoicePdf.setFont(undefined, 'normal');
-          if (address) {
-            let billingY = 40;
-            invoicePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 120, billingY);
-            billingY += 5;
-            invoicePdf.text(address.addressLine1 || '', 120, billingY);
-            billingY += 5;
-            if (address.addressLine2) {
-              invoicePdf.text(address.addressLine2, 120, billingY);
-              billingY += 5;
-            }
-            invoicePdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, billingY);
-            billingY += 5;
-            invoicePdf.text('IN', 120, billingY);
-          }
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Order Number:', 15, 80);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(`ORD-${new Date().getFullYear()}-${selectedOrder.id}`, 45, 80);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Shipping Address :', 120, 80);
-          invoicePdf.setFont(undefined, 'normal');
-          if (address) {
-            let shippingY = 85;
-            invoicePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 120, shippingY);
-            shippingY += 5;
-            invoicePdf.text(address.mobile || selectedOrder.user?.phone || 'N/A', 120, shippingY);
-            shippingY += 5;
-            invoicePdf.text(address.addressLine1 || '', 120, shippingY);
-            shippingY += 5;
-            if (address.addressLine2) {
-              invoicePdf.text(address.addressLine2, 120, shippingY);
-              shippingY += 5;
-            }
-            invoicePdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, shippingY);
-            shippingY += 5;
-            invoicePdf.text('IN', 120, shippingY);
-            shippingY += 5;
-            invoicePdf.setFont(undefined, 'bold');
-            invoicePdf.text('Place of supply:', 120, shippingY);
-            invoicePdf.setFont(undefined, 'normal');
-            invoicePdf.text(address.state?.toUpperCase() || 'N/A', 148, shippingY);
-            shippingY += 5;
-            invoicePdf.setFont(undefined, 'bold');
-            invoicePdf.text('Place of delivery:', 120, shippingY);
-            invoicePdf.setFont(undefined, 'normal');
-            invoicePdf.text(address.state?.toUpperCase() || 'N/A', 152, shippingY);
-          }
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Order Date:', 15, 85);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleDateString('en-GB'), 38, 85);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Invoice Number :', 15, 90);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(`IN-${selectedOrder.id}`, 50, 90);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Invoice Date :', 15, 95);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleDateString('en-GB'), 45, 95);
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Mode of Payment:', 15, 100);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(selectedOrder.paymentMethod || 'Online', 52, 100);
-          
-          const tableTop = 128;
-          invoicePdf.setFillColor(220, 220, 220);
-          invoicePdf.rect(15, tableTop, 180, 8, 'F');
-          
-          invoicePdf.setFontSize(8);
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Sl.', 17, tableTop + 5);
-          invoicePdf.text('Description', 30, tableTop + 5);
-          invoicePdf.text('HSN', 105, tableTop + 5);
-          invoicePdf.text('Unit Price', 125, tableTop + 5);
-          invoicePdf.text('Qty', 155, tableTop + 5);
-          invoicePdf.text('Total', 175, tableTop + 5);
-          
-          invoicePdf.setDrawColor(0);
-          invoicePdf.rect(15, tableTop, 180, 8);
-          
-          invoicePdf.setFont(undefined, 'normal');
-          let yPos = tableTop + 13;
-          
-          const tableStartY = yPos;
-          let prevRowEndY = tableTop + 8;
-          selectedOrder.items?.forEach((item, index) => {
-            const itemPrice = parseFloat(item.price) || 0;
-            const itemQty = item.quantity || 1;
-            const itemTotal = itemPrice * itemQty;
-            
-            invoicePdf.text((index + 1).toString(), 17, yPos);
-            const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
-            const lines = invoicePdf.splitTextToSize(itemDesc, 70);
-            invoicePdf.text(lines, 30, yPos);
-            invoicePdf.text(item.hsnCode || 'N/A', 105, yPos);
-            invoicePdf.text(`Rs.${itemPrice.toFixed(2)}`, 125, yPos);
-            invoicePdf.text(itemQty.toString(), 155, yPos);
-            invoicePdf.text(`Rs.${itemTotal.toFixed(2)}`, 175, yPos);
-            
-            const rowHeight = lines.length * 5 + 5;
-            const rowEndY = yPos + rowHeight - 5;
-            
-            invoicePdf.line(15, rowEndY, 195, rowEndY);
-            invoicePdf.line(25, prevRowEndY, 25, rowEndY);
-            invoicePdf.line(100, prevRowEndY, 100, rowEndY);
-            invoicePdf.line(120, prevRowEndY, 120, rowEndY);
-            invoicePdf.line(150, prevRowEndY, 150, rowEndY);
-            invoicePdf.line(170, prevRowEndY, 170, rowEndY);
-            
-            prevRowEndY = rowEndY;
-            yPos += rowHeight;
-          });
-          
-          const subtotal = parseFloat(selectedOrder.subtotal) || 0;
-          const discount = parseFloat(selectedOrder.discount) || 0;
-          const deliveryFee = parseFloat(selectedOrder.deliveryFee) || 0;
-          const total = parseFloat(selectedOrder.total) || 0;
-          const deliveryGst = selectedOrder.deliveryOption?.gst || {};
-          const isSameState = deliveryGst.isSameState !== false;
-          
-          // GST Inclusive calculation
-          const gstRate = 5; // 5% GST rate
-          const afterDiscount = subtotal - discount;
-          const totalWithDelivery = afterDiscount + deliveryFee;
-          
-          // Calculate GST inclusive amounts
-          const baseAmount = totalWithDelivery / (1 + gstRate / 100);
-          const gstAmount = totalWithDelivery - baseAmount;
-          const cgstAmount = isSameState ? (gstAmount / 2) : 0;
-          const sgstAmount = isSameState ? (gstAmount / 2) : 0;
-          const igstAmount = !isSameState ? gstAmount : 0;
-          const taxRate = (gstRate / 2).toFixed(2);
-          const igstRate = gstRate.toFixed(2);
-          
-          yPos += 5;
-          
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('Subtotal (incl. GST):', 30, yPos);
-          invoicePdf.text(`Rs.${subtotal.toFixed(2)}`, 170, yPos);
-          yPos += 6;
-          
-          if (discount > 0) {
-            invoicePdf.text(`Discount (${selectedOrder.couponCode || ''})`, 30, yPos);
-            invoicePdf.text(`- Rs.${discount.toFixed(2)}`, 170, yPos);
-            yPos += 6;
-          }
-          
-          invoicePdf.text('Delivery Fee (incl. GST):', 30, yPos);
-          invoicePdf.text(`Rs.${deliveryFee.toFixed(2)}`, 170, yPos);
-          yPos += 6;
-          
-          invoicePdf.text('Taxable Amount:', 30, yPos);
-          invoicePdf.text(`Rs.${baseAmount.toFixed(2)}`, 170, yPos);
-          yPos += 6;
-          
-          if (isSameState) {
-            invoicePdf.text(`CGST (${taxRate}%)`, 30, yPos);
-            invoicePdf.text(`Rs.${cgstAmount.toFixed(2)}`, 170, yPos);
-            yPos += 6;
-            invoicePdf.text(`SGST (${taxRate}%)`, 30, yPos);
-            invoicePdf.text(`Rs.${sgstAmount.toFixed(2)}`, 170, yPos);
-            yPos += 8;
-          } else {
-            invoicePdf.text(`IGST (${igstRate}%)`, 30, yPos);
-            invoicePdf.text(`Rs.${igstAmount.toFixed(2)}`, 170, yPos);
-            yPos += 8;
-          }
-          
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('TOTAL:', 17, yPos);
-          invoicePdf.text(`Rs.${total.toFixed(2)}`, 170, yPos);
-          
-          yPos += 8;
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Amount in Words:', 30, yPos);
-          invoicePdf.setFont(undefined, 'normal');
-          const amountInWords = convertToWords(total);
-          invoicePdf.text(amountInWords, 30, yPos + 5);
-          
-          // Draw full table border covering all details
-          const tableHeight = (yPos + 10) - tableStartY;
-          invoicePdf.rect(15, tableStartY, 180, tableHeight);
-          
-          // Check if signature and footer fit on current page
-          let footerY = yPos + 50;
-          if (footerY > 250) {
-            invoicePdf.addPage();
-            footerY = 30;
-          }
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('For EN3 FASHIONS:', 140, footerY - 30);
-          if (signatureUrl) {
-            const signatureImg = new Image();
-            signatureImg.src = signatureUrl;
-            try {
-              invoicePdf.addImage(signatureImg, 'PNG', 140, footerY - 25, 40, 15);
-            } catch (e) {
-              console.log('Signature not loaded');
-            }
-          }
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text('Authorized Signatory', 140, footerY - 5);
-          
-          invoicePdf.setFontSize(8);
-          invoicePdf.setDrawColor(0);
-          invoicePdf.rect(15, footerY, 180, 10);
-          invoicePdf.setFont(undefined, 'bold');
-          invoicePdf.text('Date & Time:', 20, footerY + 6);
-          invoicePdf.setFont(undefined, 'normal');
-          invoicePdf.text(new Date(selectedOrder.createdAt).toLocaleString('en-GB'), 45, footerY + 6);
-          
-          const invoiceBlob = generatePDFBlob(invoicePdf);
-          const invoiceFile = new File([invoiceBlob], `invoice-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
-          const invoiceResult = await uploadFile(invoiceFile);
-          invoiceUrl = invoiceResult.url;
-
-          // Generate package slip PDF
-          const packagePdf = new jsPDF();
-          packagePdf.setFontSize(14);
-          packagePdf.setFont(undefined, 'bold');
-          packagePdf.setTextColor(41, 98, 255);
-          packagePdf.text('PACKING SLIP', 20, 15);
-          packagePdf.setTextColor(0, 0, 0);
-          
-          try {
-            packagePdf.addImage(logo, 'PNG', 30, 18, 25, 12);
-          } catch (e) {
-            console.log('Logo not loaded');
-          }
-          
-          packagePdf.setFontSize(8);
-          packagePdf.setFont(undefined, 'bold');
-          packagePdf.text('KPG APPARELS', 20, 33);
-          packagePdf.setFont(undefined, 'normal');
-          packagePdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37);
-          packagePdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41);
-          packagePdf.text('IN', 20, 45);
-          
-          packagePdf.setDrawColor(200, 200, 200);
-          packagePdf.rect(120, 30, 70, 25);
-          packagePdf.setFont(undefined, 'bold');
-          packagePdf.text('SHIP TO', 125, 35);
-          packagePdf.setFont(undefined, 'normal');
-          if (address) {
-            packagePdf.text(address.fullName || selectedOrder.user?.name || 'N/A', 125, 40);
-            packagePdf.text(address.mobile || selectedOrder.user?.phone || 'N/A', 125, 44);
-            packagePdf.text(address.addressLine1 || '', 125, 48);
-            packagePdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52);
-          }
-          
-          packagePdf.text('Sales Order No', 20, 60);
-          packagePdf.text(`: ORD-${new Date().getFullYear()}-${selectedOrder.id}`, 50, 60);
-          packagePdf.text('Order Date', 20, 65);
-          packagePdf.text(`: ${new Date(selectedOrder.createdAt).toLocaleDateString('en-GB')}`, 50, 65);
-          
-          const pkgTableTop = 73;
-          packagePdf.setFillColor(220, 230, 255);
-          packagePdf.rect(20, pkgTableTop, 170, 8, 'F');
-          packagePdf.setDrawColor(200, 200, 200);
-          packagePdf.rect(20, pkgTableTop, 170, 8);
-          
-          packagePdf.setFont(undefined, 'bold');
-          packagePdf.text('Item', 25, pkgTableTop + 5);
-          packagePdf.text('Size', 120, pkgTableTop + 5);
-          packagePdf.text('Qty', 160, pkgTableTop + 5);
-          packagePdf.line(20, pkgTableTop + 8, 190, pkgTableTop + 8);
-          
-          packagePdf.setFont(undefined, 'normal');
-          let pkgYPos = pkgTableTop + 14;
-          let itemCounter = 1;
-          selectedOrder.items?.forEach((item) => {
-            if (item.type === 'bundle' && item.bundleItems) {
-              item.bundleItems.forEach((bundleItem) => {
-                const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
-                const lines = packagePdf.splitTextToSize(itemName, 95);
-                packagePdf.text(lines, 20, pkgYPos);
-                packagePdf.text(bundleItem.size || 'N/A', 120, pkgYPos);
-                packagePdf.text('1', 160, pkgYPos);
-                pkgYPos += lines.length * 4 + 2;
-                itemCounter++;
-              });
-            } else {
-              const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
-              const lines = packagePdf.splitTextToSize(itemName, 95);
-              packagePdf.text(lines, 20, pkgYPos);
-              packagePdf.text(item.size || 'N/A', 120, pkgYPos);
-              packagePdf.text(item.quantity?.toString() || '1', 160, pkgYPos);
-              pkgYPos += lines.length * 4 + 2;
-              itemCounter++;
-            }
-          });
-          
-          packagePdf.setFont(undefined, 'italic');
-          packagePdf.text('Thank you for shopping with us!', 105, pkgYPos + 6, { align: 'center' });
-          
-          const packageBlob = generatePDFBlob(packagePdf);
-          const packageFile = new File([packageBlob], `packageslip-${selectedOrder.id}.pdf`, { type: 'application/pdf' });
-          const packageResult = await uploadFile(packageFile);
-          packageSlipUrl = packageResult.url;
-        } catch (uploadError) {
-          console.error('Upload failed:', uploadError);
-          alert('Failed to upload documents. Status will not be changed.');
-          setUploading(false);
-          return;
-        }
-      }
-
-      await updateOrderStatus(
-        selectedOrder.id, 
-        newStatus, 
-        invoiceUrl, 
-        packageSlipUrl, 
-        courierName || "not provided", 
-        trackingId || "not provided", 
-        trackingLink || "not provided"
-      );
-      await fetchOrders();
-      setShowEditModal(false);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert('Failed to update order status');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const generatePackageSlip = (order) => {
-    const pdf = new jsPDF();
-    
-    // Title - PACKING SLIP
-    pdf.setFontSize(18);
-    pdf.setFont(undefined, 'bold');
-    pdf.setTextColor(41, 98, 255); // Blue color
-    pdf.text('PACKING SLIP', 20, 20);
-    pdf.setTextColor(0, 0, 0);
-    
-    // Logo
-    const logo = new Image();
-    logo.src = '/EN3 LOGO PNG.png';
-    try {
-      pdf.addImage(logo, 'PNG', 20, 25, 30, 15);
-    } catch (e) {
-      console.log('Logo not loaded');
-    }
-    
-    // Company info - Left side
-    pdf.setFontSize(10);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('KPG APPARELS', 20, 50);
-    pdf.setFont(undefined, 'normal');
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 20, 55);
-    pdf.text('Valipalayam, Tiruppur,', 20, 60);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 65);
-    pdf.text('IN', 20, 70);
-    
-    // Ship To - Right side with border
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(120, 30, 70, 35);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO', 125, 37);
-    pdf.setFont(undefined, 'normal');
-    const address = order.shippingAddress;
-    if (address) {
-      pdf.text(address.fullName || order.user?.name || 'N/A', 125, 43);
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 48);
-      pdf.text(address.addressLine1 || '', 125, 53);
-      if (address.addressLine2) pdf.text(address.addressLine2, 125, 58);
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, address.addressLine2 ? 63 : 58);
-    }
-    
-    // Order details
-    pdf.setFontSize(10);
-    pdf.text('Sales Order No', 20, 80);
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 60, 80);
-    pdf.text('Order Date', 20, 87);
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 60, 87);
-    
-    // Items table
-    const tableTop = 100;
-    pdf.setFillColor(220, 230, 255);
-    pdf.rect(20, tableTop, 170, 10, 'F');
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(20, tableTop, 170, 10);
-    
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Item', 25, tableTop + 7);
-    pdf.text('Size', 120, tableTop + 7);
-    pdf.text('Qty', 160, tableTop + 7);
-    
-    pdf.line(20, tableTop + 10, 190, tableTop + 10);
-    
-    // Items
-    pdf.setFont(undefined, 'normal');
-    let yPos = tableTop + 18;
-    let itemCounter = 1;
-    order.items?.forEach((item) => {
-      if (item.type === 'bundle' && item.bundleItems) {
-        item.bundleItems.forEach((bundleItem) => {
-          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
-          const lines = pdf.splitTextToSize(itemName, 95);
-          pdf.text(lines, 20, yPos);
-          pdf.text(bundleItem.size || 'N/A', 120, yPos);
-          pdf.text('1', 160, yPos);
-          yPos += lines.length * 5 + 3;
-          itemCounter++;
-        });
-      } else {
-        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
-        const lines = pdf.splitTextToSize(itemName, 95);
-        pdf.text(lines, 20, yPos);
-        pdf.text(item.size || 'N/A', 120, yPos);
-        pdf.text(item.quantity?.toString() || '1', 160, yPos);
-        yPos += lines.length * 5 + 3;
-        itemCounter++;
-      }
-    });
-    
-    // Footer
-    pdf.setFont(undefined, 'italic');
-    pdf.text('Thank you for shopping with us!', 105, yPos + 10, { align: 'center' });
-    
-    pdf.save(`package-slip-${order.id}.pdf`);
-  };
-
-  const generateAllPackageSlips = () => {
-    const placedOrders = orders.filter(order => order.status === 'Placed');
-    
-    if (placedOrders.length === 0) {
-      alert('No placed orders found');
-      return;
-    }
-
-    const pdf = new jsPDF();
-    let currentY = 0;
-    let isFirstSlip = true;
-
-    placedOrders.forEach((order, orderIndex) => {
-      // Calculate slip height
-      const itemCount = order.items?.reduce((count, item) => {
-        return count + (item.type === 'bundle' && item.bundleItems ? item.bundleItems.length : 1);
-      }, 0) || 0;
-      const slipHeight = 85 + (itemCount * 6) + 15; // Base + items + footer
-
-      // Check if slip fits on current page
-      if (!isFirstSlip && currentY + slipHeight > 280) {
-        pdf.addPage();
-        currentY = 0;
-      }
-      isFirstSlip = false;
-
-      // Generate slip at current position
-      generateCompactPackageSlip(pdf, order, currentY);
-      
-      // Add scissor cut line
-      const cutY = currentY + slipHeight + 5;
-      drawScissorLine(pdf, cutY);
-      
-      currentY = cutY + 10;
-    });
-
-    pdf.save(`all-package-slips-placed.pdf`);
-  };
-
-  const generateCompactPackageSlip = (pdf, order, yOffset) => {
-    // Title - PACKING SLIP
-    pdf.setFontSize(14);
-    pdf.setFont(undefined, 'bold');
-    pdf.setTextColor(41, 98, 255);
-    pdf.text('PACKING SLIP', 20, 15 + yOffset);
-    pdf.setTextColor(0, 0, 0);
-    
-    // Logo
-    const logo = new Image();
-    logo.src = '/EN3 LOGO PNG.png';
-    try {
-      pdf.addImage(logo, 'PNG', 20, 18 + yOffset, 25, 12);
-    } catch (e) {
-      console.log('Logo not loaded');
-    }
-    
-    // Company info
-    pdf.setFontSize(8);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('KPG APPARELS', 20, 33 + yOffset);
-    pdf.setFont(undefined, 'normal');
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37 + yOffset);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41 + yOffset);
-    pdf.text('IN', 20, 45 + yOffset);
-    
-    // Ship To with border
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(120, 30 + yOffset, 70, 25);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO', 125, 35 + yOffset);
-    pdf.setFont(undefined, 'normal');
-    const address = order.shippingAddress;
-    if (address) {
-      pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40 + yOffset);
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44 + yOffset);
-      pdf.text(address.addressLine1 || '', 125, 48 + yOffset);
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52 + yOffset);
-    }
-    
-    // Order details
-    pdf.text('Sales Order No', 20, 60 + yOffset);
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60 + yOffset);
-    pdf.text('Order Date', 20, 65 + yOffset);
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65 + yOffset);
-    
-    // Items table
-    const tableTop = 73 + yOffset;
-    pdf.setFillColor(220, 230, 255);
-    pdf.rect(20, tableTop, 170, 8, 'F');
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(20, tableTop, 170, 8);
-    
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Item', 25, tableTop + 5);
-    pdf.text('Size', 120, tableTop + 5);
-    pdf.text('Qty', 160, tableTop + 5);
-    
-    pdf.line(20, tableTop + 8, 190, tableTop + 8);
-    
-    // Items
-    pdf.setFont(undefined, 'normal');
-    let yPos = tableTop + 14;
-    let itemCounter = 1;
-    order.items?.forEach((item) => {
-      if (item.type === 'bundle' && item.bundleItems) {
-        item.bundleItems.forEach((bundleItem) => {
-          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
-          const lines = pdf.splitTextToSize(itemName, 95);
-          pdf.text(lines, 20, yPos);
-          pdf.text(bundleItem.size || 'N/A', 120, yPos);
-          pdf.text('1', 160, yPos);
-          yPos += lines.length * 4 + 2;
-          itemCounter++;
-        });
-      } else {
-        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
-        const lines = pdf.splitTextToSize(itemName, 95);
-        pdf.text(lines, 20, yPos);
-        pdf.text(item.size || 'N/A', 120, yPos);
-        pdf.text(item.quantity?.toString() || '1', 160, yPos);
-        yPos += lines.length * 4 + 2;
-        itemCounter++;
-      }
-    });
-    
-    // Footer
-    pdf.setFont(undefined, 'italic');
-    pdf.text('Thank you for shopping with us!', 105, yPos + 6, { align: 'center' });
-  };
-
-  const drawScissorLine = (pdf, y) => {
-    // Scissor symbols every inch (approximately 28.35 points per inch)
-    pdf.setFont(undefined, 'normal');
-    pdf.setFontSize(10);
-    
-    const startX = 15;
-    const endX = 185;
-    const inchInPoints = 28.35;
-    
-    for (let x = startX; x <= endX; x += inchInPoints) {
-      pdf.text('>8', x, y + 1);
-    }
-    
-    // Dashed cut line between scissors
-    pdf.setLineDashPattern([2, 2], 0);
-    pdf.line(startX + 10, y, endX, y);
-    pdf.setLineDashPattern([], 0); // Reset to solid line
-  };
-
-  const generateInvoice = (order) => {
+  const generateInvoicePDF = (order, forDownload = false) => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
-    
-    // State code mapping
-    const getStateCode = (state) => {
-      const stateCodes = {
-        'ANDHRA PRADESH': '37', 'ARUNACHAL PRADESH': '12', 'ASSAM': '18', 'BIHAR': '10',
-        'CHHATTISGARH': '22', 'GOA': '30', 'GUJARAT': '24', 'HARYANA': '06', 'HIMACHAL PRADESH': '02',
-        'JHARKHAND': '20', 'KARNATAKA': '29', 'KERALA': '32', 'MADHYA PRADESH': '23', 'MAHARASHTRA': '27',
-        'MANIPUR': '14', 'MEGHALAYA': '17', 'MIZORAM': '15', 'NAGALAND': '13', 'ODISHA': '21',
-        'PUNJAB': '03', 'RAJASTHAN': '08', 'SIKKIM': '11', 'TAMIL NADU': '33', 'TELANGANA': '36',
-        'TRIPURA': '16', 'UTTAR PRADESH': '09', 'UTTARAKHAND': '05', 'WEST BENGAL': '19',
-        'ANDAMAN AND NICOBAR': '35', 'CHANDIGARH': '04', 'DADRA AND NAGAR HAVELI': '26',
-        'DAMAN AND DIU': '25', 'DELHI': '07', 'JAMMU AND KASHMIR': '01', 'LADAKH': '38',
-        'LAKSHADWEEP': '31', 'PUDUCHERRY': '34'
-      };
-      return stateCodes[state?.toUpperCase()] || '33';
-    };
-    
-    const stateCode = getStateCode(address?.state);
     
     // Invoice Title (Centered)
     pdf.setFontSize(20);
@@ -746,7 +108,6 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'normal');
     pdf.text('33AARFK8101F1ZG', 35, 68);
     
-    // Add separator line below Sold By section
     pdf.line(15, 73, 190, 73);
     
     // Billing Address (Right Top)
@@ -768,13 +129,11 @@ const OrdersList = () => {
       pdf.text('IN', 120, billingY);
     }
     
-    // Order Details (Left Bottom)
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Number:', 15, 80);
     pdf.setFont(undefined, 'normal');
     pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 45, 80);
     
-    // Shipping Address (Right Bottom)
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 120, 80);
     pdf.setFont(undefined, 'normal');
@@ -825,21 +184,13 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'normal');
     pdf.text(order.paymentMethod || 'Online', 52, 100);
     
-
-    
-    // Items Table
     const tableTop = 128;
-    
-    // Table Header Background
     pdf.setFillColor(220, 220, 220);
     pdf.rect(15, tableTop, 180, 8, 'F');
-    
-    // Table borders (left and right only)
     pdf.setDrawColor(0);
-    pdf.line(15, tableTop, 15, tableTop + 8); // Left border
-    pdf.line(195, tableTop, 195, tableTop + 8); // Right border
+    pdf.line(15, tableTop, 15, tableTop + 8);
+    pdf.line(195, tableTop, 195, tableTop + 8);
     
-    // Table Headers
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('Sl.', 17, tableTop + 5);
@@ -849,37 +200,27 @@ const OrdersList = () => {
     pdf.text('Qty', 155, tableTop + 5);
     pdf.text('Total', 175, tableTop + 5);
     
-    // Table Border
-    pdf.setDrawColor(0);
     pdf.rect(15, tableTop, 180, 8);
-    
-    // Column separators for header
     pdf.line(25, tableTop, 25, tableTop + 8);
     pdf.line(100, tableTop, 100, tableTop + 8);
     pdf.line(120, tableTop, 120, tableTop + 8);
     pdf.line(150, tableTop, 150, tableTop + 8);
     pdf.line(170, tableTop, 170, tableTop + 8);
     
-    // Items
     pdf.setFont(undefined, 'normal');
     let yPos = tableTop + 13;
-    
     const tableStartY = yPos;
     let prevRowEndY = tableTop + 8;
+    
     order.items?.forEach((item, index) => {
       const itemPrice = parseFloat(item.price) || 0;
       const itemQty = item.quantity || 1;
       const itemTotal = itemPrice * itemQty;
       
       pdf.text((index + 1).toString(), 17, yPos);
-      
-      // Item description with size and color
-      const itemDesc = item.size && item.color ? 
-        `${item.name} - ${item.size}, ${item.color}` : 
-        item.name || 'N/A';
+      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
       const lines = pdf.splitTextToSize(itemDesc, 65);
       pdf.text(lines, 30, yPos);
-      
       pdf.text(item.hsnCode || 'N/A', 105, yPos);
       pdf.text(`Rs.${itemPrice.toFixed(2)}`, 145, yPos, { align: 'right' });
       pdf.text(itemQty.toString(), 160, yPos, { align: 'center' });
@@ -888,10 +229,7 @@ const OrdersList = () => {
       const rowHeight = lines.length * 5 + 5;
       const rowEndY = yPos + rowHeight - 5;
       
-      // Draw row border
       pdf.line(15, rowEndY, 195, rowEndY);
-      
-      // Draw column separators for this row
       pdf.line(25, prevRowEndY, 25, rowEndY);
       pdf.line(100, prevRowEndY, 100, rowEndY);
       pdf.line(120, prevRowEndY, 120, rowEndY);
@@ -902,9 +240,6 @@ const OrdersList = () => {
       yPos += rowHeight;
     });
     
-
-    
-    // Get values from order
     const subtotal = parseFloat(order.subtotal) || 0;
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
@@ -912,12 +247,9 @@ const OrdersList = () => {
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
     
-    // GST Inclusive calculation
-    const gstRate = 5; // 5% GST rate
+    const gstRate = 5;
     const afterDiscount = subtotal - discount;
     const totalWithDelivery = afterDiscount + deliveryFee;
-    
-    // Calculate GST inclusive amounts
     const baseAmount = totalWithDelivery / (1 + gstRate / 100);
     const gstAmount = totalWithDelivery - baseAmount;
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
@@ -927,54 +259,41 @@ const OrdersList = () => {
     const igstRate = gstRate.toFixed(2);
     
     yPos += 5;
-    
-    // Subtotal row
     pdf.setFont(undefined, 'normal');
     pdf.text('Subtotal (incl. GST):', 30, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
     
-    // Discount row (if applicable)
     if (discount > 0) {
       pdf.text(`Discount (${order.couponCode || ''})`, 30, yPos);
       pdf.text(`- Rs.${discount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
     }
     
-    // Delivery Fee row
     pdf.text('Delivery Fee (incl. GST):', 30, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
-    
-    // Taxable Amount row
     pdf.text('Taxable Amount:', 30, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
     
-    // GST rows based on isSameState
     if (isSameState) {
-      // Add CGST row
       pdf.text(`CGST (${taxRate}%)`, 30, yPos);
       pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
-      
-      // Add SGST row
       pdf.text(`SGST (${taxRate}%)`, 30, yPos);
       pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 8;
     } else {
-      // Add IGST row
       pdf.text(`IGST (${igstRate}%)`, 30, yPos);
       pdf.text(`Rs.${igstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 8;
     }
     
-    // Total Row
     pdf.setFont(undefined, 'bold');
     pdf.text('TOTAL:', 30, yPos);
     pdf.text(`Rs.${total.toFixed(2)}`, 190, yPos, { align: 'right' });
     
-    // Amount in Words
     yPos += 8;
     pdf.setFont(undefined, 'bold');
     pdf.text('Amount in Words:', 30, yPos);
@@ -982,11 +301,9 @@ const OrdersList = () => {
     const amountInWords = convertToWords(total);
     pdf.text(amountInWords, 30, yPos + 5);
     
-    // Draw full table border covering all details
     const finalTableHeight = (yPos + 10) - tableTop;
     pdf.rect(15, tableTop, 180, finalTableHeight);
     
-    // Check if signature and footer fit on current page
     let footerY = yPos + 50;
     if (footerY > 250) {
       pdf.addPage();
@@ -1006,16 +323,284 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'normal');
     pdf.text('Authorized Signatory', 140, footerY - 5);
     
-    // Footer with Date & Time
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('Date & Time:', 20, footerY + 6);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleString('en-GB'), 45, footerY + 6);
+    pdf.text(new Date().toLocaleString('en-GB'), 45, footerY + 6);
     
+    if (forDownload) {
+      pdf.save(`invoice-${order.id}.pdf`);
+    }
+    return pdf;
+  };
 
+  const handleUpdateStatus = async () => {
+    try {
+      setUploading(true);
+      let invoiceUrl = null;
+      let packageSlipUrl = null;
+
+      if (newStatus === 'Shipped') {
+        // Fetch fresh order data directly from API
+        const freshOrders = await fetchOrdersApi();
+        const orderToUse = freshOrders.find(o => o.id === selectedOrder.id);
+        
+        if (!orderToUse) {
+          alert('Order not found');
+          setUploading(false);
+          return;
+        }
+        
+        console.log('Fresh order data:', orderToUse);
+        console.log('Order created at:', orderToUse.createdAt);
+        console.log('Current time:', new Date().toLocaleString('en-GB'));
+        
+        // Delete ALL old invoice and package slip files for this order
+        await deleteOrderFiles(orderToUse.id).catch(e => console.log('Error deleting old files:', e));
+        
+        // Wait a moment to ensure deletion completes
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Always generate new PDFs
+        try {
+          console.log('Generating invoice at:', new Date().toLocaleString('en-GB'));
+          const invoicePdf = generateInvoicePDF(orderToUse, false);
+          const invoiceBlob = generatePDFBlob(invoicePdf);
+          const randomHash = Math.random().toString(36).substring(2, 15);
+          const invoiceFile = new File([invoiceBlob], `invoice-${orderToUse.id}-${randomHash}.pdf`, { type: 'application/pdf' });
+          const invoiceResult = await uploadFile(invoiceFile);
+          invoiceUrl = invoiceResult.url;
+
+          const packagePdf = createPackageSlipPDF(orderToUse);
+          const packageBlob = generatePDFBlob(packagePdf);
+          const packageFile = new File([packageBlob], `packageslip-${orderToUse.id}-${randomHash}.pdf`, { type: 'application/pdf' });
+          const packageResult = await uploadFile(packageFile);
+          packageSlipUrl = packageResult.url;
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          alert('Failed to upload documents. Status will not be changed.');
+          setUploading(false);
+          return;
+        }
+      }
+
+      await updateOrderStatus(
+        selectedOrder.id, 
+        newStatus, 
+        invoiceUrl, 
+        packageSlipUrl, 
+        courierName || "not provided", 
+        trackingId || "not provided", 
+        trackingLink || "not provided"
+      );
+      await fetchOrders();
+      setShowEditModal(false);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert('Failed to update order status');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const createPackageSlipPDF = (order, yOffset = 0) => {
+    const pdf = new jsPDF();
+    const address = order.shippingAddress;
     
-    pdf.save(`invoice-${order.id}.pdf`);
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(41, 98, 255);
+    pdf.text('PACKING SLIP', 20, 15 + yOffset);
+    pdf.setTextColor(0, 0, 0);
+    
+    const logo = new Image();
+    logo.src = '/EN3 LOGO PNG.png';
+    try {
+      pdf.addImage(logo, 'PNG', 20, 18 + yOffset, 25, 12);
+    } catch (e) {
+      console.log('Logo not loaded');
+    }
+    
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('KPG APPARELS', 20, 33 + yOffset);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37 + yOffset);
+    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41 + yOffset);
+    pdf.text('IN', 20, 45 + yOffset);
+    
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(120, 30 + yOffset, 70, 25);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO', 125, 35 + yOffset);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40 + yOffset);
+      pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44 + yOffset);
+      pdf.text(address.addressLine1 || '', 125, 48 + yOffset);
+      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52 + yOffset);
+    }
+    
+    pdf.text('Sales Order No', 20, 60 + yOffset);
+    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60 + yOffset);
+    pdf.text('Order Date', 20, 65 + yOffset);
+    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65 + yOffset);
+    
+    const tableTop = 73 + yOffset;
+    pdf.setFillColor(220, 230, 255);
+    pdf.rect(20, tableTop, 170, 8, 'F');
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(20, tableTop, 170, 8);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Item', 25, tableTop + 5);
+    pdf.text('Size', 120, tableTop + 5);
+    pdf.text('Qty', 160, tableTop + 5);
+    pdf.line(20, tableTop + 8, 190, tableTop + 8);
+    
+    pdf.setFont(undefined, 'normal');
+    let yPos = tableTop + 14;
+    let itemCounter = 1;
+    order.items?.forEach((item) => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        item.bundleItems.forEach((bundleItem) => {
+          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
+          const lines = pdf.splitTextToSize(itemName, 95);
+          pdf.text(lines, 20, yPos);
+          pdf.text(bundleItem.size || 'N/A', 120, yPos);
+          pdf.text('1', 160, yPos);
+          yPos += lines.length * 4 + 2;
+          itemCounter++;
+        });
+      } else {
+        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+        const lines = pdf.splitTextToSize(itemName, 95);
+        pdf.text(lines, 20, yPos);
+        pdf.text(item.size || 'N/A', 120, yPos);
+        pdf.text(item.quantity?.toString() || '1', 160, yPos);
+        yPos += lines.length * 4 + 2;
+        itemCounter++;
+      }
+    });
+    
+    pdf.setFont(undefined, 'italic');
+    pdf.text('Thank you for shopping with us!', 105, yPos + 6, { align: 'center' });
+    
+    return pdf;
+  };
+
+  const generatePackageSlip = (order) => {
+    const pdf = createPackageSlipPDF(order);
+    pdf.save(`package-slip-${order.id}.pdf`);
+  };
+
+  const generateAllPackageSlips = () => {
+    const placedOrders = orders.filter(order => order.status === 'Placed');
+    
+    if (placedOrders.length === 0) {
+      alert('No placed orders found');
+      return;
+    }
+
+    const pdf = new jsPDF();
+    let isFirstSlip = true;
+
+    placedOrders.forEach((order, orderIndex) => {
+      if (!isFirstSlip) {
+        pdf.addPage();
+      }
+      isFirstSlip = false;
+
+      const address = order.shippingAddress;
+      
+      pdf.setFontSize(14);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(41, 98, 255);
+      pdf.text('PACKING SLIP', 20, 15);
+      pdf.setTextColor(0, 0, 0);
+      
+      const logo = new Image();
+      logo.src = '/EN3 LOGO PNG.png';
+      try {
+        pdf.addImage(logo, 'PNG', 20, 18, 25, 12);
+      } catch (e) {
+        console.log('Logo not loaded');
+      }
+      
+      pdf.setFontSize(8);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('KPG APPARELS', 20, 33);
+      pdf.setFont(undefined, 'normal');
+      pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37);
+      pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41);
+      pdf.text('IN', 20, 45);
+      
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(120, 30, 70, 25);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('SHIP TO', 125, 35);
+      pdf.setFont(undefined, 'normal');
+      if (address) {
+        pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40);
+        pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44);
+        pdf.text(address.addressLine1 || '', 125, 48);
+        pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52);
+      }
+      
+      pdf.text('Sales Order No', 20, 60);
+      pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60);
+      pdf.text('Order Date', 20, 65);
+      pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65);
+      
+      const tableTop = 73;
+      pdf.setFillColor(220, 230, 255);
+      pdf.rect(20, tableTop, 170, 8, 'F');
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(20, tableTop, 170, 8);
+      
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Item', 25, tableTop + 5);
+      pdf.text('Size', 120, tableTop + 5);
+      pdf.text('Qty', 160, tableTop + 5);
+      pdf.line(20, tableTop + 8, 190, tableTop + 8);
+      
+      pdf.setFont(undefined, 'normal');
+      let yPos = tableTop + 14;
+      let itemCounter = 1;
+      order.items?.forEach((item) => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          item.bundleItems.forEach((bundleItem) => {
+            const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
+            const lines = pdf.splitTextToSize(itemName, 95);
+            pdf.text(lines, 20, yPos);
+            pdf.text(bundleItem.size || 'N/A', 120, yPos);
+            pdf.text('1', 160, yPos);
+            yPos += lines.length * 4 + 2;
+            itemCounter++;
+          });
+        } else {
+          const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+          const lines = pdf.splitTextToSize(itemName, 95);
+          pdf.text(lines, 20, yPos);
+          pdf.text(item.size || 'N/A', 120, yPos);
+          pdf.text(item.quantity?.toString() || '1', 160, yPos);
+          yPos += lines.length * 4 + 2;
+          itemCounter++;
+        }
+      });
+      
+      pdf.setFont(undefined, 'italic');
+      pdf.text('Thank you for shopping with us!', 105, yPos + 6, { align: 'center' });
+    });
+
+    pdf.save(`all-package-slips-placed.pdf`);
+  };
+
+
+
+  const generateInvoice = (order) => {
+    generateInvoicePDF(order, true);
   };
   
   const convertToWords = (amount) => {
@@ -1416,7 +1001,7 @@ const OrdersList = () => {
                     <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
-                {selectedOrder.status === 'Placed' && newStatus === 'Shipped' && (
+                {newStatus === 'Shipped' && (
                   <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                     <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
                       📄 Invoice and package slip will be automatically generated and uploaded.
