@@ -281,7 +281,18 @@ const CheckoutPage = () => {
                             {availableCoupons.length > 0 && (
                                 <div className="available-coupons">
                                     {availableCoupons.map(coupon => (
-                                        <div key={coupon.id} className="coupon-card">
+                                        <div 
+                                            key={coupon.id} 
+                                            className="coupon-card"
+                                            onClick={() => {
+                                                if (!appliedCoupon) {
+                                                    setCouponCode(coupon.code);
+                                                    couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    setTimeout(() => couponInputRef.current?.focus(), 300);
+                                                }
+                                            }}
+                                            style={{ cursor: appliedCoupon ? 'default' : 'pointer' }}
+                                        >
                                             <div className="coupon-info">
                                                 <div className="coupon-code-badge">{coupon.code}</div>
                                                 <div className="coupon-details">
@@ -296,18 +307,6 @@ const CheckoutPage = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <button 
-                                                type="button"
-                                                className="apply-coupon-card-btn"
-                                                onClick={() => {
-                                                    setCouponCode(coupon.code);
-                                                    couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                    setTimeout(() => couponInputRef.current?.focus(), 300);
-                                                }}
-                                                disabled={appliedCoupon?.code === coupon.code}
-                                            >
-                                                {appliedCoupon?.code === coupon.code ? 'Applied' : 'Apply'}
-                                            </button>
                                         </div>
                                     ))}
                                 </div>

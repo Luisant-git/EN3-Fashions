@@ -1736,22 +1736,7 @@ button:disabled {
     color: #666;
     margin: 0;
 }
-.apply-coupon-card-btn {
-    padding: 0.6rem 1.5rem;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-.apply-coupon-card-btn:hover:not(:disabled) {
-    background: #d32f2f;
-}
-.apply-coupon-card-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
+
 .coupon-section {
     display: flex;
     gap: 0.5rem;
@@ -1761,12 +1746,12 @@ button:disabled {
     flex: 1;
 }
 .apply-coupon-btn, .remove-coupon-btn {
-    padding: 0.6rem 1rem;
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 5px;
     font-weight: 600;
     white-space: nowrap;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 .apply-coupon-btn {
     background: var(--primary-color);
