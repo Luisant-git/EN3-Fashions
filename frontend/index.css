@@ -1746,7 +1746,7 @@ button:disabled {
     flex: 1;
 }
 .apply-coupon-btn, .remove-coupon-btn {
-    padding: 0.6rem 1rem;
+    padding: 0.6rem 0.6rem;
     border: none;
     border-radius: 5px;
     font-weight: 600;
