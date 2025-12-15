@@ -6,7 +6,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { getCategories } from '../api/categoryApi';
 import { searchProducts } from '../api/productApi';
 import { generateCategoryUrl, generateSubcategoryUrl, generateProductUrl } from '../utils/slugify';
-import logo from '/EN3 FASHIONS.png';
+import logo from '/EN3TRENDS.png';
 
 const Header = () => {
     const navigate = useNavigate();
