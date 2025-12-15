@@ -367,14 +367,13 @@ const OrdersList = () => {
           console.log('Generating invoice at:', new Date().toLocaleString('en-GB'));
           const invoicePdf = generateInvoicePDF(orderToUse, false);
           const invoiceBlob = generatePDFBlob(invoicePdf);
-          const randomHash = Math.random().toString(36).substring(2, 15);
-          const invoiceFile = new File([invoiceBlob], `invoice-${orderToUse.id}-${randomHash}.pdf`, { type: 'application/pdf' });
+          const invoiceFile = new File([invoiceBlob], `invoice-${orderToUse.id}.pdf`, { type: 'application/pdf' });
           const invoiceResult = await uploadFile(invoiceFile);
           invoiceUrl = invoiceResult.url;
 
           const packagePdf = createPackageSlipPDF(orderToUse);
           const packageBlob = generatePDFBlob(packagePdf);
-          const packageFile = new File([packageBlob], `packageslip-${orderToUse.id}-${randomHash}.pdf`, { type: 'application/pdf' });
+          const packageFile = new File([packageBlob], `packageslip-${orderToUse.id}.pdf`, { type: 'application/pdf' });
           const packageResult = await uploadFile(packageFile);
           packageSlipUrl = packageResult.url;
         } catch (uploadError) {
