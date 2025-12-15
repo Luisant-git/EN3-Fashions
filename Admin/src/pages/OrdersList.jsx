@@ -770,13 +770,15 @@ const OrdersList = () => {
           >
             <Eye size={16} />
           </button>
-          <button
-            className="action-btn edit"
-            title="Edit Order"
-            onClick={() => handleEditOrder(row)}
-          >
-            <Edit size={16} />
-          </button>
+          {row.status !== 'Shipped' && row.status !== 'Cancelled' && (
+            <button
+              className="action-btn edit"
+              title="Edit Order"
+              onClick={() => handleEditOrder(row)}
+            >
+              <Edit size={16} />
+            </button>
+          )}
           {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
             <>
               <button
