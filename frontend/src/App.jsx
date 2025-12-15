@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import icon from '/icon.png';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TopHeader from './components/TopHeader';
@@ -33,6 +34,9 @@ import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 
 const App = () => {
+    const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+    const [whatsappMessage, setWhatsappMessage] = useState('');
+
     return (
         <AuthProvider>
             <CartProvider>
@@ -70,6 +74,48 @@ const App = () => {
                             </main>
                             <Footer />
                             <ToastContainer position="top-right" autoClose={1000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+                            
+                            <div className="whatsapp-float" onClick={() => setShowWhatsAppModal(true)}>
+                                <svg viewBox="0 0 32 32" fill="white" width="28" height="28">
+                                    <path d="M16 0C7.164 0 0 7.164 0 16c0 2.825.736 5.478 2.024 7.776L0 32l8.416-2.208A15.93 15.93 0 0016 32c8.836 0 16-7.164 16-16S24.836 0 16 0zm8.08 22.912c-.352.992-1.744 1.824-2.848 2.064-.752.16-1.728.288-5.024-.992-4.224-1.632-6.944-5.92-7.152-6.192-.208-.272-1.696-2.256-1.696-4.304s1.072-3.056 1.456-3.472c.384-.416.832-.512 1.12-.512.272 0 .544.016.784.016.256 0 .592-.096.928.704.352.832 1.184 2.88 1.28 3.088.096.208.16.448.032.72-.128.272-.192.448-.384.688-.192.24-.4.528-.576.704-.192.192-.384.4-.16.784.224.384.992 1.632 2.128 2.64 1.456 1.296 2.688 1.696 3.072 1.888.384.192.608.16.832-.096.224-.256.96-1.12 1.216-1.504.256-.384.512-.32.864-.192.352.128 2.24 1.056 2.624 1.248.384.192.64.288.736.448.096.16.096.928-.256 1.92z"/>
+                                </svg>
+                            </div>
+
+                            {showWhatsAppModal && (
+                                <div className="whatsapp-modal-overlay" onClick={() => setShowWhatsAppModal(false)}>
+                                    <div className="whatsapp-modal" onClick={(e) => e.stopPropagation()}>
+                                        <div className="whatsapp-modal-header">
+                                            <div className="whatsapp-header-content">
+                                                <div className="whatsapp-icon-circle">
+                                                    <img src={icon} alt="EN3 Trends" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                                                </div>
+                                                <span>EN3 Trends</span>
+                                            </div>
+                                            <button className="whatsapp-close" onClick={() => setShowWhatsAppModal(false)}>×</button>
+                                        </div>
+                                        <div className="whatsapp-modal-body">
+                                            <div className="whatsapp-message">
+                                                <div className="whatsapp-avatar">
+                                                    <img src={icon} alt="EN3 Trends" style={{ width: '25px', height: '25px', objectFit: 'contain' }} />
+                                                </div>
+                                                <div className="whatsapp-bubble">
+                                                    <strong>EN3 Trends</strong>
+                                                    <p>Hello! 👋 I'm from EN3 Trends, How can I help you?</p>
+                                                    <span className="whatsapp-time">just now</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="whatsapp-modal-footer">
+                                            <input type="text" placeholder="Type your message..." value={whatsappMessage} onChange={(e) => setWhatsappMessage(e.target.value)} />
+                                            <button className="whatsapp-send-btn" onClick={() => window.open(`https://wa.me/917010124370?text=${encodeURIComponent(whatsappMessage)}`, '_blank')}>
+                                                <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
+                                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </Router>
                 </WishlistProvider>
