@@ -6,6 +6,7 @@ import { CartContext } from '../contexts/CartContext';
 import { WishlistContext } from '../contexts/WishlistContext';
 import LoadingSpinner from './LoadingSpinner';
 import '../styles/BundleOffers.css';
+import '../styles/ZoomModal.css';
 
 const ProductDetailPage = () => {
     const { productId } = useParams();
@@ -23,6 +24,17 @@ const ProductDetailPage = () => {
     const [showZoom, setShowZoom] = useState(false);
     const [scale, setScale] = useState(1);
     const [lastDistance, setLastDistance] = useState(0);
+
+    useEffect(() => {
+        if (showZoom) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showZoom]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -141,11 +153,11 @@ const ProductDetailPage = () => {
     return (
         <>
         {showZoom && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'white', zIndex: 9999, display: 'flex', flexDirection: window.innerWidth <= 768 ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: window.innerWidth <= 768 ? '10px' : '20px', padding: window.innerWidth <= 768 ? '70px 15px 15px' : '20px', boxSizing: 'border-box', overflow: 'hidden' }} onClick={(e) => { if (e.target === e.currentTarget) { setShowZoom(false); setScale(1); } }}>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, minWidth: 0, maxWidth: '100%', maxHeight: '100%', overflow: window.innerWidth <= 768 ? 'auto' : 'visible' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'white', zIndex: 9999, display: 'flex', flexDirection: window.innerWidth <= 768 ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: window.innerWidth <= 768 ? '10px' : '20px', padding: window.innerWidth <= 768 ? '70px 15px 15px' : '20px', boxSizing: 'border-box', overflow: 'hidden', touchAction: 'none' }} onClick={(e) => { if (e.target === e.currentTarget) { setShowZoom(false); setScale(1); } }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, minWidth: 0, maxWidth: '100%', maxHeight: '100%', overflow: 'hidden' }}>
                     <img src={activeImage} alt={product.name} style={{ maxWidth: window.innerWidth <= 768 ? 'none' : '65%', maxHeight: window.innerWidth <= 768 ? 'none' : '80%', width: window.innerWidth <= 768 ? '100%' : 'auto', height: 'auto', objectFit: 'contain', transform: window.innerWidth <= 768 ? `scale(${scale})` : 'none', transformOrigin: 'center', cursor: window.innerWidth <= 768 ? 'zoom-in' : 'default' }} onClick={(e) => { e.stopPropagation(); if (window.innerWidth <= 768) setScale(scale === 1 ? 2 : 1); }} onTouchStart={(e) => { if (window.innerWidth <= 768 && e.touches.length === 2) { const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); setLastDistance(dist); } }} onTouchMove={(e) => { if (window.innerWidth <= 768 && e.touches.length === 2) { e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); if (lastDistance > 0) { const newScale = scale * (dist / lastDistance); setScale(Math.min(Math.max(1, newScale), 3)); } setLastDistance(dist); } }} onTouchEnd={() => { setLastDistance(0); }} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: window.innerWidth <= 768 ? 'row' : 'column', gap: '10px', overflowX: window.innerWidth <= 768 ? 'auto' : 'visible', overflowY: window.innerWidth <= 768 ? 'visible' : 'auto', maxHeight: window.innerWidth <= 768 ? 'auto' : '100%', maxWidth: window.innerWidth <= 768 ? '100%' : 'auto', padding: '5px' }}>
+                <div style={{ display: 'flex', flexDirection: window.innerWidth <= 768 ? 'row' : 'column', gap: '10px', overflowX: window.innerWidth <= 768 ? 'auto' : 'visible', overflowY: window.innerWidth <= 768 ? 'visible' : 'auto', maxHeight: window.innerWidth <= 768 ? 'auto' : 'calc(100vh - 40px)', maxWidth: window.innerWidth <= 768 ? '100%' : 'auto', padding: '5px', paddingTop: window.innerWidth <= 768 ? '5px' : '70px', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="hide-scrollbar">
                     {product.colors.map((color, index) => (
                         <img key={index} src={color.image} alt={color.name} style={{ width: window.innerWidth <= 768 ? '60px' : '80px', height: window.innerWidth <= 768 ? '60px' : '80px', objectFit: 'cover', cursor: 'pointer', border: color.image === activeImage ? '2px solid #000' : '2px solid #ddd', borderRadius: '6px', flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setActiveImage(color.image); }} />
                     ))}
