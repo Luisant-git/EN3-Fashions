@@ -20,6 +20,9 @@ const ProductDetailPage = () => {
     const [openAccordion, setOpenAccordion] = useState(1);
     const [bundleSelections, setBundleSelections] = useState([]);
     const [bundlePrice, setBundlePrice] = useState(null);
+    const [showZoom, setShowZoom] = useState(false);
+    const [scale, setScale] = useState(1);
+    const [lastDistance, setLastDistance] = useState(0);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -136,10 +139,24 @@ const ProductDetailPage = () => {
     };
 
     return (
+        <>
+        {showZoom && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'white', zIndex: 9999, display: 'flex', flexDirection: window.innerWidth <= 768 ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: window.innerWidth <= 768 ? '10px' : '20px', padding: window.innerWidth <= 768 ? '70px 15px 15px' : '20px', boxSizing: 'border-box', overflow: 'hidden' }} onClick={(e) => { if (e.target === e.currentTarget) { setShowZoom(false); setScale(1); } }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, minWidth: 0, maxWidth: '100%', maxHeight: '100%', overflow: window.innerWidth <= 768 ? 'auto' : 'visible' }}>
+                    <img src={activeImage} alt={product.name} style={{ maxWidth: window.innerWidth <= 768 ? 'none' : '65%', maxHeight: window.innerWidth <= 768 ? 'none' : '80%', width: window.innerWidth <= 768 ? '100%' : 'auto', height: 'auto', objectFit: 'contain', transform: window.innerWidth <= 768 ? `scale(${scale})` : 'none', transformOrigin: 'center', cursor: window.innerWidth <= 768 ? 'zoom-in' : 'default' }} onClick={(e) => { e.stopPropagation(); if (window.innerWidth <= 768) setScale(scale === 1 ? 2 : 1); }} onTouchStart={(e) => { if (window.innerWidth <= 768 && e.touches.length === 2) { const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); setLastDistance(dist); } }} onTouchMove={(e) => { if (window.innerWidth <= 768 && e.touches.length === 2) { e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); if (lastDistance > 0) { const newScale = scale * (dist / lastDistance); setScale(Math.min(Math.max(1, newScale), 3)); } setLastDistance(dist); } }} onTouchEnd={() => { setLastDistance(0); }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: window.innerWidth <= 768 ? 'row' : 'column', gap: '10px', overflowX: window.innerWidth <= 768 ? 'auto' : 'visible', overflowY: window.innerWidth <= 768 ? 'visible' : 'auto', maxHeight: window.innerWidth <= 768 ? 'auto' : '100%', maxWidth: window.innerWidth <= 768 ? '100%' : 'auto', padding: '5px' }}>
+                    {product.colors.map((color, index) => (
+                        <img key={index} src={color.image} alt={color.name} style={{ width: window.innerWidth <= 768 ? '60px' : '80px', height: window.innerWidth <= 768 ? '60px' : '80px', objectFit: 'cover', cursor: 'pointer', border: color.image === activeImage ? '2px solid #000' : '2px solid #ddd', borderRadius: '6px', flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setActiveImage(color.image); }} />
+                    ))}
+                </div>
+                <button onClick={() => { setShowZoom(false); setScale(1); }} style={{ position: 'absolute', top: '15px', right: window.innerWidth <= 768 ? '15px' : '50px', background: 'none', border: 'none', color: '#000', fontSize: '36px', cursor: 'pointer', padding: 0, lineHeight: 1 }}>×</button>
+            </div>
+        )}
         <div className="product-detail-page">
             <div className="pdp-image-section">
                 <div className="pdp-image-gallery">
-                    <div className="pdp-main-image">
+                    <div className="pdp-main-image" onClick={() => setShowZoom(true)} style={{ cursor: 'pointer' }}>
                         <img src={activeImage} alt={product.name} />
                     </div>
                     <div className="pdp-thumbnails">
@@ -318,6 +335,7 @@ const ProductDetailPage = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 
