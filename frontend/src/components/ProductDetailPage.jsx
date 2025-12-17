@@ -24,6 +24,8 @@ const ProductDetailPage = () => {
     const [showZoom, setShowZoom] = useState(false);
     const [scale, setScale] = useState(1);
     const [lastDistance, setLastDistance] = useState(0);
+    const [showLens, setShowLens] = useState(false);
+    const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         if (showZoom) {
@@ -165,11 +167,17 @@ const ProductDetailPage = () => {
                 <button onClick={() => { setShowZoom(false); setScale(1); }} style={{ position: 'absolute', top: '15px', right: window.innerWidth <= 768 ? '15px' : '50px', background: 'none', border: 'none', color: '#000', fontSize: '36px', cursor: 'pointer', padding: 0, lineHeight: 1 }}>×</button>
             </div>
         )}
+        {showLens && window.innerWidth > 768 && lensPosition.width && (
+            <div style={{ position: 'fixed', right: '500px', top: '50%', transform: 'translateY(-50%)', width: '400px', height: '400px', border: '2px solid #ddd', background: `url(${activeImage}) no-repeat`, backgroundSize: '200%', backgroundPosition: `${(lensPosition.x / lensPosition.width) * 100}% ${(lensPosition.y / lensPosition.height) * 100}%`, zIndex: 1000, boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }} />
+        )}
         <div className="product-detail-page">
             <div className="pdp-image-section">
                 <div className="pdp-image-gallery">
-                    <div className="pdp-main-image" onClick={() => setShowZoom(true)} style={{ cursor: 'pointer' }}>
+                    <div className="pdp-main-image" onClick={() => window.innerWidth <= 768 && setShowZoom(true)} style={{ cursor: 'pointer', position: 'relative' }} onMouseEnter={() => window.innerWidth > 768 && setShowLens(true)} onMouseLeave={() => setShowLens(false)} onMouseMove={(e) => { if (window.innerWidth > 768) { const rect = e.currentTarget.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; setLensPosition({ x, y, width: rect.width, height: rect.height }); } }}>
                         <img src={activeImage} alt={product.name} />
+                        {showLens && window.innerWidth > 768 && lensPosition.width && (
+                            <div style={{ position: 'absolute', width: '100px', height: '100px', border: '2px solid #000', backgroundColor: 'rgba(255,255,255,0.3)', pointerEvents: 'none', left: lensPosition.x - 50, top: lensPosition.y - 50 }} />
+                        )}
                     </div>
                     <div className="pdp-thumbnails">
                         {product.colors.map((color, index) => (
