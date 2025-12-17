@@ -168,7 +168,7 @@ const ProductDetailPage = () => {
             </div>
         )}
         {showLens && window.innerWidth > 768 && lensPosition.width && (
-            <div style={{ position: 'fixed', right: '500px', top: '50%', transform: 'translateY(-50%)', width: '400px', height: '400px', border: '2px solid #ddd', background: `url(${activeImage}) no-repeat`, backgroundSize: '200%', backgroundPosition: `${(lensPosition.x / lensPosition.width) * 100}% ${(lensPosition.y / lensPosition.height) * 100}%`, zIndex: 1000, boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }} />
+            <div style={{ position: 'absolute', left: 'calc(45% + 20px)', top: '50%', transform: 'translateY(-50%)', width: '600px', height: '600px', border: '2px solid #ddd', background: `url(${activeImage}) no-repeat`, backgroundSize: `${lensPosition.width * 2}px ${lensPosition.height * 2}px`, backgroundPosition: `${-lensPosition.x * 2 + 300}px ${-lensPosition.y * 2 + 300}px`, zIndex: 1000, boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }} />
         )}
         <div className="product-detail-page">
             <div className="pdp-image-section">
