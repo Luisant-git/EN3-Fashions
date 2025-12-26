@@ -78,7 +78,7 @@ const CategoryPage = () => {
   ).sort();
 
   const availableColors = Array.from(
-    new Set(products.flatMap((p) => p.colors.map((c) => c.name)))
+    new Map(products.flatMap((p) => p.colors.map((c) => [c.name, c]))).values()
   );
 
   const filteredProducts = products.filter((p) => {
