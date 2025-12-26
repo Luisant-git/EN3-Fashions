@@ -8,7 +8,7 @@ const OrdersPage = () => {
     
     useEffect(() => {
         getUserOrders()
-            .then(data => setOrders(data))
+            .then(data => setOrders(data.filter(order => order.paymentMethod !== 'abandoned')))
             .catch(err => console.error('Failed to fetch orders:', err))
             .finally(() => setLoading(false));
     }, []);
