@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getProductById } from '../api/productApi';
 import { CartContext } from '../contexts/CartContext';
@@ -228,7 +228,10 @@ const ProductDetailPage = () => {
                 </div>
 
                 <div className="pdp-selector-group">
-                    <label className="pdp-selector-label">Size:</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <label className="pdp-selector-label" style={{ margin: 0 }}>Size:</label>
+                        <Link to="/size-chart" className="size-chart-link" style={{ margin: 0 }}>View Size Chart</Link>
+                    </div>
                     <div className="pdp-size-options">
                         {selectedColor?.sizes.map(size => (
                             <button 

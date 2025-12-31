@@ -21,9 +21,10 @@ import { OverviewModule } from './overview/overview.module';
 import { PincodeModule } from './pincode.module';
 import { ShippingModule } from './shipping.module';
 import { SettingsModule } from './settings/settings.module';
+import { SizeChartModule } from './size-chart/size-chart.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule, PincodeModule, ShippingModule, SettingsModule],
+  imports: [UserModule, AuthModule, ProductModule, UploadModule, BrandModule, CategoryModule, SubCategoryModule, BannerModule, CartModule, OrderModule, WishlistModule, CouponModule, CustomerModule, WhatsappModule, WhatsappSessionModule, DashboardModule, OverviewModule, PincodeModule, ShippingModule, SettingsModule, SizeChartModule],
   controllers: [AppController],
   providers: [AppService],
 })

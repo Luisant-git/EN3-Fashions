@@ -41,6 +41,7 @@ import ShippingSettings from './pages/ShippingSettings'
 import AddShipping from './pages/AddShipping'
 import EditShipping from './pages/EditShipping'
 import Settings from './pages/Settings'
+import SizeChartPage from './pages/SizeChartPage'
 // import BulkWhatsApp from './pages/BulkWhatsApps'
 
 // Import all SCSS files
@@ -149,6 +150,7 @@ function App() {
               <Route path="/add-shipping" element={<AddShipping />} />
               <Route path="/edit-shipping/:id" element={<EditShipping />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/size-chart" element={<SizeChartPage />} />
               {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
               {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>

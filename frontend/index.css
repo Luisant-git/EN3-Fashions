@@ -3066,3 +3066,17 @@ button:disabled {
         width: 100%;
     }
 }
+
+
+.size-chart-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.size-chart-link:hover {
+    text-decoration: underline;
+}
