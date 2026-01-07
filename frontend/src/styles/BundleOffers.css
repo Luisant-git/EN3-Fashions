@@ -141,10 +141,14 @@
   font-weight: 600;
 }
 
-.bundle-add-btn {
-  width: 100%;
-  background: var(--primary-color);
-  color: white;
+.bundle-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.bundle-add-btn, .bundle-buy-btn {
+  flex: 1;
   border: none;
   padding: 0.75rem;
   border-radius: 5px;
@@ -153,11 +157,23 @@
   cursor: pointer;
 }
 
-.bundle-add-btn:hover:not(:disabled) {
+.bundle-add-btn {
+  background: var(--primary-color);
+  color: white;
+}
+
+.bundle-buy-btn {
+  background: var(--secondary-color);
+  color: white;
+}
+
+.bundle-add-btn:hover:not(:disabled),
+.bundle-buy-btn:hover:not(:disabled) {
   opacity: 0.9;
 }
 
-.bundle-add-btn:disabled {
+.bundle-add-btn:disabled,
+.bundle-buy-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
