@@ -11,6 +11,7 @@ const AddSubCategory = () => {
     name: '',
     description: '',
     categoryId: '',
+    orderNumber: 0,
     status: 'active'
   })
   const [categories, setCategories] = useState([])
@@ -88,6 +89,7 @@ const AddSubCategory = () => {
         name: formData.name,
         description: formData.description,
         categoryId: parseInt(formData.categoryId),
+        orderNumber: parseInt(formData.orderNumber) || 0,
         image: image ? image.url : null,
         sizeChart: sizeChart ? sizeChart.url : null
       }
@@ -97,7 +99,7 @@ const AddSubCategory = () => {
       navigate('/subcategory-list')
       
       // Reset form
-      setFormData({ name: '', description: '', categoryId: '', status: 'active' })
+      setFormData({ name: '', description: '', categoryId: '', orderNumber: 0, status: 'active' })
       setImage(null)
       setSizeChart(null)
     } catch (err) {
@@ -164,6 +166,18 @@ const AddSubCategory = () => {
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Enter sub category description"
                 rows={4}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Order Number</label>
+              <input
+                type="number"
+                className="form-input"
+                value={formData.orderNumber}
+                onChange={(e) => handleInputChange('orderNumber', e.target.value)}
+                placeholder="Enter display order (0 = first)"
+                min="0"
               />
             </div>
           </div>

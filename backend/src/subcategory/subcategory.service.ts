@@ -21,7 +21,7 @@ export class SubCategoryService {
       include: {
         category: true,
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { orderNumber: 'asc' },
     });
   }
 

@@ -115,7 +115,7 @@ const SubCategoryList = () => {
   };
 
   const ViewModal = ({ subCategory }) => (
-    <div className="modal-content view-modal">
+    <div className="modal-content view-modal" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <h2>Subcategory Details</h2>
       <img
         src={subCategory.image || "/placeholder.svg"}
@@ -133,6 +133,16 @@ const SubCategoryList = () => {
         <p>
           <strong>Description:</strong> {subCategory.description || "N/A"}
         </p>
+        {subCategory.sizeChart && (
+          <div style={{ marginTop: '1rem' }}>
+            <p><strong>Size Chart:</strong></p>
+            <img
+              src={subCategory.sizeChart}
+              alt="Size Chart"
+              style={{ maxWidth: '100%', marginTop: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -144,6 +154,7 @@ const SubCategoryList = () => {
       image: subCategory.image || "",
       sizeChart: subCategory.sizeChart || "",
       categoryId: subCategory.categoryId,
+      orderNumber: subCategory.orderNumber || 0,
     });
     const [saving, setSaving] = useState(false);
     const [imageUploading, setImageUploading] = useState(false);
@@ -192,7 +203,7 @@ const SubCategoryList = () => {
     };
 
     return (
-      <form className="modal-content edit-modal" onSubmit={handleSubmit}>
+      <form className="modal-content edit-modal" onSubmit={handleSubmit} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
         <h2>Edit Subcategory</h2>
         <div className="form-group">
           <label className="form-label">Image</label>
@@ -263,6 +274,18 @@ const SubCategoryList = () => {
               setForm((f) => ({ ...f, description: e.target.value }))
             }
             rows={3}
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Order Number</label>
+          <input
+            type="number"
+            className="form-input"
+            value={form.orderNumber}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, orderNumber: parseInt(e.target.value) || 0 }))
+            }
+            min="0"
           />
         </div>
         <div className="form-group">
@@ -355,6 +378,11 @@ const SubCategoryList = () => {
       key: "category",
       label: "Parent Category",
       render: (value) => value?.name || "N/A",
+    },
+    {
+      key: "orderNumber",
+      label: "Order",
+      render: (value) => value || 0,
     },
     { key: "description", label: "Description" },
     {

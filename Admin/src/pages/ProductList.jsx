@@ -256,7 +256,7 @@ const ProductList = () => {
 
   // Modal content for view
   const ViewModal = ({ product }) => (
-    <div className="modal-content view-modal">
+    <div className="modal-content view-modal" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <h2>Product Details</h2>
       {product.gallery && product.gallery.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
