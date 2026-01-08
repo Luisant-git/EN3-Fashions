@@ -2,7 +2,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
-    padding-top: 140px;
+    padding-top: 2rem;
 }
 
 .size-chart-page h1 {
@@ -47,9 +47,11 @@
 
 .chart-card img {
     width: 100%;
+    max-width: 800px;
     height: auto;
     border-radius: 4px;
     display: block;
+    margin: 0 auto;
 }
 
 @media (max-width: 768px) {

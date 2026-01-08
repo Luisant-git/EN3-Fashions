@@ -21,6 +21,7 @@ export class SubCategoryService {
       include: {
         category: true,
       },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

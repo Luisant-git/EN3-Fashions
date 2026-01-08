@@ -61,7 +61,7 @@ const App = () => {
                                     <Route path="/checkout" element={<CheckoutPage />} />
                                     <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
                                     <Route path="/search" element={<SearchResultsPage />} />
-                                    <Route path="/size-chart" element={<SizeChartPage />} />
+                                    <Route path="/size-chart/:subCategoryId" element={<SizeChartPage />} />
                                     <Route path="/login" element={<LoginPage />} />
                                     <Route path="/signup" element={<SignupPage />} />
                                     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

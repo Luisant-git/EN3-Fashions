@@ -264,7 +264,15 @@ const ProductDetailPage = () => {
                 <div className="pdp-selector-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                         <label className="pdp-selector-label" style={{ margin: 0 }}>Size:</label>
-                        <Link to="/size-chart" className="size-chart-link" style={{ margin: 0 }}>View Size Chart</Link>
+                        {product.subCategory?.sizeChart && (
+                            <Link 
+                                to={`/size-chart/${product.subCategoryId}`} 
+                                className="size-chart-link" 
+                                style={{ margin: 0 }}
+                            >
+                                View Size Chart
+                            </Link>
+                        )}
                     </div>
                     <div className="pdp-size-options">
                         {selectedColor?.sizes.map(size => (

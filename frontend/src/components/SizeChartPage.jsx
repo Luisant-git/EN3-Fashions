@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { getActiveSizeCharts } from '../api/sizeChartApi';
+import { useParams } from 'react-router-dom';
+import { getSubCategory } from '../api/subcategoryApi';
 import LoadingSpinner from './LoadingSpinner';
 import '../styles/SizeChartPage.css';
 
 const SizeChartPage = () => {
-    const [charts, setCharts] = useState([]);
+    const { subCategoryId } = useParams();
+    const [subCategory, setSubCategory] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchCharts();
-    }, []);
+        if (subCategoryId) {
+            fetchSizeChart();
+        }
+    }, [subCategoryId]);
 
-    const fetchCharts = async () => {
+    const fetchSizeChart = async () => {
         try {
-            const data = await getActiveSizeCharts();
-            setCharts(data);
+            const data = await getSubCategory(subCategoryId);
+            setSubCategory(data);
         } catch (error) {
-            console.error('Failed to fetch size charts:', error);
+            console.error('Failed to fetch size chart:', error);
         } finally {
             setLoading(false);
         }
@@ -26,21 +30,23 @@ const SizeChartPage = () => {
         return <div className="loading-container"><LoadingSpinner /></div>;
     }
 
+    if (!subCategory || !subCategory.sizeChart) {
+        return (
+            <div className="size-chart-page">
+                <h1>Size Chart</h1>
+                <p className="no-charts">No size chart available for this category</p>
+            </div>
+        );
+    }
+
     return (
         <div className="size-chart-page">
-            <h1>Size Chart</h1>
-            {charts.length === 0 ? (
-                <p className="no-charts">No size charts available</p>
-            ) : (
-                <div className="charts-container">
-                    {charts.map((chart) => (
-                        <div key={chart.id} className="chart-card">
-                            <h2>{chart.title}</h2>
-                            <img src={chart.image} alt={chart.title} />
-                        </div>
-                    ))}
+            <h1>Size Chart - {subCategory.name}</h1>
+            <div className="charts-container">
+                <div className="chart-card">
+                    <img src={subCategory.sizeChart} alt={`${subCategory.name} Size Chart`} />
                 </div>
-            )}
+            </div>
         </div>
     );
 };
