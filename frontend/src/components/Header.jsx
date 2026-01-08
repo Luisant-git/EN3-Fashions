@@ -26,7 +26,11 @@ const Header = () => {
         const fetchData = async () => {
             try {
                 const categoriesData = await getCategories();
-                setCategories(categoriesData);
+                const sortedCategories = categoriesData.map(cat => ({
+                    ...cat,
+                    subCategories: cat.subCategories?.sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0)) || []
+                }));
+                setCategories(sortedCategories);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
