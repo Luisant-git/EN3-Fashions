@@ -52,6 +52,7 @@ export class CartService {
         imageUrl: addToCartDto.imageUrl,
         size: addToCartDto.size,
         color: addToCartDto.color,
+        colorVariantId: addToCartDto.colorVariantId,
         quantity: addToCartDto.quantity || 1,
         type: addToCartDto.type || 'single',
         bundleItems: addToCartDto.items ? JSON.parse(JSON.stringify(addToCartDto.items)) : undefined,

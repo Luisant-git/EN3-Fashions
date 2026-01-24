@@ -965,6 +965,11 @@ const OrdersList = () => {
                         <p>
                           Size: {item.size}, Color: {item.color}
                         </p>
+                        {item.colorVariantId && (
+                          <p style={{ fontSize: '12px', color: '#6b7280', fontFamily: 'monospace' }}>
+                            Variant ID: {item.colorVariantId}
+                          </p>
+                        )}
                         <p>
                           Qty: {item.quantity} × ₹{item.price}
                         </p>

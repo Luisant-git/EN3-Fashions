@@ -74,7 +74,8 @@ const ProductDetailPage = () => {
             price: selectedSize.price,
             imageUrl: selectedColor.image,
             size: selectedSize.size,
-            color: selectedColor.name
+            color: selectedColor.name,
+            colorVariantId: selectedColor.colorVariantId
         });
     };
 
@@ -86,7 +87,8 @@ const ProductDetailPage = () => {
             price: selectedSize.price,
             imageUrl: selectedColor.image,
             size: selectedSize.size,
-            color: selectedColor.name
+            color: selectedColor.name,
+            colorVariantId: selectedColor.colorVariantId
         });
         navigate('/checkout');
     };

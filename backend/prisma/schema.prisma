@@ -189,6 +189,7 @@ model CartItem {
   imageUrl     String
   size         String?
   color        String?
+  colorVariantId String?
   quantity     Int      @default(1)
   type         String   @default("single") // "single" or "bundle"
   bundleItems  Json?    // For bundle items: [{color, size, originalPrice, colorImage}]
@@ -233,6 +234,7 @@ model OrderItem {
   imageUrl    String
   size        String?
   color       String?
+  colorVariantId String?
   quantity    Int
   type        String  @default("single")
   bundleItems Json?

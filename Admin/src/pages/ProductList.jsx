@@ -310,6 +310,11 @@ const ProductList = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: color.code, border: '1px solid #e5e7eb' }}></div>
                   <strong>{color.name}</strong>
+                  {color.colorVariantId && (
+                    <span style={{ fontSize: '12px', color: '#6b7280', fontFamily: 'monospace', background: '#e5e7eb', padding: '2px 6px', borderRadius: '4px' }}>
+                      ID: {color.colorVariantId}
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: '13px', color: '#6b7280' }}>
                   Sizes: {color.sizes.map(s => `${s.size} (₹${s.price}, Qty: ${s.quantity})`).join(', ')}
@@ -548,7 +553,7 @@ const ProductList = () => {
               <Search size={20} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search by name or color variant ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -597,10 +602,16 @@ const ProductList = () => {
             data={products.filter(p => {
               const categoryMatch = filterCategory === 'all' || p.categoryId === parseInt(filterCategory);
               const subCategoryMatch = filterSubCategory === 'all' || p.subCategoryId === parseInt(filterSubCategory);
-              return categoryMatch && subCategoryMatch;
+              
+              // Search by name or colorVariantId
+              const searchMatch = searchTerm === '' || 
+                p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.colors?.some(color => color.colorVariantId?.toUpperCase() === searchTerm.toUpperCase());
+              
+              return categoryMatch && subCategoryMatch && searchMatch;
             })}
             columns={columns}
-            searchTerm={searchTerm}
+            searchTerm=""
             searchKey="name"
           />
 
