@@ -68,6 +68,8 @@ const ProductDetailPage = () => {
 
     const handleAddToCart = () => {
         if (cartLoading || !selectedSize) return;
+        console.log('Selected Color:', selectedColor);
+        console.log('Color Variant ID:', selectedColor?.colorVariantId);
         addToCart({
             id: product.id,
             name: product.name,
@@ -75,7 +77,7 @@ const ProductDetailPage = () => {
             imageUrl: selectedColor.image,
             size: selectedSize.size,
             color: selectedColor.name,
-            colorVariantId: selectedColor.colorVariantId
+            colorVariantId: selectedColor?.colorVariantId || null
         });
     };
 
@@ -88,7 +90,7 @@ const ProductDetailPage = () => {
             imageUrl: selectedColor.image,
             size: selectedSize.size,
             color: selectedColor.name,
-            colorVariantId: selectedColor.colorVariantId
+            colorVariantId: selectedColor?.colorVariantId || null
         });
         navigate('/checkout');
     };
