@@ -35,10 +35,13 @@ export class CartService {
     });
 
     if (existingItem) {
-      // Update quantity for existing item
+      // Update quantity and colorVariantId for existing item
       return this.prisma.cartItem.update({
         where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + (addToCartDto.quantity || 1) }
+        data: { 
+          quantity: existingItem.quantity + (addToCartDto.quantity || 1),
+          colorVariantId: addToCartDto.colorVariantId
+        }
       });
     }
 
