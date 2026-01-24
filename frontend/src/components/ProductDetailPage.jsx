@@ -93,7 +93,7 @@ const ProductDetailPage = () => {
 
     const accordionItems = [
         { id: 1, title: 'Product Description', content: 'This is a high-quality garment made from premium materials, designed for comfort and style. Perfect for any occasion, it features a modern fit and durable construction.' },
-        { id: 2, title: 'Shipping & Returns', content: 'We offer free standard shipping on all orders over ₹1000. Express shipping options are available at checkout. Returns are accepted within 30 days of purchase for a full refund.' }
+        { id: 2, title: 'Shipping & Returns', content: 'Shipping charges apply based on your location. Returns are accepted within 30 days of purchase for a full refund.' }
     ];
 
     const toggleAccordion = (id) => {
@@ -236,7 +236,7 @@ const ProductDetailPage = () => {
                 <h1>{product.name}</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
                     {product.mrp && <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.5rem' }}>₹{product.mrp}</span>}
-                    <p className="pdp-price" style={{ margin: 0 }}>₹{selectedSize?.price || product.basePrice}</p>
+                    <p className="pdp-price" style={{ margin: 0 }}>₹{selectedSize?.price || product.basePrice} <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: 'normal' }}>+ shipping charges</span></p>
                 </div>
                 <p className="pdp-description">{product.description}</p>
 
