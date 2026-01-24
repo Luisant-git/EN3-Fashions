@@ -601,6 +601,358 @@ const OrdersList = () => {
   const generateInvoice = (order) => {
     generateInvoicePDF(order, true);
   };
+
+  const generateCombinedDocument = (order) => {
+    const pdf = new jsPDF();
+    const address = order.shippingAddress;
+
+    pdf.setDrawColor(200);
+    pdf.line(105, 0, 105, 148.5);
+    pdf.line(0, 148.5, 210, 148.5);
+
+    // === PACKAGE SLIP - Top Left ===
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(41, 98, 255);
+    pdf.text('PACKING SLIP', 10, 8);
+    pdf.setTextColor(0, 0, 0);
+    
+    const logo = new Image();
+    logo.src = '/EN3 LOGO PNG.png';
+    try {
+      pdf.addImage(logo, 'PNG', 10, 11, 15, 7);
+    } catch (e) {}
+    
+    pdf.setFontSize(7);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('KPG APPARELS', 10, 22);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 10, 25);
+    pdf.text('Valipalayam, Tiruppur,', 10, 28);
+    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 10, 31);
+    pdf.text('IN', 10, 34);
+    
+    pdf.setDrawColor(200, 200, 200);
+    pdf.rect(60, 18, 35, 26);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO', 62, 22);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      let shipY = 25;
+      pdf.text(address.fullName || order.user?.name || 'N/A', 62, shipY);
+      shipY += 3;
+      pdf.text(address.mobile || order.user?.phone || 'N/A', 62, shipY);
+      shipY += 3;
+      const shipAddr1 = pdf.splitTextToSize(address.addressLine1 || '', 30);
+      pdf.text(shipAddr1, 62, shipY);
+      shipY += shipAddr1.length * 3;
+      if (address.addressLine2) {
+        const shipAddr2 = pdf.splitTextToSize(address.addressLine2, 30);
+        pdf.text(shipAddr2, 62, shipY);
+        shipY += shipAddr2.length * 3;
+      }
+      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 62, shipY);
+    }
+    
+    pdf.setFontSize(7);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Sales Order No', 10, 40);
+    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 32, 40);
+    pdf.text('Order Date', 10, 44);
+    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 32, 44);
+    
+    const pkgTableTop = 50;
+    pdf.setFillColor(220, 230, 255);
+    pdf.rect(10, pkgTableTop, 85, 6, 'F');
+    pdf.rect(10, pkgTableTop, 85, 6);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Item', 12, pkgTableTop + 4);
+    pdf.text('Size', 70, pkgTableTop + 4);
+    pdf.text('Qty', 85, pkgTableTop + 4);
+    
+    pdf.line(10, pkgTableTop, 10, pkgTableTop + 6);
+    pdf.line(68, pkgTableTop, 68, pkgTableTop + 6);
+    pdf.line(82, pkgTableTop, 82, pkgTableTop + 6);
+    pdf.line(95, pkgTableTop, 95, pkgTableTop + 6);
+    
+    pdf.setFont(undefined, 'normal');
+    let yPos = pkgTableTop + 10;
+    const pkgItemStartY = yPos;
+    let itemCounter = 1;
+    
+    order.items?.forEach((item) => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        item.bundleItems.forEach((bundleItem) => {
+          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
+          const lines = pdf.splitTextToSize(itemName, 50);
+          pdf.text(lines, 12, yPos);
+          pdf.text(bundleItem.size || 'N/A', 70, yPos);
+          pdf.text('1', 85, yPos);
+          yPos += lines.length * 3.5 + 1;
+          itemCounter++;
+        });
+      } else {
+        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+        const lines = pdf.splitTextToSize(itemName, 50);
+        pdf.text(lines, 12, yPos);
+        pdf.text(item.size || 'N/A', 70, yPos);
+        pdf.text(item.quantity?.toString() || '1', 85, yPos);
+        yPos += lines.length * 3.5 + 1;
+        itemCounter++;
+      }
+    });
+    
+    const pkgItemEndY = yPos;
+    pdf.line(10, pkgItemEndY, 95, pkgItemEndY);
+    pdf.line(10, pkgTableTop + 6, 10, pkgItemEndY);
+    pdf.line(68, pkgTableTop + 6, 68, pkgItemEndY);
+    pdf.line(82, pkgTableTop + 6, 82, pkgItemEndY);
+    pdf.line(95, pkgTableTop + 6, 95, pkgItemEndY);
+    
+    pdf.setFont(undefined, 'italic');
+    pdf.text('Thank you for shopping with us!', 52, pkgItemEndY + 6, { align: 'center' });
+
+    // === INVOICE - Top Right ===
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('INVOICE', 150, 10);
+    
+    pdf.setFontSize(5);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Sold By :', 108, 16);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('KPG APPARELS', 108, 19);
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam,', 108, 21);
+    pdf.text('Tiruppur,', 108, 23);
+    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 108, 25);
+    pdf.text('IN', 108, 27);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Billing Address :', 155, 16);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      let billY = 19;
+      pdf.text(address.fullName || order.user?.name || 'N/A', 155, billY);
+      billY += 2.5;
+      const billLine1 = pdf.splitTextToSize(address.addressLine1 || '', 42);
+      pdf.text(billLine1, 155, billY);
+      billY += billLine1.length * 2.5;
+      if (address.addressLine2) {
+        const billLine2 = pdf.splitTextToSize(address.addressLine2, 42);
+        pdf.text(billLine2, 155, billY);
+        billY += billLine2.length * 2.5;
+      }
+      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 155, billY);
+      billY += 2.5;
+      pdf.text('IN', 155, billY);
+    }
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('PAN No:', 108, 31);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('AARFK8101F', 120, 31);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('GST No:', 108, 34);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('33AARFK8101F1ZG', 120, 34);
+    
+    pdf.line(108, 37, 202, 37);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Number:', 108, 41);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 130, 41);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Shipping Address :', 155, 41);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      let shipY = 44;
+      pdf.text(address.fullName || order.user?.name || 'N/A', 155, shipY);
+      shipY += 2.5;
+      pdf.text(address.mobile || order.user?.phone || 'N/A', 155, shipY);
+      shipY += 2.5;
+      const shipLine1 = pdf.splitTextToSize(address.addressLine1 || '', 42);
+      pdf.text(shipLine1, 155, shipY);
+      shipY += shipLine1.length * 2.5;
+      if (address.addressLine2) {
+        const shipLine2 = pdf.splitTextToSize(address.addressLine2, 42);
+        pdf.text(shipLine2, 155, shipY);
+        shipY += shipLine2.length * 2.5;
+      }
+      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 155, shipY);
+      shipY += 2.5;
+      pdf.text('IN', 155, shipY);
+      shipY += 2.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Place of supply:', 155, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.state?.toUpperCase() || 'N/A', 173, shipY);
+      shipY += 2.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Place of delivery:', 155, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.state?.toUpperCase() || 'N/A', 175, shipY);
+    }
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Date:', 108, 44);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 125, 44);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Invoice Number :', 108, 47);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`IN-${order.id}`, 133, 47);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Invoice Date :', 108, 50);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 130, 50);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Mode of Payment:', 108, 53);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(order.paymentMethod || 'Online', 133, 53);
+    
+    // Items table
+    const tableTop = 68;
+    pdf.setFillColor(220, 220, 220);
+    pdf.rect(108, tableTop, 94, 6, 'F');
+    pdf.rect(108, tableTop, 94, 6);
+    
+    pdf.setFontSize(5);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Sl.', 109, tableTop + 4);
+    pdf.text('Description', 118, tableTop + 4);
+    pdf.text('HSN', 165, tableTop + 4);
+    pdf.text('Unit Price', 175, tableTop + 4);
+    pdf.text('Qty', 190, tableTop + 4);
+    pdf.text('Total', 197, tableTop + 4);
+    
+    pdf.line(108, tableTop, 108, tableTop + 6);
+    pdf.line(115, tableTop, 115, tableTop + 6);
+    pdf.line(163, tableTop, 163, tableTop + 6);
+    pdf.line(173, tableTop, 173, tableTop + 6);
+    pdf.line(188, tableTop, 188, tableTop + 6);
+    pdf.line(195, tableTop, 195, tableTop + 6);
+    pdf.line(202, tableTop, 202, tableTop + 6);
+    
+    pdf.setFont(undefined, 'normal');
+    yPos = tableTop + 10;
+    const itemStartY = yPos;
+    
+    order.items?.forEach((item, index) => {
+      const itemPrice = parseFloat(item.price) || 0;
+      const itemQty = item.quantity || 1;
+      const itemTotal = itemPrice * itemQty;
+      
+      pdf.text((index + 1).toString(), 109, yPos);
+      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
+      const lines = pdf.splitTextToSize(itemDesc, 43);
+      pdf.text(lines, 118, yPos);
+      pdf.text(item.hsnCode || 'N/A', 165, yPos);
+      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 175, yPos);
+      pdf.text(itemQty.toString(), 190, yPos);
+      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += Math.max(lines.length * 2.5, 4);
+    });
+    
+    const itemEndY = yPos;
+    pdf.line(108, itemEndY, 202, itemEndY);
+    pdf.line(108, tableTop + 6, 108, itemEndY);
+    pdf.line(115, tableTop + 6, 115, itemEndY);
+    pdf.line(163, tableTop + 6, 163, itemEndY);
+    pdf.line(173, tableTop + 6, 173, itemEndY);
+    pdf.line(188, tableTop + 6, 188, itemEndY);
+    pdf.line(195, tableTop + 6, 195, itemEndY);
+    pdf.line(202, tableTop + 6, 202, itemEndY);
+    
+    yPos += 3;
+    const pricingStartY = yPos;
+    const subtotal = parseFloat(order.subtotal) || 0;
+    const discount = parseFloat(order.discount) || 0;
+    const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const total = parseFloat(order.total) || 0;
+    const deliveryGst = order.deliveryOption?.gst || {};
+    const isSameState = deliveryGst.isSameState !== false;
+    const gstRate = 5;
+    const afterDiscount = subtotal - discount;
+    const totalWithDelivery = afterDiscount + deliveryFee;
+    const baseAmount = totalWithDelivery / (1 + gstRate / 100);
+    const gstAmount = totalWithDelivery - baseAmount;
+    const cgstAmount = isSameState ? (gstAmount / 2) : 0;
+    const sgstAmount = isSameState ? (gstAmount / 2) : 0;
+    const igstAmount = !isSameState ? gstAmount : 0;
+    
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Subtotal (incl. GST):', 118, yPos);
+    pdf.text(`Rs.${subtotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
+    
+    if (discount > 0) {
+      pdf.text(`Discount (${order.couponCode || ''})`, 118, yPos);
+      pdf.text(`- Rs.${discount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    }
+    
+    pdf.text('Delivery Fee (incl. GST):', 118, yPos);
+    pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
+    
+    pdf.text('Taxable Amount:', 118, yPos);
+    pdf.text(`Rs.${baseAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
+    
+    if (isSameState) {
+      pdf.text(`CGST (2.50%)`, 118, yPos);
+      pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+      pdf.text(`SGST (2.50%)`, 118, yPos);
+      pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    } else {
+      pdf.text(`IGST (5.00%)`, 118, yPos);
+      pdf.text(`Rs.${igstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    }
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('TOTAL:', 118, yPos);
+    pdf.text(`Rs.${total.toFixed(2)}`, 200, yPos, { align: 'right' });
+    
+    yPos += 4;
+    pdf.text('Amount in Words:', 118, yPos);
+    pdf.setFont(undefined, 'normal');
+    const amountInWords = convertToWords(total);
+    const wordLines = pdf.splitTextToSize(amountInWords, 80);
+    pdf.text(wordLines, 118, yPos + 3);
+    
+    const pricingEndY = yPos + 3 + (wordLines.length * 2.5);
+    pdf.rect(108, itemEndY, 94, pricingEndY - itemEndY);
+    
+    // Authorized Signatory
+    let footerY = pricingEndY + 4;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('For EN3 FASHIONS:', 175, footerY);
+    if (signatureUrl) {
+      const signatureImg = new Image();
+      signatureImg.src = signatureUrl;
+      try {
+        pdf.addImage(signatureImg, 'PNG', 175, footerY + 2, 20, 6);
+      } catch (e) {}
+    }
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Authorized Signatory', 175, footerY + 10);
+    
+    // Date & Time
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Date & Time:', 108, footerY + 10);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date().toLocaleString('en-GB'), 125, footerY + 10);
+    pdf.save(`combined-${order.id}.pdf`);
+  };
   
   const convertToWords = (amount) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
@@ -780,22 +1132,13 @@ const OrdersList = () => {
             </button>
           )}
           {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
-            <>
-              <button
-                className="action-btn download"
-                title="Download Package Slip"
-                onClick={() => generatePackageSlip(row)}
-              >
-                <Package size={16} />
-              </button>
-              <button
-                className="action-btn download"
-                title="Download Invoice"
-                onClick={() => generateInvoice(row)}
-              >
-                <Receipt size={16} />
-              </button>
-            </>
+            <button
+              className="action-btn download"
+              title="Download Combined Document"
+              onClick={() => generateCombinedDocument(row)}
+            >
+              <Receipt size={16} />
+            </button>
           )}
         </div>
       ),
