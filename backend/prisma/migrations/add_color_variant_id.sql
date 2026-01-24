@@ -48,4 +48,4 @@ END $$;
 DROP FUNCTION IF EXISTS generate_color_variant_id();
 
 -- Verify the update
-SELECT id, name, colors FROM "Product" LIMIT 5;
+SELECT id, name, colors FROM "Product" LIMIT 5; 
