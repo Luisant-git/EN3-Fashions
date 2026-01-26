@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Search, Filter, Plus, Edit, Trash2, Eye, X } from "lucide-react";
+import { Search, Filter, Plus, Edit, Trash2, Eye, X, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { jsPDF } from "jspdf";
 import DataTable from "../components/DataTable";
 import {
   getProducts,
@@ -159,6 +160,44 @@ const ProductList = () => {
     }
   };
 
+  const downloadProductVariants = (product) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const labelWidth = pageWidth / 2;
+    const labelHeight = 25;
+    let x = 0;
+    let y = 5;
+    let count = 0;
+    
+    product.colors?.forEach(color => {
+      color.sizes?.forEach(size => {
+        doc.setFontSize(10);
+        doc.text(product.name, x + labelWidth / 2, y + 8, { align: 'center' });
+        doc.setFontSize(9);
+        doc.text(color.name, x + labelWidth / 2, y + 14, { align: 'center' });
+        doc.setFontSize(8);
+        doc.text(`${size.size} (${size.sizeVariantId || 'N/A'})`, x + labelWidth / 2, y + 19, { align: 'center' });
+        doc.line(x, y + labelHeight, x + labelWidth, y + labelHeight);
+        
+        count++;
+        if (count % 2 === 0) {
+          x = 0;
+          y += labelHeight;
+          if (y + labelHeight > pageHeight) {
+            doc.addPage();
+            y = 5;
+          }
+        } else {
+          x = labelWidth;
+          doc.line(labelWidth, y, labelWidth, y + labelHeight);
+        }
+      });
+    });
+    
+    doc.save(`${product.name.replace(/\s+/g, '_')}_labels.pdf`);
+  };
+
   const columns = [
     {
       key: "gallery",
@@ -248,6 +287,13 @@ const ProductList = () => {
             onClick={() => openModal("delete", row)}
           >
             <Trash2 size={16} />
+          </button>
+          <button
+            className="action-btn download"
+            onClick={() => downloadProductVariants(row)}
+            title="Download Variants"
+          >
+            <Download size={16} />
           </button>
         </div>
       ),
