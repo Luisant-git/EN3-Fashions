@@ -310,14 +310,19 @@ const ProductList = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: color.code, border: '1px solid #e5e7eb' }}></div>
                   <strong>{color.name}</strong>
-                  {color.colorVariantId && (
-                    <span style={{ fontSize: '12px', color: '#6b7280', fontFamily: 'monospace', background: '#e5e7eb', padding: '2px 6px', borderRadius: '4px' }}>
-                      ID: {color.colorVariantId}
-                    </span>
-                  )}
                 </div>
                 <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                  Sizes: {color.sizes.map(s => `${s.size} (₹${s.price}, Qty: ${s.quantity})`).join(', ')}
+                  Sizes: {color.sizes.map((s, idx) => (
+                    <span key={idx}>
+                      {s.size} (₹{s.price}, Qty: {s.quantity})
+                      {s.sizeVariantId && (
+                        <span style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace', marginLeft: '4px' }}>
+                          [{s.sizeVariantId}]
+                        </span>
+                      )}
+                      {idx < color.sizes.length - 1 ? ', ' : ''}
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}
@@ -553,7 +558,7 @@ const ProductList = () => {
               <Search size={20} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search by name or color variant ID..."
+                placeholder="Search by name or size variant ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -603,10 +608,14 @@ const ProductList = () => {
               const categoryMatch = filterCategory === 'all' || p.categoryId === parseInt(filterCategory);
               const subCategoryMatch = filterSubCategory === 'all' || p.subCategoryId === parseInt(filterSubCategory);
               
-              // Search by name or colorVariantId
+              // Search by name or sizeVariantId
               const searchMatch = searchTerm === '' || 
                 p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.colors?.some(color => color.colorVariantId?.toUpperCase() === searchTerm.toUpperCase());
+                p.colors?.some(color => 
+                  color.sizes?.some(size => 
+                    size.sizeVariantId?.toUpperCase() === searchTerm.toUpperCase()
+                  )
+                );
               
               return categoryMatch && subCategoryMatch && searchMatch;
             })}

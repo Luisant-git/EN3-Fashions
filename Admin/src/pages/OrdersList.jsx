@@ -1308,9 +1308,9 @@ const OrdersList = () => {
                         <p>
                           Size: {item.size}, Color: {item.color}
                         </p>
-                        {item.colorVariantId && (
+                        {item.sizeVariantId && (
                           <p style={{ fontSize: '12px', color: '#6b7280', fontFamily: 'monospace' }}>
-                            Variant ID: {item.colorVariantId}
+                            Variant ID: {item.sizeVariantId}
                           </p>
                         )}
                         <p>
