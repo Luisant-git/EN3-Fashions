@@ -172,12 +172,18 @@ const ProductList = () => {
     
     product.colors?.forEach(color => {
       color.sizes?.forEach(size => {
+        const maxWidth = labelWidth - 10;
         doc.setFontSize(10);
-        doc.text(product.name, x + labelWidth / 2, y + 8, { align: 'center' });
+        const nameLines = doc.splitTextToSize(product.name, maxWidth);
+        let currentY = y + 6;
+        nameLines.forEach(line => {
+          doc.text(line, x + labelWidth / 2, currentY, { align: 'center' });
+          currentY += 4;
+        });
         doc.setFontSize(9);
-        doc.text(color.name, x + labelWidth / 2, y + 14, { align: 'center' });
+        doc.text(color.name, x + labelWidth / 2, currentY + 1, { align: 'center' });
         doc.setFontSize(8);
-        doc.text(`${size.size} (${size.sizeVariantId || 'N/A'})`, x + labelWidth / 2, y + 19, { align: 'center' });
+        doc.text(`${size.size} (${size.sizeVariantId || 'N/A'})`, x + labelWidth / 2, currentY + 6, { align: 'center' });
         doc.line(x, y + labelHeight, x + labelWidth, y + labelHeight);
         
         count++;
