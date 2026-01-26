@@ -1,4 +1,4 @@
-export function generateColorVariantId(): string {
+export function generateSizeVariantId(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
   for (let i = 0; i < 6; i++) {
@@ -7,9 +7,12 @@ export function generateColorVariantId(): string {
   return result;
 }
 
-export function addColorVariantIds(colors: any[]): any[] {
+export function addSizeVariantIds(colors: any[]): any[] {
   return colors.map(color => ({
     ...color,
-    colorVariantId: color.colorVariantId || generateColorVariantId()
+    sizes: color.sizes?.map(size => ({
+      ...size,
+      sizeVariantId: size.sizeVariantId || generateSizeVariantId()
+    })) || []
   }));
 }

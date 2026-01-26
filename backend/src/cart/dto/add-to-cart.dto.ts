@@ -38,7 +38,7 @@ export class AddToCartDto {
 
   @IsOptional()
   @IsString()
-  colorVariantId?: string;
+  sizeVariantId?: string;
 
   @IsOptional()
   @IsInt()

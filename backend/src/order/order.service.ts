@@ -65,7 +65,7 @@ export class OrderService {
             imageUrl: item.imageUrl,
             size: item.size,
             color: item.color,
-            colorVariantId: item.colorVariantId,
+            sizeVariantId: item.sizeVariantId,
             quantity: item.quantity,
             type: item.type,
             bundleItems: item.bundleItems ? JSON.parse(JSON.stringify(item.bundleItems)) : undefined,

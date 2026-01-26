@@ -35,12 +35,12 @@ export class CartService {
     });
 
     if (existingItem) {
-      // Update quantity and colorVariantId for existing item
+      // Update quantity and sizeVariantId for existing item
       return this.prisma.cartItem.update({
         where: { id: existingItem.id },
         data: { 
           quantity: existingItem.quantity + (addToCartDto.quantity || 1),
-          colorVariantId: addToCartDto.colorVariantId
+          sizeVariantId: addToCartDto.sizeVariantId
         }
       });
     }
@@ -55,7 +55,7 @@ export class CartService {
         imageUrl: addToCartDto.imageUrl,
         size: addToCartDto.size,
         color: addToCartDto.color,
-        colorVariantId: addToCartDto.colorVariantId,
+        sizeVariantId: addToCartDto.sizeVariantId,
         quantity: addToCartDto.quantity || 1,
         type: addToCartDto.type || 'single',
         bundleItems: addToCartDto.items ? JSON.parse(JSON.stringify(addToCartDto.items)) : undefined,
