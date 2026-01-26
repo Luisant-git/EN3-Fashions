@@ -366,7 +366,7 @@ const ProductList = () => {
                 <div style={{ fontSize: '13px', color: '#6b7280' }}>
                   Sizes: {color.sizes.map((s, idx) => (
                     <span key={idx}>
-                      {s.size} (₹{s.price}, Qty: {s.quantity})
+                      {s.size} (₹{s.price})
                       {s.sizeVariantId && (
                         <span style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace', marginLeft: '4px' }}>
                           [{s.sizeVariantId}]

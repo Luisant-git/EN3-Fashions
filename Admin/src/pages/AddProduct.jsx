@@ -33,7 +33,7 @@ const AddProduct = () => {
   const [error, setError] = useState('')
   const [editingColorIndex, setEditingColorIndex] = useState(null)
   const [currentColor, setCurrentColor] = useState({ name: '', code: '#000000', images: [], sizes: [] })
-  const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0, image: '' })
+  const [currentSize, setCurrentSize] = useState({ size: '', price: '' })
 
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
@@ -102,9 +102,9 @@ const AddProduct = () => {
     if (currentSize.size && currentSize.price) {
       setCurrentColor(prev => ({
         ...prev,
-        sizes: [...prev.sizes, { ...currentSize, quantity: parseInt(currentSize.quantity) || 0 }]
+        sizes: [...prev.sizes, { ...currentSize }]
       }))
-      setCurrentSize({ size: '', price: '', quantity: 0, image: '' })
+      setCurrentSize({ size: '', price: '' })
     }
   }
 
@@ -114,7 +114,7 @@ const AddProduct = () => {
         name: currentColor.name,
         code: currentColor.code,
         image: currentColor.images[0] || '',
-        sizes: currentColor.sizes.map(({ size, price, quantity }) => ({ size, price, quantity }))
+        sizes: currentColor.sizes.map(({ size, price }) => ({ size, price }))
       }
       
       if (editingColorIndex !== null) {
@@ -247,7 +247,7 @@ const AddProduct = () => {
         discount: false
       });
       setCurrentColor({ name: '', code: '', images: [], sizes: [] });
-      setCurrentSize({ size: '', price: '', quantity: 0, image: '' });
+      setCurrentSize({ size: '', price: '' });
     } catch (err) {
       const errorMsg = err.message || 'Failed to create product';
       setError(errorMsg);
@@ -579,7 +579,7 @@ const AddProduct = () => {
 
             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Add Sizes</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 70px', gap: '12px', alignItems: 'end' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 70px', gap: '12px', alignItems: 'end' }}>
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '13px' }}>Size</label>
                   <select
@@ -608,16 +608,6 @@ const AddProduct = () => {
                     placeholder="499.00"
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '13px' }}>Quantity</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    value={currentSize.quantity}
-                    onChange={(e) => setCurrentSize(prev => ({ ...prev, quantity: e.target.value }))}
-                    placeholder="10"
-                  />
-                </div>
                 <div style={{ marginBottom: '18px' }}>
                   <button type="button" onClick={addSize} className="btn btn-secondary" style={{ height: '42px', padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' }}>
                     <Plus size={16} /> Add
@@ -631,7 +621,7 @@ const AddProduct = () => {
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {currentColor.sizes.map((size, i) => (
                       <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f3f4f6', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #e5e7eb' }}>
-                        <strong>{size.size}</strong> - ₹{size.price} <span style={{ color: '#6b7280' }}>(Qty: {size.quantity})</span>
+                        <strong>{size.size}</strong> - ₹{size.price}
                         <button
                           type="button"
                           onClick={() => removeSizeFromCurrentColor(i)}
@@ -718,10 +708,7 @@ const AddProduct = () => {
                         {color.sizes.map((size, sIdx) => (
                           <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f9fafb', borderRadius: '6px', fontSize: '13px' }}>
                             <span style={{ fontWeight: '600', color: '#111827' }}>{size.size}</span>
-                            <div style={{ display: 'flex', gap: '12px', color: '#6b7280' }}>
-                              <span>₹{size.price}</span>
-                              <span>Qty: {size.quantity}</span>
-                            </div>
+                            <span style={{ color: '#6b7280' }}>₹{size.price}</span>
                           </div>
                         ))}
                       </div>
