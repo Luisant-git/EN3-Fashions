@@ -416,7 +416,7 @@ const OrdersList = () => {
     const logo = new Image();
     logo.src = '/EN3 LOGO PNG.png';
     try {
-      pdf.addImage(logo, 'PNG', 20, 18 + yOffset, 25, 12);
+      pdf.addImage(logo, 'PNG', 20, 18 + yOffset, 20, 10, undefined, 'FAST');
     } catch (e) {
       console.log('Logo not loaded');
     }
@@ -522,7 +522,7 @@ const OrdersList = () => {
       const logo = new Image();
       logo.src = '/EN3 LOGO PNG.png';
       try {
-        pdf.addImage(logo, 'PNG', 20, 18, 25, 12);
+        pdf.addImage(logo, 'PNG', 20, 18, 20, 10, undefined, 'FAST');
       } catch (e) {
         console.log('Logo not loaded');
       }
@@ -620,7 +620,7 @@ const OrdersList = () => {
     const logo = new Image();
     logo.src = '/EN3 LOGO PNG.png';
     try {
-      pdf.addImage(logo, 'PNG', 10, 11, 15, 7);
+      pdf.addImage(logo, 'PNG', 10, 11, 12, 6, undefined, 'FAST');
     } catch (e) {}
     
     pdf.setFontSize(7);
