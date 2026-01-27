@@ -35,6 +35,20 @@ const OrdersPage = () => {
                         <div className="order-details">
                              <p><strong>Status:</strong> {order.status}</p>
                              <p><strong>Delivery:</strong> {order.deliveryOption.name} (+₹{order.deliveryOption.fee})</p>
+                             {(order.status === 'Shipped' || order.status === 'Delivered') && (
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    {order.invoiceUrl && (
+                                        <a href={order.invoiceUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', borderRadius: '4px', textDecoration: 'none', fontSize: '14px' }}>
+                                            Download Invoice
+                                        </a>
+                                    )}
+                                    {order.packageSlipUrl && (
+                                        <a href={order.packageSlipUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', background: '#10b981', color: 'white', borderRadius: '4px', textDecoration: 'none', fontSize: '14px' }}>
+                                            Download Package Slip
+                                        </a>
+                                    )}
+                                </div>
+                             )}
                             {order.items.map(item => (
                                 <div key={item.id} className="order-item">
                                     {item.type === 'single' ? (
