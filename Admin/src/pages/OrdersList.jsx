@@ -218,7 +218,8 @@ const OrdersList = () => {
       const itemTotal = itemPrice * itemQty;
       
       pdf.text((index + 1).toString(), 17, yPos);
-      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
+      const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
       const lines = pdf.splitTextToSize(itemDesc, 65);
       pdf.text(lines, 30, yPos);
       pdf.text(item.hsnCode || 'N/A', 105, yPos);
@@ -407,12 +408,14 @@ const OrdersList = () => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
     
+    // Title
     pdf.setFontSize(14);
     pdf.setFont(undefined, 'bold');
     pdf.setTextColor(41, 98, 255);
     pdf.text('PACKING SLIP', 20, 15 + yOffset);
     pdf.setTextColor(0, 0, 0);
     
+    // Logo
     const logo = new Image();
     logo.src = '/EN3 LOGO PNG.png';
     try {
@@ -421,6 +424,7 @@ const OrdersList = () => {
       console.log('Logo not loaded');
     }
     
+    // Company Details (Left)
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('KPG APPARELS', 20, 33 + yOffset);
@@ -429,6 +433,7 @@ const OrdersList = () => {
     pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41 + yOffset);
     pdf.text('IN', 20, 45 + yOffset);
     
+    // Ship To Box (Right)
     pdf.setDrawColor(200, 200, 200);
     pdf.rect(120, 30 + yOffset, 70, 25);
     pdf.setFont(undefined, 'bold');
@@ -441,11 +446,13 @@ const OrdersList = () => {
       pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52 + yOffset);
     }
     
+    // Order Details
     pdf.text('Sales Order No', 20, 60 + yOffset);
     pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60 + yOffset);
     pdf.text('Order Date', 20, 65 + yOffset);
     pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65 + yOffset);
     
+    // Items Table
     const tableTop = 73 + yOffset;
     pdf.setFillColor(220, 230, 255);
     pdf.rect(20, tableTop, 170, 8, 'F');
@@ -473,7 +480,8 @@ const OrdersList = () => {
           itemCounter++;
         });
       } else {
-        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+        const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})${variantId}` : `${itemCounter}. ${item.name}${variantId}`;
         const lines = pdf.splitTextToSize(itemName, 95);
         pdf.text(lines, 20, yPos);
         pdf.text(item.size || 'N/A', 120, yPos);
@@ -513,12 +521,14 @@ const OrdersList = () => {
 
       const address = order.shippingAddress;
       
+      // Title
       pdf.setFontSize(14);
       pdf.setFont(undefined, 'bold');
       pdf.setTextColor(41, 98, 255);
       pdf.text('PACKING SLIP', 20, 15);
       pdf.setTextColor(0, 0, 0);
       
+      // Logo
       const logo = new Image();
       logo.src = '/EN3 LOGO PNG.png';
       try {
@@ -527,6 +537,7 @@ const OrdersList = () => {
         console.log('Logo not loaded');
       }
       
+      // Company Details (Left)
       pdf.setFontSize(8);
       pdf.setFont(undefined, 'bold');
       pdf.text('KPG APPARELS', 20, 33);
@@ -535,6 +546,7 @@ const OrdersList = () => {
       pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41);
       pdf.text('IN', 20, 45);
       
+      // Ship To Box (Right)
       pdf.setDrawColor(200, 200, 200);
       pdf.rect(120, 30, 70, 25);
       pdf.setFont(undefined, 'bold');
@@ -547,11 +559,13 @@ const OrdersList = () => {
         pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52);
       }
       
+      // Order Details
       pdf.text('Sales Order No', 20, 60);
       pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60);
       pdf.text('Order Date', 20, 65);
       pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65);
       
+      // Items Table
       const tableTop = 73;
       pdf.setFillColor(220, 230, 255);
       pdf.rect(20, tableTop, 170, 8, 'F');
@@ -579,7 +593,8 @@ const OrdersList = () => {
             itemCounter++;
           });
         } else {
-          const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+          const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+          const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})${variantId}` : `${itemCounter}. ${item.name}${variantId}`;
           const lines = pdf.splitTextToSize(itemName, 95);
           pdf.text(lines, 20, yPos);
           pdf.text(item.size || 'N/A', 120, yPos);
@@ -693,7 +708,8 @@ const OrdersList = () => {
           itemCounter++;
         });
       } else {
-        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
+        const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})${variantId}` : `${itemCounter}. ${item.name}${variantId}`;
         const lines = pdf.splitTextToSize(itemName, 50);
         pdf.text(lines, 12, yPos);
         pdf.text(item.size || 'N/A', 70, yPos);
@@ -849,7 +865,8 @@ const OrdersList = () => {
       const itemTotal = itemPrice * itemQty;
       
       pdf.text((index + 1).toString(), 109, yPos);
-      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
+      const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
       const lines = pdf.splitTextToSize(itemDesc, 43);
       pdf.text(lines, 118, yPos);
       pdf.text(item.hsnCode || 'N/A', 165, yPos);
@@ -1309,8 +1326,8 @@ const OrdersList = () => {
                           Size: {item.size}, Color: {item.color}
                         </p>
                         {item.sizeVariantId && (
-                          <p style={{ fontSize: '12px', color: '#6b7280', fontFamily: 'monospace' }}>
-                            Variant ID: {item.sizeVariantId}
+                          <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                            Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
                           </p>
                         )}
                         <p>

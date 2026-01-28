@@ -2,12 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 function generateSizeVariantId() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 async function generateSizeVariantIds() {
@@ -22,7 +17,7 @@ async function generateSizeVariantIds() {
         
         const updatedSizes = color.sizes.map(size => ({
           ...size,
-          sizeVariantId: size.sizeVariantId || generateSizeVariantId()
+          sizeVariantId: generateSizeVariantId() // Always generate new ID
         }));
         
         return { ...color, sizes: updatedSizes };
@@ -33,7 +28,7 @@ async function generateSizeVariantIds() {
         data: { colors: updatedColors }
       });
       
-      console.log(`✓ Updated product ${product.id}: ${product.name}`);
+      console.log(`✓ Updated product ${product.id}: ${product.name} (${updatedColors.reduce((sum, c) => sum + (c.sizes?.length || 0), 0)} variants)`);
     }
     
     console.log('\n✅ All products updated successfully!');
