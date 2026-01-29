@@ -132,7 +132,7 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Number:', 15, 80);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 45, 80);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 42, 80);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 120, 80);
@@ -167,22 +167,22 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date:', 15, 85);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 38, 85);
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 36, 85);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Invoice Number :', 15, 90);
+    pdf.text('Invoice Number:', 15, 90);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`IN-${order.id}`, 50, 90);
+    pdf.text(`IN-${order.id}`, 44, 90);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Invoice Date :', 15, 95);
+    pdf.text('Invoice Date:', 15, 95);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 45, 95);
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 40, 95);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Mode of Payment:', 15, 100);
     pdf.setFont(undefined, 'normal');
-    pdf.text(order.paymentMethod || 'Online', 52, 100);
+    pdf.text(order.paymentMethod || 'Online', 48, 100);
     
     const tableTop = 128;
     pdf.setFillColor(220, 220, 220);
@@ -772,7 +772,7 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Number:', 108, 41);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 130, 41);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 122, 41);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 155, 41);
@@ -809,22 +809,22 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date:', 108, 44);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 125, 44);
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 120, 44);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Invoice Number :', 108, 47);
+    pdf.text('Invoice Number:', 108, 47);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`IN-${order.id}`, 133, 47);
+    pdf.text(`IN-${order.id}`, 127, 47);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Invoice Date :', 108, 50);
+    pdf.text('Invoice Date:', 108, 50);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 130, 50);
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 123, 50);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Mode of Payment:', 108, 53);
     pdf.setFont(undefined, 'normal');
-    pdf.text(order.paymentMethod || 'Online', 133, 53);
+    pdf.text(order.paymentMethod || 'Online', 125, 53);
     
     // Items table
     const tableTop = 68;
@@ -1416,4 +1416,6 @@ const OrdersList = () => {
 };
 
 export default OrdersList;
+
+
 
