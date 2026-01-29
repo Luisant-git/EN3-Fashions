@@ -58,6 +58,7 @@ const ProfilePage = () => {
         const address = {
             name: formData.get('name'),
             addressLine: formData.get('addressLine'),
+            landmark: formData.get('landmark'),
             city: formData.get('city'),
             state: selectedState.value,
             pincode: formData.get('pincode'),
@@ -108,6 +109,7 @@ const ProfilePage = () => {
                     <form className="profile-form" onSubmit={handleAddressUpdate}>
                         <input type="text" name="name" placeholder="Full Name" defaultValue={user?.shippingAddress?.name || user?.name} required />
                         <input type="text" name="addressLine" placeholder="Address Line 1" defaultValue={user?.shippingAddress?.addressLine} required />
+                        <input type="text" name="landmark" placeholder="Landmark" defaultValue={user?.shippingAddress?.landmark} />
                         <div className="form-row">
                            <input type="text" name="city" placeholder="City" defaultValue={user?.shippingAddress?.city} required />
                         </div>

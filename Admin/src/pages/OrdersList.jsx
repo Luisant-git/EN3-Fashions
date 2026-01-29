@@ -438,7 +438,7 @@ const OrdersList = () => {
       shipY += 4;
       pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 20, shipY);
       shipY += 4;
-      pdf.text(`Landmark: ${address.addressLine1 || ''}`, 20, shipY);
+      pdf.text(`Landmark: ${address.landmark || 'N/A'}`, 20, shipY);
       shipY += 4;
     }
     
@@ -550,7 +550,7 @@ const OrdersList = () => {
         shipY += 4;
         pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 20, shipY);
         shipY += 4;
-        pdf.text(`Landmark: ${address.addressLine1 || ''}`, 20, shipY);
+        pdf.text(`Landmark: ${address.landmark || 'N/A'}`, 20, shipY);
         shipY += 4;
       }
       
@@ -654,7 +654,7 @@ const OrdersList = () => {
       shipY += 2.5;
       pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 10, shipY);
       shipY += 2.5;
-      pdf.text(`Landmark: ${address.addressLine1 || ''}`, 10, shipY);
+      pdf.text(`Landmark: ${address.landmark || 'N/A'}`, 10, shipY);
       shipY += 2.5;
     }
     
@@ -1300,6 +1300,7 @@ const OrdersList = () => {
         
                       <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
                       <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
+                      <p><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
                     </div>
                   ) : (
                     <p>No shipping address provided</p>
@@ -1415,3 +1416,4 @@ const OrdersList = () => {
 };
 
 export default OrdersList;
+

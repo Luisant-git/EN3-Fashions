@@ -30,6 +30,7 @@ const CheckoutPage = () => {
         fullName: '',
         addressLine1: '',
         addressLine2: '',
+        landmark: '',
         city: '',
         pincode: '',
         mobile: ''
@@ -51,6 +52,7 @@ const CheckoutPage = () => {
                 fullName: user.shippingAddress.name || user.name || '',
                 addressLine1: user.shippingAddress.addressLine || '',
                 addressLine2: '',
+                landmark: user.shippingAddress.landmark || '',
                 city: user.shippingAddress.city || '',
                 pincode: user.shippingAddress.pincode || '',
                 mobile: user.shippingAddress.mobile || user.phone || ''
@@ -257,6 +259,7 @@ const CheckoutPage = () => {
                             <input type="text" placeholder="Full Name" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} required />
                             <input type="text" placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} required />
                             <input type="text" placeholder="Address Line 2" value={formData.addressLine2} onChange={(e) => setFormData({...formData, addressLine2: e.target.value})} />
+                            <input type="text" placeholder="Landmark" value={formData.landmark} onChange={(e) => setFormData({...formData, landmark: e.target.value})} />
                             <input type="text" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
                             <select 
                                 value={selectedState?.value || ''} 
