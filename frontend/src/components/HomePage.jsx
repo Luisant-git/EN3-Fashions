@@ -8,7 +8,7 @@ import bg3 from '/bg3.png';
 import { useNavigate } from 'react-router-dom';
 import { getCategories } from '../api/categoryApi';
 import { getActiveBanners } from '../api/bannerApi';
-import { generateCategoryUrl } from '../utils/slugify';
+import { generateSubcategoryUrl } from '../utils/slugify';
 import icon from '/icon.png';
 
 const HomePage = () => {
@@ -109,10 +109,15 @@ const HomePage = () => {
             <section className="home-section">
                 <h2>Shop by Category</h2>
                 <div className="category-display">
-                    {Array.isArray(categories) && categories.map((category) => (
-                        <div key={category.id} className="category-card" onClick={() => navigate(generateCategoryUrl(category.name, category.id))}>
-                            <p>{category.name}</p>
-                            <img src={category.image} alt={category.name}/>
+                    {Array.isArray(categories) && categories.flatMap((category) => 
+                        Array.isArray(category.subCategories) ? category.subCategories : []
+                    ).map((subcategory) => (
+                        <div key={subcategory.id} className="category-card" onClick={() => {
+                            navigate(generateSubcategoryUrl(subcategory.name, subcategory.id));
+                            window.scrollTo(0, 0);
+                        }}>
+                            <img src={subcategory.image} alt={subcategory.name}/>
+                            <p>{subcategory.name}</p>
                         </div>
                     ))}
                 </div>

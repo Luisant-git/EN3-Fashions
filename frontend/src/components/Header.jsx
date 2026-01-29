@@ -92,7 +92,7 @@ const Header = () => {
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>Home</a>
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/new-arrivals'); }}>New Arrivals</a>
                     <a href="#" className="offer-link" onClick={(e) => { e.preventDefault(); navigate('/offers'); }}>Offers</a>
-                    {categories.map((category) => (
+                    {/* {categories.map((category) => (
                         <div key={category.id} className="nav-item">
                             <a href="#" onClick={(e) => { e.preventDefault(); navigate(generateCategoryUrl(category.name, category.id)); }}>{category.name}</a>
                             {category.subCategories && category.subCategories.length > 0 && (
@@ -106,7 +106,7 @@ const Header = () => {
                                 </div>
                             )}
                         </div>
-                    ))}
+                    ))} */}
                 </nav>
             </div>
             <div className="header-right">
