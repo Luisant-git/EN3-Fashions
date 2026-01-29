@@ -165,25 +165,16 @@ const ProductList = () => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const labelWidth = pageWidth / 2;
-    const labelHeight = 25;
+    const labelHeight = 15;
     let x = 0;
     let y = 5;
     let count = 0;
     
     product.colors?.forEach(color => {
       color.sizes?.forEach(size => {
-        const maxWidth = labelWidth - 10;
-        doc.setFontSize(10);
-        const nameLines = doc.splitTextToSize(product.name, maxWidth);
-        let currentY = y + 6;
-        nameLines.forEach(line => {
-          doc.text(line, x + labelWidth / 2, currentY, { align: 'center' });
-          currentY += 4;
-        });
-        doc.setFontSize(9);
-        doc.text(color.name, x + labelWidth / 2, currentY + 1, { align: 'center' });
-        doc.setFontSize(8);
-        doc.text(`${size.size} (${size.sizeVariantId || 'N/A'})`, x + labelWidth / 2, currentY + 6, { align: 'center' });
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(size.sizeVariantId || 'N/A', x + labelWidth / 2, y + 8, { align: 'center' });
         doc.line(x, y + labelHeight, x + labelWidth, y + labelHeight);
         
         count++;
