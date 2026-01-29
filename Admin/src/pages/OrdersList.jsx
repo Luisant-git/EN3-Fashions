@@ -408,52 +408,37 @@ const OrdersList = () => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
     
-    // Title
     pdf.setFontSize(14);
     pdf.setFont(undefined, 'bold');
     pdf.setTextColor(41, 98, 255);
     pdf.text('PACKING SLIP', 20, 15 + yOffset);
     pdf.setTextColor(0, 0, 0);
     
-    // Logo
-    const logo = new Image();
-    logo.src = '/EN3 LOGO PNG.png';
-    try {
-      pdf.addImage(logo, 'PNG', 20, 18 + yOffset, 20, 10, undefined, 'FAST');
-    } catch (e) {
-      console.log('Logo not loaded');
-    }
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Sales Order No', 20, 25 + yOffset);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 25 + yOffset);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Date', 20, 30 + yOffset);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 30 + yOffset);
     
-    // Company Details (Left)
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
-    pdf.text('KPG APPARELS', 20, 33 + yOffset);
-    pdf.setFont(undefined, 'normal');
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37 + yOffset);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41 + yOffset);
-    pdf.text('IN', 20, 45 + yOffset);
-    
-    // Ship To Box (Right)
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(120, 30 + yOffset, 70, 25);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO', 125, 35 + yOffset);
+    pdf.text('SHIP TO:', 20, 40 + yOffset);
     pdf.setFont(undefined, 'normal');
     if (address) {
-      pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40 + yOffset);
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44 + yOffset);
-      pdf.text(address.addressLine1 || '', 125, 48 + yOffset);
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52 + yOffset);
+      const shipToText = `${address.fullName || order.user?.name || 'N/A'}, ${address.mobile || order.user?.phone || 'N/A'}, ${address.addressLine1 || ''}, ${address.city || ''}, ${address.pincode || ''}`;
+      pdf.text(shipToText, 38, 40 + yOffset);
     }
     
-    // Order Details
-    pdf.text('Sales Order No', 20, 60 + yOffset);
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60 + yOffset);
-    pdf.text('Order Date', 20, 65 + yOffset);
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65 + yOffset);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('FROM:', 20, 48 + yOffset);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('KPG APPARELS, 2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur, TIRUPPUR, TAMIL NADU, 641601, IN', 38, 48 + yOffset);
     
-    // Items Table
-    const tableTop = 73 + yOffset;
+    const tableTop = 58 + yOffset;
     pdf.setFillColor(220, 230, 255);
     pdf.rect(20, tableTop, 170, 8, 'F');
     pdf.setDrawColor(200, 200, 200);
@@ -521,52 +506,37 @@ const OrdersList = () => {
 
       const address = order.shippingAddress;
       
-      // Title
       pdf.setFontSize(14);
       pdf.setFont(undefined, 'bold');
       pdf.setTextColor(41, 98, 255);
       pdf.text('PACKING SLIP', 20, 15);
       pdf.setTextColor(0, 0, 0);
       
-      // Logo
-      const logo = new Image();
-      logo.src = '/EN3 LOGO PNG.png';
-      try {
-        pdf.addImage(logo, 'PNG', 20, 18, 20, 10, undefined, 'FAST');
-      } catch (e) {
-        console.log('Logo not loaded');
-      }
+      pdf.setFontSize(10);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Sales Order No', 20, 25);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 25);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Order Date', 20, 30);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 30);
       
-      // Company Details (Left)
       pdf.setFontSize(8);
       pdf.setFont(undefined, 'bold');
-      pdf.text('KPG APPARELS', 20, 33);
-      pdf.setFont(undefined, 'normal');
-      pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37);
-      pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41);
-      pdf.text('IN', 20, 45);
-      
-      // Ship To Box (Right)
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(120, 30, 70, 25);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('SHIP TO', 125, 35);
+      pdf.text('SHIP TO:', 20, 40);
       pdf.setFont(undefined, 'normal');
       if (address) {
-        pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40);
-        pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44);
-        pdf.text(address.addressLine1 || '', 125, 48);
-        pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52);
+        const shipToText = `${address.fullName || order.user?.name || 'N/A'}, ${address.mobile || order.user?.phone || 'N/A'}, ${address.addressLine1 || ''}, ${address.city || ''}, ${address.pincode || ''}`;
+        pdf.text(shipToText, 38, 40);
       }
       
-      // Order Details
-      pdf.text('Sales Order No', 20, 60);
-      pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60);
-      pdf.text('Order Date', 20, 65);
-      pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('FROM:', 20, 48);
+      pdf.setFont(undefined, 'normal');
+      pdf.text('KPG APPARELS, 2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur, TIRUPPUR, TAMIL NADU, 641601, IN', 38, 48);
       
-      // Items Table
-      const tableTop = 73;
+      const tableTop = 58;
       pdf.setFillColor(220, 230, 255);
       pdf.rect(20, tableTop, 170, 8, 'F');
       pdf.setDrawColor(200, 200, 200);
@@ -632,51 +602,34 @@ const OrdersList = () => {
     pdf.text('PACKING SLIP', 10, 8);
     pdf.setTextColor(0, 0, 0);
     
-    const logo = new Image();
-    logo.src = '/EN3 LOGO PNG.png';
-    try {
-      pdf.addImage(logo, 'PNG', 10, 11, 12, 6, undefined, 'FAST');
-    } catch (e) {}
-    
-    pdf.setFontSize(7);
+    pdf.setFontSize(6);
     pdf.setFont(undefined, 'bold');
-    pdf.text('KPG APPARELS', 10, 22);
+    pdf.text('Sales Order No', 10, 14);
     pdf.setFont(undefined, 'normal');
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 10, 25);
-    pdf.text('Valipalayam, Tiruppur,', 10, 28);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 10, 31);
-    pdf.text('IN', 10, 34);
-    
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(60, 18, 35, 26);
+    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 30, 14);
     pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO', 62, 22);
+    pdf.text('Order Date', 10, 17);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 30, 17);
+    
+    pdf.setFontSize(5);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO:', 10, 23);
     pdf.setFont(undefined, 'normal');
     if (address) {
-      let shipY = 25;
-      pdf.text(address.fullName || order.user?.name || 'N/A', 62, shipY);
-      shipY += 3;
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 62, shipY);
-      shipY += 3;
-      const shipAddr1 = pdf.splitTextToSize(address.addressLine1 || '', 30);
-      pdf.text(shipAddr1, 62, shipY);
-      shipY += shipAddr1.length * 3;
-      if (address.addressLine2) {
-        const shipAddr2 = pdf.splitTextToSize(address.addressLine2, 30);
-        pdf.text(shipAddr2, 62, shipY);
-        shipY += shipAddr2.length * 3;
-      }
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 62, shipY);
+      const shipToText = `${address.fullName || order.user?.name || 'N/A'}, ${address.mobile || order.user?.phone || 'N/A'}, ${address.addressLine1 || ''}, ${address.city || ''}, ${address.pincode || ''}`;
+      const shipLines = pdf.splitTextToSize(shipToText, 80);
+      pdf.text(shipLines, 22, 23);
     }
     
-    pdf.setFontSize(7);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('FROM:', 10, 30);
     pdf.setFont(undefined, 'normal');
-    pdf.text('Sales Order No', 10, 40);
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 32, 40);
-    pdf.text('Order Date', 10, 44);
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 32, 44);
+    const fromText = 'KPG APPARELS, 2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur, TIRUPPUR, TAMIL NADU, 641601, IN';
+    const fromLines = pdf.splitTextToSize(fromText, 80);
+    pdf.text(fromLines, 22, 30);
     
-    const pkgTableTop = 50;
+    const pkgTableTop = 40;
     pdf.setFillColor(220, 230, 255);
     pdf.rect(10, pkgTableTop, 85, 6, 'F');
     pdf.rect(10, pkgTableTop, 85, 6);
