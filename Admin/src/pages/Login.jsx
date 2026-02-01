@@ -20,7 +20,7 @@ const Login = () => {
       localStorage.setItem('isAuthenticated', 'true')
       localStorage.setItem('adminToken', response.access_token)
       localStorage.setItem('loginTime', Date.now().toString())
-      navigate('/dashboard')
+      window.location.reload()
     } catch (err) {
       setError(err.message || 'Login failed')
     } finally {
