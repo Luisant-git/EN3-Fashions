@@ -44,6 +44,8 @@ const ProductDetailPage = () => {
             try {
                 setLoading(true);
                 const data = await getProductById(productId);
+                console.log('Product Data:', data);
+                console.log('First Color Sizes:', data.colors?.[0]?.sizes);
                 setProduct(data);
                 if (data.colors && data.colors.length > 0) {
                     setSelectedColor(data.colors[0]);
@@ -110,13 +112,19 @@ const ProductDetailPage = () => {
         const color = product.colors.find(c => c.name === colorName);
         const sizeInfo = color.sizes.find(s => s.size === size);
         
+        console.log('Bundle Selection - Color:', colorName, 'Size:', size);
+        console.log('Size Info:', sizeInfo);
+        console.log('Size Variant ID:', sizeInfo?.sizeVariantId);
+        
         const newSelections = [...bundleSelections, { 
             color: colorName, 
             size, 
             price: sizeInfo.price,
+            sizeVariantId: sizeInfo?.sizeVariantId || null,
             id: Date.now() + Math.random()
         }];
         
+        console.log('New Selection Added:', newSelections[newSelections.length - 1]);
         setBundleSelections(newSelections);
         
         // Calculate bundle price
@@ -155,11 +163,13 @@ const ProductDetailPage = () => {
                     color: sel.color,
                     size: sel.size,
                     originalPrice: sel.price,
+                    sizeVariantId: sel.sizeVariantId || null,
                     colorImage: color?.image || product.colors[0]?.image
                 };
             })
         };
         
+        console.log('Bundle Item with sizeVariantIds:', JSON.stringify(bundleItem, null, 2));
         addToCart(bundleItem);
         setBundleSelections([]);
         setBundlePrice(null);
@@ -181,11 +191,13 @@ const ProductDetailPage = () => {
                     color: sel.color,
                     size: sel.size,
                     originalPrice: sel.price,
+                    sizeVariantId: sel.sizeVariantId || null,
                     colorImage: color?.image || product.colors[0]?.image
                 };
             })
         };
         
+        console.log('Bundle Item with sizeVariantIds:', JSON.stringify(bundleItem, null, 2));
         addToCart(bundleItem);
         navigate('/checkout');
     };

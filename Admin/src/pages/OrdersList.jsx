@@ -213,32 +213,64 @@ const OrdersList = () => {
     let prevRowEndY = tableTop + 8;
     
     order.items?.forEach((item, index) => {
-      const itemPrice = parseFloat(item.price) || 0;
-      const itemQty = item.quantity || 1;
-      const itemTotal = itemPrice * itemQty;
-      
-      pdf.text((index + 1).toString(), 17, yPos);
-      const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
-      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
-      const lines = pdf.splitTextToSize(itemDesc, 50);
-      pdf.text(lines, 30, yPos);
-      pdf.text(item.hsnCode || 'N/A', 90, yPos);
-      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
-      pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
-      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
-      
-      const rowHeight = lines.length * 5 + 5;
-      const rowEndY = yPos + rowHeight - 5;
-      
-      pdf.line(15, rowEndY, 195, rowEndY);
-      pdf.line(25, prevRowEndY, 25, rowEndY);
-      pdf.line(85, prevRowEndY, 85, rowEndY);
-      pdf.line(100, prevRowEndY, 100, rowEndY);
-      pdf.line(125, prevRowEndY, 125, rowEndY);
-      pdf.line(150, prevRowEndY, 150, rowEndY);
-      
-      prevRowEndY = rowEndY;
-      yPos += rowHeight;
+      if (item.type === 'bundle' && item.bundleItems) {
+        // For bundles, show each bundle item separately
+        item.bundleItems.forEach((bundleItem, bIdx) => {
+          const itemPrice = parseFloat(bundleItem.originalPrice) || 0;
+          const itemQty = 1;
+          const itemTotal = itemPrice;
+          
+          pdf.text((index + 1).toString() + String.fromCharCode(97 + bIdx), 17, yPos);
+          const variantId = bundleItem.sizeVariantId ? ` (${bundleItem.sizeVariantId})` : '';
+          const itemDesc = `${item.name.split(' Bundle')[0]} - ${bundleItem.size}, ${bundleItem.color}${variantId}`;
+          const lines = pdf.splitTextToSize(itemDesc, 50);
+          pdf.text(lines, 30, yPos);
+          pdf.text(item.hsnCode || 'N/A', 90, yPos);
+          pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
+          pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
+          pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
+          
+          const rowHeight = lines.length * 5 + 5;
+          const rowEndY = yPos + rowHeight - 5;
+          
+          pdf.line(15, rowEndY, 195, rowEndY);
+          pdf.line(25, prevRowEndY, 25, rowEndY);
+          pdf.line(85, prevRowEndY, 85, rowEndY);
+          pdf.line(100, prevRowEndY, 100, rowEndY);
+          pdf.line(125, prevRowEndY, 125, rowEndY);
+          pdf.line(150, prevRowEndY, 150, rowEndY);
+          
+          prevRowEndY = rowEndY;
+          yPos += rowHeight;
+        });
+      } else {
+        const itemPrice = parseFloat(item.price) || 0;
+        const itemQty = item.quantity || 1;
+        const itemTotal = itemPrice * itemQty;
+        
+        pdf.text((index + 1).toString(), 17, yPos);
+        const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+        const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
+        const lines = pdf.splitTextToSize(itemDesc, 50);
+        pdf.text(lines, 30, yPos);
+        pdf.text(item.hsnCode || 'N/A', 90, yPos);
+        pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
+        pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
+        pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
+        
+        const rowHeight = lines.length * 5 + 5;
+        const rowEndY = yPos + rowHeight - 5;
+        
+        pdf.line(15, rowEndY, 195, rowEndY);
+        pdf.line(25, prevRowEndY, 25, rowEndY);
+        pdf.line(85, prevRowEndY, 85, rowEndY);
+        pdf.line(100, prevRowEndY, 100, rowEndY);
+        pdf.line(125, prevRowEndY, 125, rowEndY);
+        pdf.line(150, prevRowEndY, 150, rowEndY);
+        
+        prevRowEndY = rowEndY;
+        yPos += rowHeight;
+      }
     });
     
     const subtotal = parseFloat(order.subtotal) || 0;
@@ -854,20 +886,40 @@ const OrdersList = () => {
     const itemStartY = yPos;
     
     order.items?.forEach((item, index) => {
-      const itemPrice = parseFloat(item.price) || 0;
-      const itemQty = item.quantity || 1;
-      const itemTotal = itemPrice * itemQty;
-      
-      pdf.text((index + 1).toString(), 109, yPos);
-      const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
-      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
-      const lines = pdf.splitTextToSize(itemDesc, 35);
-      pdf.text(lines, 118, yPos);
-      pdf.text(item.hsnCode || 'N/A', 158, yPos);
-      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 168, yPos);
-      pdf.text(itemQty.toString(), 183, yPos);
-      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 200, yPos, { align: 'right' });
-      yPos += Math.max(lines.length * 2.5, 4);
+      if (item.type === 'bundle' && item.bundleItems) {
+        // For bundles, show each bundle item separately
+        item.bundleItems.forEach((bundleItem, bIdx) => {
+          const itemPrice = parseFloat(bundleItem.originalPrice) || 0;
+          const itemQty = 1;
+          const itemTotal = itemPrice;
+          
+          pdf.text((index + 1).toString() + String.fromCharCode(97 + bIdx), 109, yPos);
+          const variantId = bundleItem.sizeVariantId ? ` (${bundleItem.sizeVariantId})` : '';
+          const itemDesc = `${item.name.split(' Bundle')[0]} - ${bundleItem.size}, ${bundleItem.color}${variantId}`;
+          const lines = pdf.splitTextToSize(itemDesc, 35);
+          pdf.text(lines, 118, yPos);
+          pdf.text(item.hsnCode || 'N/A', 158, yPos);
+          pdf.text(`Rs.${itemPrice.toFixed(2)}`, 168, yPos);
+          pdf.text(itemQty.toString(), 183, yPos);
+          pdf.text(`Rs.${itemTotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+          yPos += Math.max(lines.length * 2.5, 4);
+        });
+      } else {
+        const itemPrice = parseFloat(item.price) || 0;
+        const itemQty = item.quantity || 1;
+        const itemTotal = itemPrice * itemQty;
+        
+        pdf.text((index + 1).toString(), 109, yPos);
+        const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+        const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
+        const lines = pdf.splitTextToSize(itemDesc, 35);
+        pdf.text(lines, 118, yPos);
+        pdf.text(item.hsnCode || 'N/A', 158, yPos);
+        pdf.text(`Rs.${itemPrice.toFixed(2)}`, 168, yPos);
+        pdf.text(itemQty.toString(), 183, yPos);
+        pdf.text(`Rs.${itemTotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+        yPos += Math.max(lines.length * 2.5, 4);
+      }
     });
     
     const itemEndY = yPos;
@@ -1312,23 +1364,45 @@ const OrdersList = () => {
                 <div className="order-items">
                   {selectedOrder.items?.map((item, idx) => (
                     <div key={idx} className="order-item">
-                      <img src={item.imageUrl} alt={item.name} />
-                      <div>
-                        <p>
-                          <strong>{item.name}</strong>
-                        </p>
-                        <p>
-                          Size: {item.size}, Color: {item.color}
-                        </p>
-                        {item.sizeVariantId && (
-                          <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
-                            Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
-                          </p>
-                        )}
-                        <p>
-                          Qty: {item.quantity} × ₹{item.price}
-                        </p>
-                      </div>
+                      {item.type === 'bundle' ? (
+                        <div style={{width: '100%'}}>
+                          <p><strong>{item.name}</strong></p>
+                          <p>Bundle | Qty: {item.quantity} × ₹{item.price}</p>
+                          <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap'}}>
+                            {item.bundleItems?.map((bundle, bIdx) => (
+                              <div key={bIdx} style={{textAlign: 'center'}}>
+                                <img src={bundle.colorImage} alt={bundle.color} style={{width: '60px', height: '60px', objectFit: 'cover'}}/>
+                                <p style={{fontSize: '0.85em', margin: '5px 0 0'}}>{bundle.color} ({bundle.size})</p>
+                                {bundle.sizeVariantId && (
+                                  <p style={{fontSize: '0.8em', fontFamily: 'monospace', background: '#fef3c7', padding: '3px 5px', borderRadius: '3px', margin: '3px 0 0'}}>
+                                    Variant ID: <strong style={{fontWeight: '900', fontSize: '1.8em'}}>{bundle.sizeVariantId}</strong>
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <img src={item.imageUrl} alt={item.name} />
+                          <div>
+                            <p>
+                              <strong>{item.name}</strong>
+                            </p>
+                            <p>
+                              Size: {item.size}, Color: {item.color}
+                            </p>
+                            {item.sizeVariantId && (
+                              <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                                Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
+                              </p>
+                            )}
+                            <p>
+                              Qty: {item.quantity} × ₹{item.price}
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
