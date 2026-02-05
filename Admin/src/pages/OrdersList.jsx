@@ -118,11 +118,13 @@ const OrdersList = () => {
       let billingY = 40;
       pdf.text(address.fullName || order.user?.name || 'N/A', 120, billingY);
       billingY += 5;
-      pdf.text(address.addressLine1 || '', 120, billingY);
-      billingY += 5;
+      const addr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 70);
+      pdf.text(addr1Lines, 120, billingY);
+      billingY += addr1Lines.length * 5;
       if (address.addressLine2) {
-        pdf.text(address.addressLine2, 120, billingY);
-        billingY += 5;
+        const addr2Lines = pdf.splitTextToSize(address.addressLine2, 70);
+        pdf.text(addr2Lines, 120, billingY);
+        billingY += addr2Lines.length * 5;
       }
       pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, billingY);
       billingY += 5;
@@ -143,11 +145,13 @@ const OrdersList = () => {
       shippingY += 5;
       pdf.text(address.mobile || order.user?.phone || 'N/A', 120, shippingY);
       shippingY += 5;
-      pdf.text(address.addressLine1 || '', 120, shippingY);
-      shippingY += 5;
+      const shipAddr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 70);
+      pdf.text(shipAddr1Lines, 120, shippingY);
+      shippingY += shipAddr1Lines.length * 5;
       if (address.addressLine2) {
-        pdf.text(address.addressLine2, 120, shippingY);
-        shippingY += 5;
+        const shipAddr2Lines = pdf.splitTextToSize(address.addressLine2, 70);
+        pdf.text(shipAddr2Lines, 120, shippingY);
+        shippingY += shipAddr2Lines.length * 5;
       }
       pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, shippingY);
       shippingY += 5;
