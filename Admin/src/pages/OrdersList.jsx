@@ -1127,13 +1127,18 @@ const OrdersList = () => {
     {
       key: "user",
       label: "Customer",
-      render: (value) => (
-        <div className="customer-info">
-          <div className="customer-name">{value?.name || "N/A"}</div>
-          <div className="customer-email">{value?.email || "N/A"}</div>
-          <div className="customer-phone">{value?.phone || "N/A"}</div>
-        </div>
-      ),
+      render: (value, row) => {
+        const name = value?.name || row.shippingAddress?.fullName || "N/A";
+        const city = row.shippingAddress?.city || "N/A";
+        const phone = value?.phone || "N/A";
+        return (
+          <div className="customer-info">
+            <div className="customer-name">{name}</div>
+            <div className="customer-email">{city}</div>
+            <div className="customer-phone">{phone}</div>
+          </div>
+        );
+      },
     },
     {
       key: "items",
