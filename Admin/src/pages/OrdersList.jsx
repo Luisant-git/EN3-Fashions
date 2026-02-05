@@ -1353,18 +1353,18 @@ const OrdersList = () => {
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
                 </div>
-                <div className="shipping-address">
+                <div className="shipping-address" style={{maxWidth: '100%', overflow: 'hidden'}}>
                   <h4>Shipping Address</h4>
                   {selectedOrder.shippingAddress ? (
-                    <div>
-                      <p><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
+                    <div style={{maxWidth: '100%', overflow: 'hidden'}}>
+                      <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
                       {selectedOrder.shippingAddress.addressLine2 && (
-                        <p><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
+                        <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
                       )}
                       <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
                       <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
                       <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
-                      <p><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
+                      <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
                     </div>
                   ) : (
                     <p>No shipping address provided</p>
