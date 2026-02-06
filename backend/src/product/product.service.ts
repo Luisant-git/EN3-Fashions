@@ -2,19 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { addSizeVariantIds } from './utils/color-variant.util';
 
 @Injectable()
 export class ProductService {
   constructor(private prisma: PrismaService) {}
 
   create(createProductDto: CreateProductDto) {
-    const colorsWithIds = addSizeVariantIds(createProductDto.colors as any[]);
     return this.prisma.product.create({
       data: {
         ...createProductDto,
         gallery: createProductDto.gallery as any,
-        colors: colorsWithIds as any,
+        colors: createProductDto.colors as any,
       },
     });
   }
@@ -58,13 +56,12 @@ export class ProductService {
 
   update(id: number, updateProductDto: UpdateProductDto) {
     const { id: _, createdAt, updatedAt, category, subCategory, brand, ...data } = updateProductDto as any;
-    const colorsWithIds = data.colors ? addSizeVariantIds(data.colors) : undefined;
     return this.prisma.product.update({
       where: { id },
       data: {
         ...data,
         gallery: data.gallery as any,
-        colors: colorsWithIds as any,
+        colors: data.colors as any,
       },
     });
   }

@@ -1149,6 +1149,19 @@ const OrdersList = () => {
       label: "Products",
       render: (value) => `${value?.length || 0} items`,
     },
+    {
+      key: "items",
+      label: "Quantity",
+      render: (value) => {
+        const totalQty = value?.reduce((sum, item) => {
+          if (item.type === 'bundle' && item.bundleItems) {
+            return sum + item.bundleItems.length;
+          }
+          return sum + (item.quantity || 0);
+        }, 0) || 0;
+        return totalQty;
+      },
+    },
     { key: "total", label: "Total", render: (value) => `₹${value}` },
     {
       key: "status",

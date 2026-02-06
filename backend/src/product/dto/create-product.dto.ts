@@ -15,6 +15,11 @@ class SizeDto {
 
   @ApiProperty({ example: 10 })
   quantity: number;
+
+  @ApiPropertyOptional({ example: '123456' })
+  @IsOptional()
+  @IsString()
+  sizeVariantId?: string;
 }
 
 class ColorDto {
