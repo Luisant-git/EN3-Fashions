@@ -34,7 +34,7 @@ const EditProduct = () => {
   const [loading, setLoading] = useState(false)
   const [editingColorIndex, setEditingColorIndex] = useState(null)
   const [currentColor, setCurrentColor] = useState({ name: '', code: '#000000', images: [], sizes: [] })
-  const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0 })
+  const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0, sizeVariantId: '' })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,7 +121,7 @@ const EditProduct = () => {
         ...prev,
         sizes: [...prev.sizes, { ...currentSize, quantity: parseInt(currentSize.quantity) || 0 }]
       }))
-      setCurrentSize({ size: '', price: '', quantity: 0 })
+      setCurrentSize({ size: '', price: '', quantity: 0, sizeVariantId: '' })
     }
   }
 
@@ -131,7 +131,7 @@ const EditProduct = () => {
         name: currentColor.name,
         code: currentColor.code,
         image: currentColor.images[0] || '',
-        sizes: currentColor.sizes.map(({ size, price, quantity }) => ({ size, price, quantity }))
+        sizes: currentColor.sizes.map(({ size, price, quantity, sizeVariantId }) => ({ size, price, quantity, sizeVariantId }))
       }
       
       if (editingColorIndex !== null) {
@@ -562,7 +562,7 @@ const EditProduct = () => {
 
             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Add Sizes</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 70px', gap: '12px', alignItems: 'end' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 140px 70px', gap: '12px', alignItems: 'end' }}>
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '13px' }}>Size</label>
                   <select
@@ -599,6 +599,16 @@ const EditProduct = () => {
                     value={currentSize.quantity}
                     onChange={(e) => setCurrentSize(prev => ({ ...prev, quantity: e.target.value }))}
                     placeholder="10"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '13px' }}>Variant ID</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={currentSize.sizeVariantId}
+                    onChange={(e) => setCurrentSize(prev => ({ ...prev, sizeVariantId: e.target.value }))}
+                    placeholder="123456"
                   />
                 </div>
                 <div style={{ marginBottom: '18px' }}>
@@ -704,6 +714,7 @@ const EditProduct = () => {
                             <div style={{ display: 'flex', gap: '12px', color: '#6b7280' }}>
                               <span>₹{size.price}</span>
                               <span>Qty: {size.quantity}</span>
+                              {size.sizeVariantId && <span style={{ fontFamily: 'monospace', background: '#fef3c7', padding: '2px 6px', borderRadius: '3px' }}>ID: {size.sizeVariantId}</span>}
                             </div>
                           </div>
                         ))}
