@@ -444,90 +444,58 @@ const OrdersList = () => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
     
-    pdf.setFontSize(14);
+    pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
-    pdf.setTextColor(41, 98, 255);
-    pdf.text('PACKING SLIP', 20, 15 + yOffset);
-    pdf.setTextColor(0, 0, 0);
+    pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
     
-    pdf.setFontSize(10);
+    pdf.setFontSize(13);
     pdf.setFont(undefined, 'bold');
-    pdf.text('Sales Order No', 20, 25 + yOffset);
+    pdf.text('Sales Order No :', 120, 35);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 25 + yOffset);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Order Date', 20, 30 + yOffset);
-    pdf.setFont(undefined, 'normal');
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 30 + yOffset);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, 35);
     
-    pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO:', 20, 40 + yOffset);
+    pdf.text('Order Date :', 120, 42);
     pdf.setFont(undefined, 'normal');
-    let shipY = 44 + yOffset;
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, 42);
+    
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO:', 20, 60);
+    pdf.setFont(undefined, 'normal');
+    
+    let shipY = 68;
     if (address) {
-      pdf.text(address.fullName || order.user?.name || 'N/A', 20, shipY);
-      shipY += 4;
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 20, shipY);
-      shipY += 4;
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
+      pdf.setFont(undefined, 'normal');
+      shipY += 7;
       pdf.text(address.addressLine1 || '', 20, shipY);
-      shipY += 4;
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 20, shipY);
-      shipY += 4;
-      pdf.text(`Landmark: ${address.landmark || 'N/A'}`, 20, shipY);
-      shipY += 4;
+      shipY += 7;
+      pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
+      shipY += 7;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Landmark:', 20, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.landmark || 'N/A', 50, shipY);
     }
     
-    const tableTop = shipY + 4;
-    pdf.setFillColor(220, 230, 255);
-    pdf.rect(20, tableTop, 170, 8, 'F');
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(20, tableTop, 170, 8);
-    
+    pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
-    pdf.text('S.No', 22, tableTop + 5);
-    pdf.text('Item', 50, tableTop + 5);
-    pdf.text('Size', 120, tableTop + 5);
-    pdf.text('Qty', 160, tableTop + 5);
-    pdf.line(20, tableTop + 8, 190, tableTop + 8);
-    
+    pdf.text('SHIP FROM:', 120, 100);
     pdf.setFont(undefined, 'normal');
-    let yPos = tableTop + 14;
-    let itemCounter = 1;
-    order.items?.forEach((item) => {
-      if (item.type === 'bundle' && item.bundleItems) {
-        item.bundleItems.forEach((bundleItem) => {
-          pdf.text(itemCounter.toString(), 22, yPos);
-          pdf.text(bundleItem.sizeVariantId || 'N/A', 50, yPos);
-          pdf.text(bundleItem.size || 'N/A', 120, yPos);
-          pdf.text('1', 160, yPos);
-          yPos += 6;
-          itemCounter++;
-        });
-      } else {
-        pdf.text(itemCounter.toString(), 22, yPos);
-        pdf.text(item.sizeVariantId || 'N/A', 50, yPos);
-        pdf.text(item.size || 'N/A', 120, yPos);
-        pdf.text(item.quantity?.toString() || '1', 160, yPos);
-        yPos += 6;
-        itemCounter++;
-      }
-    });
     
-    pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP FROM:', 20, yPos + 6);
-    pdf.setFont(undefined, 'normal');
-    let fromY = yPos + 10;
-    pdf.text('KPG APPARELS', 20, fromY);
-    fromY += 4;
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 20, fromY);
-    fromY += 4;
-    pdf.text('Valipalayam, Tiruppur,', 20, fromY);
-    fromY += 4;
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601, IN', 20, fromY);
+    let fromY = 108;
+    pdf.text('KPG APPARELS', 120, fromY);
+    fromY += 7;
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 120, fromY);
+    fromY += 7;
+    pdf.text('Valipalayam, Tiruppur,', 120, fromY);
+    fromY += 7;
+    pdf.text('TAMIL NADU, 641601,', 120, fromY);
     
     pdf.setFont(undefined, 'italic');
-    pdf.text('Thank you for shopping with us!', 105, fromY + 8, { align: 'center' });
+    pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
     
     return pdf;
   };
@@ -556,90 +524,58 @@ const OrdersList = () => {
 
       const address = order.shippingAddress;
       
-      pdf.setFontSize(14);
+      pdf.setFontSize(20);
       pdf.setFont(undefined, 'bold');
-      pdf.setTextColor(41, 98, 255);
-      pdf.text('PACKING SLIP', 20, 15);
-      pdf.setTextColor(0, 0, 0);
+      pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
       
-      pdf.setFontSize(10);
+      pdf.setFontSize(13);
       pdf.setFont(undefined, 'bold');
-      pdf.text('Sales Order No', 20, 25);
+      pdf.text('Sales Order No :', 120, 35);
       pdf.setFont(undefined, 'normal');
-      pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 25);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('Order Date', 20, 30);
-      pdf.setFont(undefined, 'normal');
-      pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 30);
+      pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, 35);
       
-      pdf.setFontSize(8);
       pdf.setFont(undefined, 'bold');
-      pdf.text('SHIP TO:', 20, 40);
+      pdf.text('Order Date :', 120, 42);
       pdf.setFont(undefined, 'normal');
-      let shipY = 44;
+      pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, 42);
+      
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('SHIP TO:', 20, 60);
+      pdf.setFont(undefined, 'normal');
+      
+      let shipY = 68;
       if (address) {
-        pdf.text(address.fullName || order.user?.name || 'N/A', 20, shipY);
-        shipY += 4;
-        pdf.text(address.mobile || order.user?.phone || 'N/A', 20, shipY);
-        shipY += 4;
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
+        pdf.setFont(undefined, 'normal');
+        shipY += 7;
         pdf.text(address.addressLine1 || '', 20, shipY);
-        shipY += 4;
-        pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 20, shipY);
-        shipY += 4;
-        pdf.text(`Landmark: ${address.landmark || 'N/A'}`, 20, shipY);
-        shipY += 4;
+        shipY += 7;
+        pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
+        shipY += 7;
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Landmark:', 20, shipY);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(address.landmark || 'N/A', 50, shipY);
       }
       
-      const tableTop = shipY + 4;
-      pdf.setFillColor(220, 230, 255);
-      pdf.rect(20, tableTop, 170, 8, 'F');
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(20, tableTop, 170, 8);
-      
+      pdf.setFontSize(12);
       pdf.setFont(undefined, 'bold');
-      pdf.text('S.No', 22, tableTop + 5);
-      pdf.text('Item', 50, tableTop + 5);
-      pdf.text('Size', 120, tableTop + 5);
-      pdf.text('Qty', 160, tableTop + 5);
-      pdf.line(20, tableTop + 8, 190, tableTop + 8);
-      
+      pdf.text('SHIP FROM:', 120, 100);
       pdf.setFont(undefined, 'normal');
-      let yPos = tableTop + 14;
-      let itemCounter = 1;
-      order.items?.forEach((item) => {
-        if (item.type === 'bundle' && item.bundleItems) {
-          item.bundleItems.forEach((bundleItem) => {
-            pdf.text(itemCounter.toString(), 22, yPos);
-            pdf.text(bundleItem.sizeVariantId || 'N/A', 50, yPos);
-            pdf.text(bundleItem.size || 'N/A', 120, yPos);
-            pdf.text('1', 160, yPos);
-            yPos += 6;
-            itemCounter++;
-          });
-        } else {
-          pdf.text(itemCounter.toString(), 22, yPos);
-          pdf.text(item.sizeVariantId || 'N/A', 50, yPos);
-          pdf.text(item.size || 'N/A', 120, yPos);
-          pdf.text(item.quantity?.toString() || '1', 160, yPos);
-          yPos += 6;
-          itemCounter++;
-        }
-      });
       
-      pdf.setFont(undefined, 'bold');
-      pdf.text('SHIP FROM:', 20, yPos + 6);
-      pdf.setFont(undefined, 'normal');
-      let fromY = yPos + 10;
-      pdf.text('KPG APPARELS', 20, fromY);
-      fromY += 4;
-      pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 20, fromY);
-      fromY += 4;
-      pdf.text('Valipalayam, Tiruppur,', 20, fromY);
-      fromY += 4;
-      pdf.text('TIRUPPUR, TAMIL NADU, 641601, IN', 20, fromY);
+      let fromY = 108;
+      pdf.text('KPG APPARELS', 120, fromY);
+      fromY += 7;
+      pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 120, fromY);
+      fromY += 7;
+      pdf.text('Valipalayam, Tiruppur,', 120, fromY);
+      fromY += 7;
+      pdf.text('TAMIL NADU, 641601,', 120, fromY);
       
       pdf.setFont(undefined, 'italic');
-      pdf.text('Thank you for shopping with us!', 105, fromY + 8, { align: 'center' });
+      pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
     });
 
     pdf.save(`all-package-slips-placed.pdf`);
@@ -662,102 +598,64 @@ const OrdersList = () => {
     // === PACKAGE SLIP - Top Left ===
     pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
-    pdf.setTextColor(41, 98, 255);
-    pdf.text('PACKING SLIP', 10, 8);
-    pdf.setTextColor(0, 0, 0);
+    pdf.text('PACKING SLIP', 55, 20, { align: 'center' });
     
-    pdf.setFontSize(6);
+    pdf.setFontSize(9);
     pdf.setFont(undefined, 'bold');
-    pdf.text('Sales Order No', 10, 14);
+    pdf.text('Sales Order No :', 55, 35);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 30, 14);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Order Date', 10, 17);
-    pdf.setFont(undefined, 'normal');
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 30, 17);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 81, 35);
     
-    pdf.setFontSize(5);
     pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO:', 10, 22);
+    pdf.text('Order Date :', 55, 40);
     pdf.setFont(undefined, 'normal');
-    let shipY = 25;
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 76, 40);
+    
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO:', 10, 58);
+    pdf.setFont(undefined, 'normal');
+    
+    let shipY = 62;
     if (address) {
-      pdf.text(address.fullName || order.user?.name || 'N/A', 10, shipY);
-      shipY += 2.5;
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 10, shipY);
-      shipY += 2.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      shipY += 3.5;
       pdf.text(address.addressLine1 || '', 10, shipY);
-      shipY += 2.5;
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 10, shipY);
-      shipY += 2.5;
-      pdf.text(`Landmark: ${address.landmark || 'N/A'}`, 10, shipY);
-      shipY += 2.5;
+      shipY += 3.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      shipY += 3.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Landmark:', 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.landmark || 'N/A', 26, shipY);
     }
     
-    const pkgTableTop = shipY + 2;
-    pdf.setFillColor(220, 230, 255);
-    pdf.rect(10, pkgTableTop, 85, 6, 'F');
-    pdf.rect(10, pkgTableTop, 85, 6);
-    
+    pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
-    pdf.text('S.No', 11, pkgTableTop + 4);
-    pdf.text('Item', 25, pkgTableTop + 4);
-    pdf.text('Size', 70, pkgTableTop + 4);
-    pdf.text('Qty', 85, pkgTableTop + 4);
-    
-    pdf.line(10, pkgTableTop, 10, pkgTableTop + 6);
-    pdf.line(22, pkgTableTop, 22, pkgTableTop + 6);
-    pdf.line(68, pkgTableTop, 68, pkgTableTop + 6);
-    pdf.line(82, pkgTableTop, 82, pkgTableTop + 6);
-    pdf.line(95, pkgTableTop, 95, pkgTableTop + 6);
-    
+    pdf.text('SHIP FROM:', 55, 94);
     pdf.setFont(undefined, 'normal');
-    let yPos = pkgTableTop + 10;
-    const pkgItemStartY = yPos;
-    let itemCounter = 1;
     
-    order.items?.forEach((item) => {
-      if (item.type === 'bundle' && item.bundleItems) {
-        item.bundleItems.forEach((bundleItem) => {
-          pdf.text(itemCounter.toString(), 11, yPos);
-          pdf.text(bundleItem.sizeVariantId || 'N/A', 25, yPos);
-          pdf.text(bundleItem.size || 'N/A', 70, yPos);
-          pdf.text('1', 85, yPos);
-          yPos += 4;
-          itemCounter++;
-        });
-      } else {
-        pdf.text(itemCounter.toString(), 11, yPos);
-        pdf.text(item.sizeVariantId || 'N/A', 25, yPos);
-        pdf.text(item.size || 'N/A', 70, yPos);
-        pdf.text(item.quantity?.toString() || '1', 85, yPos);
-        yPos += 4;
-        itemCounter++;
-      }
-    });
-    
-    const pkgItemEndY = yPos;
-    pdf.line(10, pkgItemEndY, 95, pkgItemEndY);
-    pdf.line(10, pkgTableTop + 6, 10, pkgItemEndY);
-    pdf.line(22, pkgTableTop + 6, 22, pkgItemEndY);
-    pdf.line(68, pkgTableTop + 6, 68, pkgItemEndY);
-    pdf.line(82, pkgTableTop + 6, 82, pkgItemEndY);
-    pdf.line(95, pkgTableTop + 6, 95, pkgItemEndY);
-    
+    let fromY = 98;
+    pdf.text('KPG APPARELS', 55, fromY);
+    fromY += 3.5;
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 55, fromY);
+    fromY += 3.5;
+    pdf.text('Valipalayam,', 55, fromY);
     pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP FROM:', 10, pkgItemEndY + 3);
+    pdf.text(' Tiruppur,', 73, fromY);
     pdf.setFont(undefined, 'normal');
-    let fromY = pkgItemEndY + 6;
-    pdf.text('KPG APPARELS', 10, fromY);
-    fromY += 2.5;
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 10, fromY);
-    fromY += 2.5;
-    pdf.text('Valipalayam, Tiruppur,', 10, fromY);
-    fromY += 2.5;
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601, IN', 10, fromY);
+    fromY += 3.5;
+    pdf.text('TAMIL NADU,', 55, fromY);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(' 641601', 73, fromY);
+    pdf.setFont(undefined, 'normal');
     
     pdf.setFont(undefined, 'italic');
-    pdf.text('Thank you for shopping with us!', 52, fromY + 4, { align: 'center' });
+    pdf.text('Thank you for shopping with us!', 52, 130, { align: 'center' });
 
     // === INVOICE - Top Right ===
     pdf.setFontSize(10);
@@ -886,7 +784,7 @@ const OrdersList = () => {
     pdf.line(202, tableTop, 202, tableTop + 6);
     
     pdf.setFont(undefined, 'normal');
-    yPos = tableTop + 10;
+    let yPos = tableTop + 10;
     const itemStartY = yPos;
     
     order.items?.forEach((item, index) => {
