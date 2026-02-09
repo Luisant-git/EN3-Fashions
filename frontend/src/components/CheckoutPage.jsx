@@ -30,6 +30,7 @@ const CheckoutPage = () => {
         fullName: '',
         addressLine1: '',
         addressLine2: '',
+        landmark: '',
         city: '',
         pincode: '',
         mobile: ''
@@ -51,6 +52,7 @@ const CheckoutPage = () => {
                 fullName: user.shippingAddress.name || user.name || '',
                 addressLine1: user.shippingAddress.addressLine || '',
                 addressLine2: '',
+                landmark: user.shippingAddress.landmark || '',
                 city: user.shippingAddress.city || '',
                 pincode: user.shippingAddress.pincode || '',
                 mobile: user.shippingAddress.mobile || user.phone || ''
@@ -101,19 +103,14 @@ const CheckoutPage = () => {
             const stateEnum = selectedState.value.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
             const rule = shippingRules.find(r => r.state === stateEnum);
             if (rule) {
-                const subtotalAfterDiscount = subtotal - discount;
-                if (subtotalAfterDiscount >= 999) {
-                    setDeliveryFee(0);
-                } else {
-                    setDeliveryFee(rule.flatShippingRate);
-                }
+                setDeliveryFee(rule.flatShippingRate);
                 setDeliveryAvailable(true);
             } else {
                 setDeliveryFee(0);
                 setDeliveryAvailable(false);
             }
         }
-    }, [selectedState, shippingRules, subtotal, discount]);
+    }, [selectedState, shippingRules]);
     const subtotalAfterDiscount = subtotal - discount;
     
     const isSameState = selectedState?.value === BUSINESS_STATE;
@@ -262,6 +259,7 @@ const CheckoutPage = () => {
                             <input type="text" placeholder="Full Name" value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} required />
                             <input type="text" placeholder="Address Line 1" value={formData.addressLine1} onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} required />
                             <input type="text" placeholder="Address Line 2" value={formData.addressLine2} onChange={(e) => setFormData({...formData, addressLine2: e.target.value})} />
+                            <input type="text" placeholder="Landmark" value={formData.landmark} onChange={(e) => setFormData({...formData, landmark: e.target.value})} />
                             <input type="text" placeholder="City" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} required />
                             <select 
                                 value={selectedState?.value || ''} 
@@ -413,13 +411,7 @@ const CheckoutPage = () => {
                     {selectedState && deliveryAvailable && (
                         <div className="summary-row">
                             <span>Delivery Fee</span>
-                            <span>
-                                {deliveryFee === 0 && subtotalAfterDiscount >= 999 ? (
-                                    <span style={{ color: '#4CAF50', fontWeight: '600' }}>FREE</span>
-                                ) : (
-                                    `₹${deliveryFee.toFixed(2)}`
-                                )}
-                            </span>
+                            <span>₹{deliveryFee.toFixed(2)}</span>
                         </div>
                     )}
                     {selectedState && !deliveryAvailable && (

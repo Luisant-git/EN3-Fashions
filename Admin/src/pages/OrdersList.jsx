@@ -118,11 +118,13 @@ const OrdersList = () => {
       let billingY = 40;
       pdf.text(address.fullName || order.user?.name || 'N/A', 120, billingY);
       billingY += 5;
-      pdf.text(address.addressLine1 || '', 120, billingY);
-      billingY += 5;
+      const addr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 70);
+      pdf.text(addr1Lines, 120, billingY);
+      billingY += addr1Lines.length * 5;
       if (address.addressLine2) {
-        pdf.text(address.addressLine2, 120, billingY);
-        billingY += 5;
+        const addr2Lines = pdf.splitTextToSize(address.addressLine2, 70);
+        pdf.text(addr2Lines, 120, billingY);
+        billingY += addr2Lines.length * 5;
       }
       pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, billingY);
       billingY += 5;
@@ -132,7 +134,7 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Number:', 15, 80);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 45, 80);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 42, 80);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 120, 80);
@@ -143,11 +145,13 @@ const OrdersList = () => {
       shippingY += 5;
       pdf.text(address.mobile || order.user?.phone || 'N/A', 120, shippingY);
       shippingY += 5;
-      pdf.text(address.addressLine1 || '', 120, shippingY);
-      shippingY += 5;
+      const shipAddr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 70);
+      pdf.text(shipAddr1Lines, 120, shippingY);
+      shippingY += shipAddr1Lines.length * 5;
       if (address.addressLine2) {
-        pdf.text(address.addressLine2, 120, shippingY);
-        shippingY += 5;
+        const shipAddr2Lines = pdf.splitTextToSize(address.addressLine2, 70);
+        pdf.text(shipAddr2Lines, 120, shippingY);
+        shippingY += shipAddr2Lines.length * 5;
       }
       pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, shippingY);
       shippingY += 5;
@@ -167,22 +171,22 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date:', 15, 85);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 38, 85);
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 36, 85);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Invoice Number :', 15, 90);
+    pdf.text('Invoice Number:', 15, 90);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`IN-${order.id}`, 50, 90);
+    pdf.text(`IN-${order.id}`, 44, 90);
     
     pdf.setFont(undefined, 'bold');
-    pdf.text('Invoice Date :', 15, 95);
+    pdf.text('Invoice Date:', 15, 95);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 45, 95);
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 40, 95);
     
     pdf.setFont(undefined, 'bold');
     pdf.text('Mode of Payment:', 15, 100);
     pdf.setFont(undefined, 'normal');
-    pdf.text(order.paymentMethod || 'Online', 52, 100);
+    pdf.text(order.paymentMethod || 'Online', 48, 100);
     
     const tableTop = 128;
     pdf.setFillColor(220, 220, 220);
@@ -195,17 +199,17 @@ const OrdersList = () => {
     pdf.setFont(undefined, 'bold');
     pdf.text('Sl.', 17, tableTop + 5);
     pdf.text('Description', 30, tableTop + 5);
-    pdf.text('HSN', 105, tableTop + 5);
-    pdf.text('Unit Price', 125, tableTop + 5);
-    pdf.text('Qty', 155, tableTop + 5);
-    pdf.text('Total', 175, tableTop + 5);
+    pdf.text('HSN', 90, tableTop + 5);
+    pdf.text('Unit Price', 105, tableTop + 5);
+    pdf.text('Qty', 130, tableTop + 5);
+    pdf.text('Total', 160, tableTop + 5);
     
     pdf.rect(15, tableTop, 180, 8);
     pdf.line(25, tableTop, 25, tableTop + 8);
+    pdf.line(85, tableTop, 85, tableTop + 8);
     pdf.line(100, tableTop, 100, tableTop + 8);
-    pdf.line(120, tableTop, 120, tableTop + 8);
+    pdf.line(125, tableTop, 125, tableTop + 8);
     pdf.line(150, tableTop, 150, tableTop + 8);
-    pdf.line(170, tableTop, 170, tableTop + 8);
     
     pdf.setFont(undefined, 'normal');
     let yPos = tableTop + 13;
@@ -213,31 +217,64 @@ const OrdersList = () => {
     let prevRowEndY = tableTop + 8;
     
     order.items?.forEach((item, index) => {
-      const itemPrice = parseFloat(item.price) || 0;
-      const itemQty = item.quantity || 1;
-      const itemTotal = itemPrice * itemQty;
-      
-      pdf.text((index + 1).toString(), 17, yPos);
-      const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}` : item.name || 'N/A';
-      const lines = pdf.splitTextToSize(itemDesc, 65);
-      pdf.text(lines, 30, yPos);
-      pdf.text(item.hsnCode || 'N/A', 105, yPos);
-      pdf.text(`Rs.${itemPrice.toFixed(2)}`, 145, yPos, { align: 'right' });
-      pdf.text(itemQty.toString(), 160, yPos, { align: 'center' });
-      pdf.text(`Rs.${itemTotal.toFixed(2)}`, 190, yPos, { align: 'right' });
-      
-      const rowHeight = lines.length * 5 + 5;
-      const rowEndY = yPos + rowHeight - 5;
-      
-      pdf.line(15, rowEndY, 195, rowEndY);
-      pdf.line(25, prevRowEndY, 25, rowEndY);
-      pdf.line(100, prevRowEndY, 100, rowEndY);
-      pdf.line(120, prevRowEndY, 120, rowEndY);
-      pdf.line(150, prevRowEndY, 150, rowEndY);
-      pdf.line(170, prevRowEndY, 170, rowEndY);
-      
-      prevRowEndY = rowEndY;
-      yPos += rowHeight;
+      if (item.type === 'bundle' && item.bundleItems) {
+        // For bundles, show each bundle item separately
+        item.bundleItems.forEach((bundleItem, bIdx) => {
+          const itemPrice = parseFloat(bundleItem.originalPrice) || 0;
+          const itemQty = 1;
+          const itemTotal = itemPrice;
+          
+          pdf.text((index + 1).toString() + String.fromCharCode(97 + bIdx), 17, yPos);
+          const variantId = bundleItem.sizeVariantId ? ` (${bundleItem.sizeVariantId})` : '';
+          const itemDesc = `${item.name.split(' Bundle')[0]} - ${bundleItem.size}, ${bundleItem.color}${variantId}`;
+          const lines = pdf.splitTextToSize(itemDesc, 50);
+          pdf.text(lines, 30, yPos);
+          pdf.text(item.hsnCode || 'N/A', 90, yPos);
+          pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
+          pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
+          pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
+          
+          const rowHeight = lines.length * 5 + 5;
+          const rowEndY = yPos + rowHeight - 5;
+          
+          pdf.line(15, rowEndY, 195, rowEndY);
+          pdf.line(25, prevRowEndY, 25, rowEndY);
+          pdf.line(85, prevRowEndY, 85, rowEndY);
+          pdf.line(100, prevRowEndY, 100, rowEndY);
+          pdf.line(125, prevRowEndY, 125, rowEndY);
+          pdf.line(150, prevRowEndY, 150, rowEndY);
+          
+          prevRowEndY = rowEndY;
+          yPos += rowHeight;
+        });
+      } else {
+        const itemPrice = parseFloat(item.price) || 0;
+        const itemQty = item.quantity || 1;
+        const itemTotal = itemPrice * itemQty;
+        
+        pdf.text((index + 1).toString(), 17, yPos);
+        const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+        const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
+        const lines = pdf.splitTextToSize(itemDesc, 50);
+        pdf.text(lines, 30, yPos);
+        pdf.text(item.hsnCode || 'N/A', 90, yPos);
+        pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
+        pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
+        pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
+        
+        const rowHeight = lines.length * 5 + 5;
+        const rowEndY = yPos + rowHeight - 5;
+        
+        pdf.line(15, rowEndY, 195, rowEndY);
+        pdf.line(25, prevRowEndY, 25, rowEndY);
+        pdf.line(85, prevRowEndY, 85, rowEndY);
+        pdf.line(100, prevRowEndY, 100, rowEndY);
+        pdf.line(125, prevRowEndY, 125, rowEndY);
+        pdf.line(150, prevRowEndY, 150, rowEndY);
+        
+        prevRowEndY = rowEndY;
+        yPos += rowHeight;
+      }
     });
     
     const subtotal = parseFloat(order.subtotal) || 0;
@@ -407,84 +444,58 @@ const OrdersList = () => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
     
-    pdf.setFontSize(14);
+    pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
-    pdf.setTextColor(41, 98, 255);
-    pdf.text('PACKING SLIP', 20, 15 + yOffset);
-    pdf.setTextColor(0, 0, 0);
+    pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
     
-    const logo = new Image();
-    logo.src = '/EN3 LOGO PNG.png';
-    try {
-      pdf.addImage(logo, 'PNG', 20, 18 + yOffset, 25, 12);
-    } catch (e) {
-      console.log('Logo not loaded');
-    }
-    
-    pdf.setFontSize(8);
+    pdf.setFontSize(13);
     pdf.setFont(undefined, 'bold');
-    pdf.text('KPG APPARELS', 20, 33 + yOffset);
+    pdf.text('Sales Order No :', 120, 35);
     pdf.setFont(undefined, 'normal');
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37 + yOffset);
-    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41 + yOffset);
-    pdf.text('IN', 20, 45 + yOffset);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, 35);
     
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(120, 30 + yOffset, 70, 25);
     pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP TO', 125, 35 + yOffset);
+    pdf.text('Order Date :', 120, 42);
     pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, 42);
+    
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO:', 20, 60);
+    pdf.setFont(undefined, 'normal');
+    
+    let shipY = 68;
     if (address) {
-      pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40 + yOffset);
-      pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44 + yOffset);
-      pdf.text(address.addressLine1 || '', 125, 48 + yOffset);
-      pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52 + yOffset);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
+      pdf.setFont(undefined, 'normal');
+      shipY += 7;
+      pdf.text(address.addressLine1 || '', 20, shipY);
+      shipY += 7;
+      pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
+      shipY += 7;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Landmark:', 20, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.landmark || 'N/A', 50, shipY);
     }
     
-    pdf.text('Sales Order No', 20, 60 + yOffset);
-    pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60 + yOffset);
-    pdf.text('Order Date', 20, 65 + yOffset);
-    pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65 + yOffset);
-    
-    const tableTop = 73 + yOffset;
-    pdf.setFillColor(220, 230, 255);
-    pdf.rect(20, tableTop, 170, 8, 'F');
-    pdf.setDrawColor(200, 200, 200);
-    pdf.rect(20, tableTop, 170, 8);
-    
+    pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
-    pdf.text('Item', 25, tableTop + 5);
-    pdf.text('Size', 120, tableTop + 5);
-    pdf.text('Qty', 160, tableTop + 5);
-    pdf.line(20, tableTop + 8, 190, tableTop + 8);
-    
+    pdf.text('SHIP FROM:', 120, 100);
     pdf.setFont(undefined, 'normal');
-    let yPos = tableTop + 14;
-    let itemCounter = 1;
-    order.items?.forEach((item) => {
-      if (item.type === 'bundle' && item.bundleItems) {
-        item.bundleItems.forEach((bundleItem) => {
-          const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
-          const lines = pdf.splitTextToSize(itemName, 95);
-          pdf.text(lines, 20, yPos);
-          pdf.text(bundleItem.size || 'N/A', 120, yPos);
-          pdf.text('1', 160, yPos);
-          yPos += lines.length * 4 + 2;
-          itemCounter++;
-        });
-      } else {
-        const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
-        const lines = pdf.splitTextToSize(itemName, 95);
-        pdf.text(lines, 20, yPos);
-        pdf.text(item.size || 'N/A', 120, yPos);
-        pdf.text(item.quantity?.toString() || '1', 160, yPos);
-        yPos += lines.length * 4 + 2;
-        itemCounter++;
-      }
-    });
+    
+    let fromY = 108;
+    pdf.text('KPG APPARELS', 120, fromY);
+    fromY += 7;
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 120, fromY);
+    fromY += 7;
+    pdf.text('Valipalayam, Tiruppur,', 120, fromY);
+    fromY += 7;
+    pdf.text('TAMIL NADU, 641601,', 120, fromY);
     
     pdf.setFont(undefined, 'italic');
-    pdf.text('Thank you for shopping with us!', 105, yPos + 6, { align: 'center' });
+    pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
     
     return pdf;
   };
@@ -513,84 +524,58 @@ const OrdersList = () => {
 
       const address = order.shippingAddress;
       
-      pdf.setFontSize(14);
+      pdf.setFontSize(20);
       pdf.setFont(undefined, 'bold');
-      pdf.setTextColor(41, 98, 255);
-      pdf.text('PACKING SLIP', 20, 15);
-      pdf.setTextColor(0, 0, 0);
+      pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
       
-      const logo = new Image();
-      logo.src = '/EN3 LOGO PNG.png';
-      try {
-        pdf.addImage(logo, 'PNG', 20, 18, 25, 12);
-      } catch (e) {
-        console.log('Logo not loaded');
-      }
-      
-      pdf.setFontSize(8);
+      pdf.setFontSize(13);
       pdf.setFont(undefined, 'bold');
-      pdf.text('KPG APPARELS', 20, 33);
+      pdf.text('Sales Order No :', 120, 35);
       pdf.setFont(undefined, 'normal');
-      pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 20, 37);
-      pdf.text('TIRUPPUR, TAMIL NADU, 641601', 20, 41);
-      pdf.text('IN', 20, 45);
+      pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, 35);
       
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(120, 30, 70, 25);
       pdf.setFont(undefined, 'bold');
-      pdf.text('SHIP TO', 125, 35);
+      pdf.text('Order Date :', 120, 42);
       pdf.setFont(undefined, 'normal');
+      pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, 42);
+      
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('SHIP TO:', 20, 60);
+      pdf.setFont(undefined, 'normal');
+      
+      let shipY = 68;
       if (address) {
-        pdf.text(address.fullName || order.user?.name || 'N/A', 125, 40);
-        pdf.text(address.mobile || order.user?.phone || 'N/A', 125, 44);
-        pdf.text(address.addressLine1 || '', 125, 48);
-        pdf.text(`${address.city || ''}, ${address.pincode || ''}`, 125, 52);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
+        pdf.setFont(undefined, 'normal');
+        shipY += 7;
+        pdf.text(address.addressLine1 || '', 20, shipY);
+        shipY += 7;
+        pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
+        shipY += 7;
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Landmark:', 20, shipY);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(address.landmark || 'N/A', 50, shipY);
       }
       
-      pdf.text('Sales Order No', 20, 60);
-      pdf.text(`: ORD-${new Date().getFullYear()}-${order.id}`, 50, 60);
-      pdf.text('Order Date', 20, 65);
-      pdf.text(`: ${new Date(order.createdAt).toLocaleDateString('en-GB')}`, 50, 65);
-      
-      const tableTop = 73;
-      pdf.setFillColor(220, 230, 255);
-      pdf.rect(20, tableTop, 170, 8, 'F');
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(20, tableTop, 170, 8);
-      
+      pdf.setFontSize(12);
       pdf.setFont(undefined, 'bold');
-      pdf.text('Item', 25, tableTop + 5);
-      pdf.text('Size', 120, tableTop + 5);
-      pdf.text('Qty', 160, tableTop + 5);
-      pdf.line(20, tableTop + 8, 190, tableTop + 8);
-      
+      pdf.text('SHIP FROM:', 120, 100);
       pdf.setFont(undefined, 'normal');
-      let yPos = tableTop + 14;
-      let itemCounter = 1;
-      order.items?.forEach((item) => {
-        if (item.type === 'bundle' && item.bundleItems) {
-          item.bundleItems.forEach((bundleItem) => {
-            const itemName = `${itemCounter}. Classic Cotton T-Shirt (${bundleItem.color || 'N/A'})`;
-            const lines = pdf.splitTextToSize(itemName, 95);
-            pdf.text(lines, 20, yPos);
-            pdf.text(bundleItem.size || 'N/A', 120, yPos);
-            pdf.text('1', 160, yPos);
-            yPos += lines.length * 4 + 2;
-            itemCounter++;
-          });
-        } else {
-          const itemName = item.color ? `${itemCounter}. ${item.name} (${item.color})` : `${itemCounter}. ${item.name}`;
-          const lines = pdf.splitTextToSize(itemName, 95);
-          pdf.text(lines, 20, yPos);
-          pdf.text(item.size || 'N/A', 120, yPos);
-          pdf.text(item.quantity?.toString() || '1', 160, yPos);
-          yPos += lines.length * 4 + 2;
-          itemCounter++;
-        }
-      });
+      
+      let fromY = 108;
+      pdf.text('KPG APPARELS', 120, fromY);
+      fromY += 7;
+      pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 120, fromY);
+      fromY += 7;
+      pdf.text('Valipalayam, Tiruppur,', 120, fromY);
+      fromY += 7;
+      pdf.text('TAMIL NADU, 641601,', 120, fromY);
       
       pdf.setFont(undefined, 'italic');
-      pdf.text('Thank you for shopping with us!', 105, yPos + 6, { align: 'center' });
+      pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
     });
 
     pdf.save(`all-package-slips-placed.pdf`);
@@ -600,6 +585,338 @@ const OrdersList = () => {
 
   const generateInvoice = (order) => {
     generateInvoicePDF(order, true);
+  };
+
+  const generateCombinedDocument = (order) => {
+    const pdf = new jsPDF();
+    const address = order.shippingAddress;
+
+    pdf.setDrawColor(200);
+    pdf.line(105, 0, 105, 148.5);
+    pdf.line(0, 148.5, 210, 148.5);
+
+    // === PACKAGE SLIP - Top Left ===
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('PACKING SLIP', 55, 20, { align: 'center' });
+    
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Sales Order No :', 55, 35);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 81, 35);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Date :', 55, 40);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 76, 40);
+    
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP TO:', 10, 58);
+    pdf.setFont(undefined, 'normal');
+    
+    let shipY = 62;
+    if (address) {
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      shipY += 3.5;
+      pdf.text(address.addressLine1 || '', 10, shipY);
+      shipY += 3.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      shipY += 3.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Landmark:', 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.landmark || 'N/A', 26, shipY);
+    }
+    
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SHIP FROM:', 55, 94);
+    pdf.setFont(undefined, 'normal');
+    
+    let fromY = 98;
+    pdf.text('KPG APPARELS', 55, fromY);
+    fromY += 3.5;
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 55, fromY);
+    fromY += 3.5;
+    pdf.text('Valipalayam,', 55, fromY);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(' Tiruppur,', 73, fromY);
+    pdf.setFont(undefined, 'normal');
+    fromY += 3.5;
+    pdf.text('TAMIL NADU,', 55, fromY);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(' 641601', 73, fromY);
+    pdf.setFont(undefined, 'normal');
+    
+    pdf.setFont(undefined, 'italic');
+    pdf.text('Thank you for shopping with us!', 52, 130, { align: 'center' });
+
+    // === INVOICE - Top Right ===
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('INVOICE', 150, 10);
+    
+    pdf.setFontSize(5);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Sold By :', 108, 16);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('KPG APPARELS', 108, 19);
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam,', 108, 21);
+    pdf.text('Tiruppur,', 108, 23);
+    pdf.text('TIRUPPUR, TAMIL NADU, 641601', 108, 25);
+    pdf.text('IN', 108, 27);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Billing Address :', 155, 16);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      let billY = 19;
+      pdf.text(address.fullName || order.user?.name || 'N/A', 155, billY);
+      billY += 2.5;
+      const billLine1 = pdf.splitTextToSize(address.addressLine1 || '', 42);
+      pdf.text(billLine1, 155, billY);
+      billY += billLine1.length * 2.5;
+      if (address.addressLine2) {
+        const billLine2 = pdf.splitTextToSize(address.addressLine2, 42);
+        pdf.text(billLine2, 155, billY);
+        billY += billLine2.length * 2.5;
+      }
+      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 155, billY);
+      billY += 2.5;
+      pdf.text('IN', 155, billY);
+    }
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('PAN No:', 108, 31);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('AARFK8101F', 120, 31);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('GST No:', 108, 34);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('33AARFK8101F1ZG', 120, 34);
+    
+    pdf.line(108, 37, 202, 37);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Number:', 108, 41);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 122, 41);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Shipping Address :', 155, 41);
+    pdf.setFont(undefined, 'normal');
+    if (address) {
+      let shipY = 44;
+      pdf.text(address.fullName || order.user?.name || 'N/A', 155, shipY);
+      shipY += 2.5;
+      pdf.text(address.mobile || order.user?.phone || 'N/A', 155, shipY);
+      shipY += 2.5;
+      const shipLine1 = pdf.splitTextToSize(address.addressLine1 || '', 42);
+      pdf.text(shipLine1, 155, shipY);
+      shipY += shipLine1.length * 2.5;
+      if (address.addressLine2) {
+        const shipLine2 = pdf.splitTextToSize(address.addressLine2, 42);
+        pdf.text(shipLine2, 155, shipY);
+        shipY += shipLine2.length * 2.5;
+      }
+      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 155, shipY);
+      shipY += 2.5;
+      pdf.text('IN', 155, shipY);
+      shipY += 2.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Place of supply:', 155, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.state?.toUpperCase() || 'N/A', 173, shipY);
+      shipY += 2.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Place of delivery:', 155, shipY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(address.state?.toUpperCase() || 'N/A', 175, shipY);
+    }
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Date:', 108, 44);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 120, 44);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Invoice Number:', 108, 47);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`IN-${order.id}`, 127, 47);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Invoice Date:', 108, 50);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 123, 50);
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Mode of Payment:', 108, 53);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(order.paymentMethod || 'Online', 125, 53);
+    
+    // Items table
+    const tableTop = 68;
+    pdf.setFillColor(220, 220, 220);
+    pdf.rect(108, tableTop, 94, 6, 'F');
+    pdf.rect(108, tableTop, 94, 6);
+    
+    pdf.setFontSize(5);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Sl.', 109, tableTop + 4);
+    pdf.text('Description', 118, tableTop + 4);
+    pdf.text('HSN', 158, tableTop + 4);
+    pdf.text('Unit Price', 168, tableTop + 4);
+    pdf.text('Qty', 183, tableTop + 4);
+    pdf.text('Total', 195, tableTop + 4);
+    
+    pdf.line(108, tableTop, 108, tableTop + 6);
+    pdf.line(115, tableTop, 115, tableTop + 6);
+    pdf.line(156, tableTop, 156, tableTop + 6);
+    pdf.line(166, tableTop, 166, tableTop + 6);
+    pdf.line(181, tableTop, 181, tableTop + 6);
+    pdf.line(190, tableTop, 190, tableTop + 6);
+    pdf.line(202, tableTop, 202, tableTop + 6);
+    
+    pdf.setFont(undefined, 'normal');
+    let yPos = tableTop + 10;
+    const itemStartY = yPos;
+    
+    order.items?.forEach((item, index) => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        // For bundles, show each bundle item separately
+        item.bundleItems.forEach((bundleItem, bIdx) => {
+          const itemPrice = parseFloat(bundleItem.originalPrice) || 0;
+          const itemQty = 1;
+          const itemTotal = itemPrice;
+          
+          pdf.text((index + 1).toString() + String.fromCharCode(97 + bIdx), 109, yPos);
+          const variantId = bundleItem.sizeVariantId ? ` (${bundleItem.sizeVariantId})` : '';
+          const itemDesc = `${item.name.split(' Bundle')[0]} - ${bundleItem.size}, ${bundleItem.color}${variantId}`;
+          const lines = pdf.splitTextToSize(itemDesc, 35);
+          pdf.text(lines, 118, yPos);
+          pdf.text(item.hsnCode || 'N/A', 158, yPos);
+          pdf.text(`Rs.${itemPrice.toFixed(2)}`, 168, yPos);
+          pdf.text(itemQty.toString(), 183, yPos);
+          pdf.text(`Rs.${itemTotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+          yPos += Math.max(lines.length * 2.5, 4);
+        });
+      } else {
+        const itemPrice = parseFloat(item.price) || 0;
+        const itemQty = item.quantity || 1;
+        const itemTotal = itemPrice * itemQty;
+        
+        pdf.text((index + 1).toString(), 109, yPos);
+        const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
+        const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
+        const lines = pdf.splitTextToSize(itemDesc, 35);
+        pdf.text(lines, 118, yPos);
+        pdf.text(item.hsnCode || 'N/A', 158, yPos);
+        pdf.text(`Rs.${itemPrice.toFixed(2)}`, 168, yPos);
+        pdf.text(itemQty.toString(), 183, yPos);
+        pdf.text(`Rs.${itemTotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+        yPos += Math.max(lines.length * 2.5, 4);
+      }
+    });
+    
+    const itemEndY = yPos;
+    pdf.line(108, itemEndY, 202, itemEndY);
+    pdf.line(108, tableTop + 6, 108, itemEndY);
+    pdf.line(115, tableTop + 6, 115, itemEndY);
+    pdf.line(156, tableTop + 6, 156, itemEndY);
+    pdf.line(166, tableTop + 6, 166, itemEndY);
+    pdf.line(181, tableTop + 6, 181, itemEndY);
+    pdf.line(190, tableTop + 6, 190, itemEndY);
+    pdf.line(202, tableTop + 6, 202, itemEndY);
+    
+    yPos += 3;
+    const pricingStartY = yPos;
+    const subtotal = parseFloat(order.subtotal) || 0;
+    const discount = parseFloat(order.discount) || 0;
+    const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const total = parseFloat(order.total) || 0;
+    const deliveryGst = order.deliveryOption?.gst || {};
+    const isSameState = deliveryGst.isSameState !== false;
+    const gstRate = 5;
+    const afterDiscount = subtotal - discount;
+    const totalWithDelivery = afterDiscount + deliveryFee;
+    const baseAmount = totalWithDelivery / (1 + gstRate / 100);
+    const gstAmount = totalWithDelivery - baseAmount;
+    const cgstAmount = isSameState ? (gstAmount / 2) : 0;
+    const sgstAmount = isSameState ? (gstAmount / 2) : 0;
+    const igstAmount = !isSameState ? gstAmount : 0;
+    
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Subtotal (incl. GST):', 118, yPos);
+    pdf.text(`Rs.${subtotal.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
+    
+    if (discount > 0) {
+      pdf.text(`Discount (${order.couponCode || ''})`, 118, yPos);
+      pdf.text(`- Rs.${discount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    }
+    
+    pdf.text('Delivery Fee (incl. GST):', 118, yPos);
+    pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
+    
+    pdf.text('Taxable Amount:', 118, yPos);
+    pdf.text(`Rs.${baseAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
+    
+    if (isSameState) {
+      pdf.text(`CGST (2.50%)`, 118, yPos);
+      pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+      pdf.text(`SGST (2.50%)`, 118, yPos);
+      pdf.text(`Rs.${sgstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    } else {
+      pdf.text(`IGST (5.00%)`, 118, yPos);
+      pdf.text(`Rs.${igstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    }
+    
+    pdf.setFont(undefined, 'bold');
+    pdf.text('TOTAL:', 118, yPos);
+    pdf.text(`Rs.${total.toFixed(2)}`, 200, yPos, { align: 'right' });
+    
+    yPos += 4;
+    pdf.text('Amount in Words:', 118, yPos);
+    pdf.setFont(undefined, 'normal');
+    const amountInWords = convertToWords(total);
+    const wordLines = pdf.splitTextToSize(amountInWords, 80);
+    pdf.text(wordLines, 118, yPos + 3);
+    
+    const pricingEndY = yPos + 3 + (wordLines.length * 2.5);
+    pdf.rect(108, itemEndY, 94, pricingEndY - itemEndY);
+    
+    // Authorized Signatory
+    let footerY = pricingEndY + 4;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('For EN3 FASHIONS:', 175, footerY);
+    if (signatureUrl) {
+      const signatureImg = new Image();
+      signatureImg.src = signatureUrl;
+      try {
+        pdf.addImage(signatureImg, 'PNG', 175, footerY + 2, 20, 6);
+      } catch (e) {}
+    }
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Authorized Signatory', 175, footerY + 10);
+    
+    // Date & Time
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Date & Time:', 108, footerY + 10);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date().toLocaleString('en-GB'), 125, footerY + 10);
+    pdf.save(`combined-${order.id}.pdf`);
   };
   
   const convertToWords = (amount) => {
@@ -712,18 +1029,36 @@ const OrdersList = () => {
     {
       key: "user",
       label: "Customer",
-      render: (value) => (
-        <div className="customer-info">
-          <div className="customer-name">{value?.name || "N/A"}</div>
-          <div className="customer-email">{value?.email || "N/A"}</div>
-          <div className="customer-phone">{value?.phone || "N/A"}</div>
-        </div>
-      ),
+      render: (value, row) => {
+        const name = value?.name || row.shippingAddress?.fullName || "N/A";
+        const city = row.shippingAddress?.city || "N/A";
+        const phone = value?.phone || "N/A";
+        return (
+          <div className="customer-info">
+            <div className="customer-name">{name}</div>
+            <div className="customer-email">{city}</div>
+            <div className="customer-phone">{phone}</div>
+          </div>
+        );
+      },
     },
     {
       key: "items",
       label: "Products",
       render: (value) => `${value?.length || 0} items`,
+    },
+    {
+      key: "items",
+      label: "Quantity",
+      render: (value) => {
+        const totalQty = value?.reduce((sum, item) => {
+          if (item.type === 'bundle' && item.bundleItems) {
+            return sum + item.bundleItems.length;
+          }
+          return sum + (item.quantity || 0);
+        }, 0) || 0;
+        return totalQty;
+      },
     },
     { key: "total", label: "Total", render: (value) => `₹${value}` },
     {
@@ -780,22 +1115,13 @@ const OrdersList = () => {
             </button>
           )}
           {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
-            <>
-              <button
-                className="action-btn download"
-                title="Download Package Slip"
-                onClick={() => generatePackageSlip(row)}
-              >
-                <Package size={16} />
-              </button>
-              <button
-                className="action-btn download"
-                title="Download Invoice"
-                onClick={() => generateInvoice(row)}
-              >
-                <Receipt size={16} />
-              </button>
-            </>
+            <button
+              className="action-btn download"
+              title="Download Combined Document"
+              onClick={() => generateCombinedDocument(row)}
+            >
+              <Receipt size={16} />
+            </button>
           )}
         </div>
       ),
@@ -938,14 +1264,18 @@ const OrdersList = () => {
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
                 </div>
-                <div className="shipping-address">
+                <div className="shipping-address" style={{maxWidth: '100%', overflow: 'hidden'}}>
                   <h4>Shipping Address</h4>
                   {selectedOrder.shippingAddress ? (
-                    <div>
+                    <div style={{maxWidth: '100%', overflow: 'hidden'}}>
+                      <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
+                      {selectedOrder.shippingAddress.addressLine2 && (
+                        <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
+                      )}
                       <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
-        
                       <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
                       <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
+                      <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
                     </div>
                   ) : (
                     <p>No shipping address provided</p>
@@ -957,18 +1287,45 @@ const OrdersList = () => {
                 <div className="order-items">
                   {selectedOrder.items?.map((item, idx) => (
                     <div key={idx} className="order-item">
-                      <img src={item.imageUrl} alt={item.name} />
-                      <div>
-                        <p>
-                          <strong>{item.name}</strong>
-                        </p>
-                        <p>
-                          Size: {item.size}, Color: {item.color}
-                        </p>
-                        <p>
-                          Qty: {item.quantity} × ₹{item.price}
-                        </p>
-                      </div>
+                      {item.type === 'bundle' ? (
+                        <div style={{width: '100%'}}>
+                          <p><strong>{item.name}</strong></p>
+                          <p>Bundle | Qty: {item.quantity} × ₹{item.price}</p>
+                          <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap'}}>
+                            {item.bundleItems?.map((bundle, bIdx) => (
+                              <div key={bIdx} style={{textAlign: 'center'}}>
+                                <img src={bundle.colorImage} alt={bundle.color} style={{width: '60px', height: '60px', objectFit: 'cover'}}/>
+                                <p style={{fontSize: '0.85em', margin: '5px 0 0'}}>{bundle.color} ({bundle.size})</p>
+                                {bundle.sizeVariantId && (
+                                  <p style={{fontSize: '0.8em', fontFamily: 'monospace', background: '#fef3c7', padding: '3px 5px', borderRadius: '3px', margin: '3px 0 0'}}>
+                                    Variant ID: <strong style={{fontWeight: '900', fontSize: '1.8em'}}>{bundle.sizeVariantId}</strong>
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <img src={item.imageUrl} alt={item.name} />
+                          <div>
+                            <p>
+                              <strong>{item.name}</strong>
+                            </p>
+                            <p>
+                              Size: {item.size}, Color: {item.color}
+                            </p>
+                            {item.sizeVariantId && (
+                              <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                                Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
+                              </p>
+                            )}
+                            <p>
+                              Qty: {item.quantity} × ₹{item.price}
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1056,3 +1413,6 @@ const OrdersList = () => {
 };
 
 export default OrdersList;
+
+
+

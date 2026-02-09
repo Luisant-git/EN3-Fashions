@@ -57,9 +57,9 @@ const NewArrivalsPage = () => {
         p.colors.flatMap(c => c.sizes.map(s => s.size))
     ))).sort();
     
-    const availableColors = Array.from(new Set(products.flatMap(p => 
-        p.colors.map(c => c.name)
-    )));
+    const availableColors = Array.from(
+        new Map(products.flatMap(p => p.colors.map(c => [c.name, c]))).values()
+    );
 
     const filteredProducts = products.filter(p => {
         const { minPrice, maxPrice, sizes, colors } = filters;

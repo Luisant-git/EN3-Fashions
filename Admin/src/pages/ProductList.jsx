@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Search, Filter, Plus, Edit, Trash2, Eye, X } from "lucide-react";
+import { Search, Filter, Plus, Edit, Trash2, Eye, X, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { jsPDF } from "jspdf";
 import DataTable from "../components/DataTable";
 import {
   getProducts,
@@ -159,6 +160,41 @@ const ProductList = () => {
     }
   };
 
+  const downloadProductVariants = (product) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const labelWidth = pageWidth / 2;
+    const labelHeight = 15;
+    let x = 0;
+    let y = 5;
+    let count = 0;
+    
+    product.colors?.forEach(color => {
+      color.sizes?.forEach(size => {
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(size.sizeVariantId || 'N/A', x + labelWidth / 2, y + 8, { align: 'center' });
+        doc.line(x, y + labelHeight, x + labelWidth, y + labelHeight);
+        
+        count++;
+        if (count % 2 === 0) {
+          x = 0;
+          y += labelHeight;
+          if (y + labelHeight > pageHeight) {
+            doc.addPage();
+            y = 5;
+          }
+        } else {
+          x = labelWidth;
+          doc.line(labelWidth, y, labelWidth, y + labelHeight);
+        }
+      });
+    });
+    
+    doc.save(`${product.name.replace(/\s+/g, '_')}_labels.pdf`);
+  };
+
   const columns = [
     {
       key: "gallery",
@@ -249,6 +285,13 @@ const ProductList = () => {
           >
             <Trash2 size={16} />
           </button>
+          <button
+            className="action-btn download"
+            onClick={() => downloadProductVariants(row)}
+            title="Download Variants"
+          >
+            <Download size={16} />
+          </button>
         </div>
       ),
     },
@@ -256,7 +299,7 @@ const ProductList = () => {
 
   // Modal content for view
   const ViewModal = ({ product }) => (
-    <div className="modal-content view-modal">
+    <div className="modal-content view-modal" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <h2>Product Details</h2>
       {product.gallery && product.gallery.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
@@ -312,7 +355,17 @@ const ProductList = () => {
                   <strong>{color.name}</strong>
                 </div>
                 <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                  Sizes: {color.sizes.map(s => `${s.size} (₹${s.price}, Qty: ${s.quantity})`).join(', ')}
+                  Sizes: {color.sizes.map((s, idx) => (
+                    <span key={idx}>
+                      {s.size} (₹{s.price}, Qty: {s.quantity})
+                      {s.sizeVariantId && (
+                        <span style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace', marginLeft: '4px' }}>
+                          [{s.sizeVariantId}]
+                        </span>
+                      )}
+                      {idx < color.sizes.length - 1 ? ', ' : ''}
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}
@@ -548,7 +601,7 @@ const ProductList = () => {
               <Search size={20} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search by name or size variant ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -597,10 +650,20 @@ const ProductList = () => {
             data={products.filter(p => {
               const categoryMatch = filterCategory === 'all' || p.categoryId === parseInt(filterCategory);
               const subCategoryMatch = filterSubCategory === 'all' || p.subCategoryId === parseInt(filterSubCategory);
-              return categoryMatch && subCategoryMatch;
+              
+              // Search by name or sizeVariantId
+              const searchMatch = searchTerm === '' || 
+                p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.colors?.some(color => 
+                  color.sizes?.some(size => 
+                    size.sizeVariantId?.toUpperCase() === searchTerm.toUpperCase()
+                  )
+                );
+              
+              return categoryMatch && subCategoryMatch && searchMatch;
             })}
             columns={columns}
-            searchTerm={searchTerm}
+            searchTerm=""
             searchKey="name"
           />
 

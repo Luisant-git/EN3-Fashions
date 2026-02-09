@@ -19,4 +19,9 @@ export class CreateSubCategoryDto {
   @IsOptional()
   @IsString()
   image?: string;
+
+  @ApiPropertyOptional({ example: '/uploads/size-chart.png' })
+  @IsOptional()
+  @IsString()
+  sizeChart?: string;
 }

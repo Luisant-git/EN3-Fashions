@@ -115,7 +115,7 @@ const SubCategoryList = () => {
   };
 
   const ViewModal = ({ subCategory }) => (
-    <div className="modal-content view-modal">
+    <div className="modal-content view-modal" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <h2>Subcategory Details</h2>
       <img
         src={subCategory.image || "/placeholder.svg"}
@@ -133,6 +133,16 @@ const SubCategoryList = () => {
         <p>
           <strong>Description:</strong> {subCategory.description || "N/A"}
         </p>
+        {subCategory.sizeChart && (
+          <div style={{ marginTop: '1rem' }}>
+            <p><strong>Size Chart:</strong></p>
+            <img
+              src={subCategory.sizeChart}
+              alt="Size Chart"
+              style={{ maxWidth: '100%', marginTop: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -142,10 +152,29 @@ const SubCategoryList = () => {
       name: subCategory.name,
       description: subCategory.description || "",
       image: subCategory.image || "",
+      sizeChart: subCategory.sizeChart || "",
       categoryId: subCategory.categoryId,
+      orderNumber: subCategory.orderNumber || 0,
     });
     const [saving, setSaving] = useState(false);
     const [imageUploading, setImageUploading] = useState(false);
+    const [sizeChartUploading, setSizeChartUploading] = useState(false);
+
+    const handleSizeChartUpload = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setSizeChartUploading(true);
+        try {
+          const uploadResult = await uploadImage(file);
+          setForm((f) => ({ ...f, sizeChart: uploadResult.url }));
+          toast.success("Size chart uploaded successfully!");
+        } catch (err) {
+          toast.error("Failed to upload size chart");
+        } finally {
+          setSizeChartUploading(false);
+        }
+      }
+    };
 
     const handleImageUpload = async (e) => {
       const file = e.target.files[0];
@@ -174,7 +203,7 @@ const SubCategoryList = () => {
     };
 
     return (
-      <form className="modal-content edit-modal" onSubmit={handleSubmit}>
+      <form className="modal-content edit-modal" onSubmit={handleSubmit} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
         <h2>Edit Subcategory</h2>
         <div className="form-group">
           <label className="form-label">Image</label>
@@ -247,6 +276,51 @@ const SubCategoryList = () => {
             rows={3}
           />
         </div>
+        <div className="form-group">
+          <label className="form-label">Order Number</label>
+          <input
+            type="number"
+            className="form-input"
+            value={form.orderNumber}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, orderNumber: parseInt(e.target.value) || 0 }))
+            }
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Size Chart (Optional)</label>
+          <div className="image-edit-section">
+            {form.sizeChart ? (
+              <div className="image-preview-wrapper">
+                <img src={form.sizeChart} alt="Size Chart" className="current-image" />
+                <button
+                  type="button"
+                  className="change-image-btn"
+                  onClick={() => document.getElementById("edit-sizechart-upload").click()}
+                  disabled={sizeChartUploading}
+                >
+                  <Upload size={14} />
+                  {sizeChartUploading ? "Uploading..." : "Change"}
+                </button>
+              </div>
+            ) : (
+              <div className="image-upload-area" onClick={() => document.getElementById("edit-sizechart-upload").click()}>
+                <Upload size={28} />
+                <p>{sizeChartUploading ? "Uploading..." : "Upload size chart"}</p>
+                <span>PNG, JPG</span>
+              </div>
+            )}
+            <input
+              type="file"
+              id="edit-sizechart-upload"
+              accept="image/*"
+              onChange={handleSizeChartUpload}
+              style={{ display: "none" }}
+              disabled={sizeChartUploading}
+            />
+          </div>
+        </div>
         <div className="modal-actions">
           <button
             type="button"
@@ -258,7 +332,7 @@ const SubCategoryList = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={saving || imageUploading}
+            disabled={saving || imageUploading || sizeChartUploading}
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -304,6 +378,11 @@ const SubCategoryList = () => {
       key: "category",
       label: "Parent Category",
       render: (value) => value?.name || "N/A",
+    },
+    {
+      key: "orderNumber",
+      label: "Order",
+      render: (value) => value || 0,
     },
     { key: "description", label: "Description" },
     {

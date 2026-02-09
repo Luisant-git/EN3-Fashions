@@ -159,9 +159,9 @@ const BannerList = () => {
           <button className="action-btn view" onClick={() => handleView(row.id)} title="View">
             <Eye size={16} />
           </button>
-          {/* <button className="action-btn edit" onClick={() => handleEdit(row.id)} title="Edit">
+          <button className="action-btn edit" onClick={() => handleEdit(row.id)} title="Edit">
             <Edit size={16} />
-          </button> */}
+          </button>
           <button className="action-btn delete" onClick={() => handleDelete(row.id)} title="Delete">
             <Trash2 size={16} />
           </button>

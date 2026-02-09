@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getProductById } from '../api/productApi';
 import { CartContext } from '../contexts/CartContext';
@@ -10,6 +10,7 @@ import '../styles/ZoomModal.css';
 
 const ProductDetailPage = () => {
     const { productId } = useParams();
+    const navigate = useNavigate();
     const { addToCart, loading: cartLoading } = useContext(CartContext);
     const { toggleWishlist, isInWishlist, loadingProductId: wishlistLoadingId } = useContext(WishlistContext);
     
@@ -43,6 +44,8 @@ const ProductDetailPage = () => {
             try {
                 setLoading(true);
                 const data = await getProductById(productId);
+                console.log('Product Data:', data);
+                console.log('First Color Sizes:', data.colors?.[0]?.sizes);
                 setProduct(data);
                 if (data.colors && data.colors.length > 0) {
                     setSelectedColor(data.colors[0]);
@@ -67,19 +70,36 @@ const ProductDetailPage = () => {
 
     const handleAddToCart = () => {
         if (cartLoading || !selectedSize) return;
+        console.log('Selected Size:', selectedSize);
+        console.log('Size Variant ID:', selectedSize?.sizeVariantId);
         addToCart({
             id: product.id,
             name: product.name,
             price: selectedSize.price,
             imageUrl: selectedColor.image,
             size: selectedSize.size,
-            color: selectedColor.name
+            color: selectedColor.name,
+            sizeVariantId: selectedSize?.sizeVariantId || null
         });
+    };
+
+    const handleBuyNow = () => {
+        if (cartLoading || !selectedSize) return;
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: selectedSize.price,
+            imageUrl: selectedColor.image,
+            size: selectedSize.size,
+            color: selectedColor.name,
+            sizeVariantId: selectedSize?.sizeVariantId || null
+        });
+        navigate('/checkout');
     };
 
     const accordionItems = [
         { id: 1, title: 'Product Description', content: 'This is a high-quality garment made from premium materials, designed for comfort and style. Perfect for any occasion, it features a modern fit and durable construction.' },
-        { id: 2, title: 'Shipping & Returns', content: 'We offer free standard shipping on all orders over ₹1000. Express shipping options are available at checkout. Returns are accepted within 30 days of purchase for a full refund.' }
+        { id: 2, title: 'Shipping & Returns', content: 'Shipping charges apply based on your location. Returns are accepted within 30 days of purchase for a full refund.' }
     ];
 
     const toggleAccordion = (id) => {
@@ -92,13 +112,19 @@ const ProductDetailPage = () => {
         const color = product.colors.find(c => c.name === colorName);
         const sizeInfo = color.sizes.find(s => s.size === size);
         
+        console.log('Bundle Selection - Color:', colorName, 'Size:', size);
+        console.log('Size Info:', sizeInfo);
+        console.log('Size Variant ID:', sizeInfo?.sizeVariantId);
+        
         const newSelections = [...bundleSelections, { 
             color: colorName, 
             size, 
             price: sizeInfo.price,
+            sizeVariantId: sizeInfo?.sizeVariantId || null,
             id: Date.now() + Math.random()
         }];
         
+        console.log('New Selection Added:', newSelections[newSelections.length - 1]);
         setBundleSelections(newSelections);
         
         // Calculate bundle price
@@ -137,19 +163,43 @@ const ProductDetailPage = () => {
                     color: sel.color,
                     size: sel.size,
                     originalPrice: sel.price,
+                    sizeVariantId: sel.sizeVariantId || null,
                     colorImage: color?.image || product.colors[0]?.image
                 };
             })
         };
         
-        // Add using CartContext
+        console.log('Bundle Item with sizeVariantIds:', JSON.stringify(bundleItem, null, 2));
         addToCart(bundleItem);
-        
-        // Reset bundle selections
         setBundleSelections([]);
         setBundlePrice(null);
-        
         toast.success('Bundle added to cart!');
+    };
+
+    const handleBundleBuyNow = () => {
+        if (bundleSelections.length < 2 || !bundlePrice) return;
+        
+        const bundleItem = {
+            id: `bundle-${product.id}-${Date.now()}`,
+            name: `${product.name} Bundle (${bundleSelections.length} items)`,
+            price: bundlePrice,
+            imageUrl: product.gallery?.[0]?.url || product.colors[0]?.image,
+            type: 'bundle',
+            items: bundleSelections.map(sel => {
+                const color = product.colors.find(c => c.name === sel.color);
+                return {
+                    color: sel.color,
+                    size: sel.size,
+                    originalPrice: sel.price,
+                    sizeVariantId: sel.sizeVariantId || null,
+                    colorImage: color?.image || product.colors[0]?.image
+                };
+            })
+        };
+        
+        console.log('Bundle Item with sizeVariantIds:', JSON.stringify(bundleItem, null, 2));
+        addToCart(bundleItem);
+        navigate('/checkout');
     };
 
     return (
@@ -202,7 +252,7 @@ const ProductDetailPage = () => {
                 <h1>{product.name}</h1>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
                     {product.mrp && <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.5rem' }}>₹{product.mrp}</span>}
-                    <p className="pdp-price" style={{ margin: 0 }}>₹{selectedSize?.price || product.basePrice}</p>
+                    <p className="pdp-price" style={{ margin: 0 }}>₹{selectedSize?.price || product.basePrice} <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: 'normal' }}>+ shipping charges</span></p>
                 </div>
                 <p className="pdp-description">{product.description}</p>
 
@@ -228,7 +278,18 @@ const ProductDetailPage = () => {
                 </div>
 
                 <div className="pdp-selector-group">
-                    <label className="pdp-selector-label">Size:</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <label className="pdp-selector-label" style={{ margin: 0 }}>Size:</label>
+                        {product.subCategory?.sizeChart && (
+                            <Link 
+                                to={`/size-chart/${product.subCategoryId}`} 
+                                className="size-chart-link" 
+                                style={{ margin: 0 }}
+                            >
+                                View Size Chart
+                            </Link>
+                        )}
+                    </div>
                     <div className="pdp-size-options">
                         {selectedColor?.sizes.map(size => (
                             <button 
@@ -246,8 +307,11 @@ const ProductDetailPage = () => {
                     <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={cartLoading || !selectedSize}>
                         {cartLoading ? <LoadingSpinner /> : 'Add to Cart'}
                     </button>
+                    <button className="buy-now-btn" onClick={handleBuyNow} disabled={cartLoading || !selectedSize}>
+                        {cartLoading ? <LoadingSpinner /> : 'Buy Now'}
+                    </button>
                     <button 
-                        className={`wishlist-action-btn ${isInWishlist(product.id) ? 'active' : ''}`}
+                        className={`wishlist-icon-btn ${isInWishlist(product.id) ? 'active' : ''}`}
                         onClick={() => toggleWishlist({
                             id: product.id,
                             name: product.name,
@@ -255,8 +319,13 @@ const ProductDetailPage = () => {
                             imageUrl: selectedColor?.image
                         })}
                         disabled={wishlistLoadingId === product.id}
+                        aria-label="Add to wishlist"
                     >
-                        {wishlistLoadingId === product.id ? <LoadingSpinner /> : (isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist')}
+                        {wishlistLoadingId === product.id ? <LoadingSpinner /> : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        )}
                     </button>
                 </div>
                 
@@ -313,12 +382,20 @@ const ProductDetailPage = () => {
                                                     <span className="bundle-total">Bundle Price: ₹{bundlePrice}</span>
                                                     <span className="savings">You save ₹{bundleSelections.reduce((sum, item) => sum + parseInt(item.price), 0) - parseInt(bundlePrice)}</span>
                                                 </div>
-                                                <button 
-                                                    className="bundle-add-btn"
-                                                    onClick={handleBundleAddToCart}
-                                                >
-                                                    Add Bundle to Cart
-                                                </button>
+                                                <div className="bundle-actions">
+                                                    <button 
+                                                        className="bundle-add-btn"
+                                                        onClick={handleBundleAddToCart}
+                                                    >
+                                                        Add Bundle to Cart
+                                                    </button>
+                                                    <button 
+                                                        className="bundle-buy-btn"
+                                                        onClick={handleBundleBuyNow}
+                                                    >
+                                                        Buy Now
+                                                    </button>
+                                                </div>
                                             </>
                                         ) : (
                                             <div className="bundle-no-offer-message">

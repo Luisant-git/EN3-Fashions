@@ -18,6 +18,7 @@ import OrdersPage from './components/OrdersPage';
 import CheckoutPage from './components/CheckoutPage';
 import OrderConfirmationPage from './components/OrderConfirmationPage';
 import SearchResultsPage from './components/SearchResultsPage';
+import SizeChartPage from './components/SizeChartPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ProfilePage from './components/ProfilePage';
@@ -60,6 +61,7 @@ const App = () => {
                                     <Route path="/checkout" element={<CheckoutPage />} />
                                     <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
                                     <Route path="/search" element={<SearchResultsPage />} />
+                                    <Route path="/size-chart/:subCategoryId" element={<SizeChartPage />} />
                                     <Route path="/login" element={<LoginPage />} />
                                     <Route path="/signup" element={<SignupPage />} />
                                     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

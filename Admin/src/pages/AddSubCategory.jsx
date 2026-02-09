@@ -11,10 +11,12 @@ const AddSubCategory = () => {
     name: '',
     description: '',
     categoryId: '',
+    orderNumber: 0,
     status: 'active'
   })
   const [categories, setCategories] = useState([])
   const [image, setImage] = useState(null)
+  const [sizeChart, setSizeChart] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
@@ -39,6 +41,27 @@ const AddSubCategory = () => {
         toast.error('Failed to upload image')
       }
     }
+  }
+
+  const handleSizeChartUpload = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      try {
+        const uploadResult = await uploadImage(file)
+        setSizeChart({
+          file,
+          url: uploadResult.url,
+          filename: uploadResult.filename
+        })
+        toast.success('Size chart uploaded successfully!')
+      } catch (err) {
+        toast.error('Failed to upload size chart')
+      }
+    }
+  }
+
+  const removeSizeChart = () => {
+    setSizeChart(null)
   }
 
   const removeImage = () => {
@@ -66,7 +89,9 @@ const AddSubCategory = () => {
         name: formData.name,
         description: formData.description,
         categoryId: parseInt(formData.categoryId),
-        image: image ? image.url : null
+        orderNumber: parseInt(formData.orderNumber) || 0,
+        image: image ? image.url : null,
+        sizeChart: sizeChart ? sizeChart.url : null
       }
       
       await createSubCategory(subcategoryData)
@@ -74,8 +99,9 @@ const AddSubCategory = () => {
       navigate('/subcategory-list')
       
       // Reset form
-      setFormData({ name: '', description: '', categoryId: '', status: 'active' })
+      setFormData({ name: '', description: '', categoryId: '', orderNumber: 0, status: 'active' })
       setImage(null)
+      setSizeChart(null)
     } catch (err) {
       toast.error(err.message || 'Failed to create sub category')
     } finally {
@@ -142,6 +168,18 @@ const AddSubCategory = () => {
                 rows={4}
               />
             </div>
+
+            <div className="form-group">
+              <label className="form-label">Order Number</label>
+              <input
+                type="number"
+                className="form-input"
+                value={formData.orderNumber}
+                onChange={(e) => handleInputChange('orderNumber', e.target.value)}
+                placeholder="Enter display order (0 = first)"
+                min="0"
+              />
+            </div>
           </div>
 
           <div className="form-section">
@@ -172,6 +210,40 @@ const AddSubCategory = () => {
                     type="button"
                     className="remove-image"
                     onClick={removeImage}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="section-header" style={{ marginTop: '2rem' }}>
+              <h3>Size Chart (Optional)</h3>
+            </div>
+
+            <div className="image-upload-section">
+              {!sizeChart ? (
+                <div className="image-upload-area">
+                  <input
+                    type="file"
+                    id="sizechart-upload"
+                    accept="image/*"
+                    onChange={handleSizeChartUpload}
+                    className="image-input"
+                  />
+                  <label htmlFor="sizechart-upload" className="upload-label">
+                    <Upload size={48} />
+                    <p>Click to upload size chart</p>
+                    <span>PNG, JPG up to 5MB</span>
+                  </label>
+                </div>
+              ) : (
+                <div className="image-preview">
+                  <img src={sizeChart.url || "/placeholder.svg"} alt="Size Chart" />
+                  <button
+                    type="button"
+                    className="remove-image"
+                    onClick={removeSizeChart}
                   >
                     <X size={16} />
                   </button>

@@ -46,12 +46,12 @@ const FiltersComponent = ({ filters, setFilters, availableSizes, availableColors
             <div className="filter-group">
                 <h4>Color</h4>
                 <div className="color-selector">
-                    {availableColors.map((color) => (
+                    {availableColors.map((colorObj) => (
                          <button 
-                            key={color}
-                            onClick={() => handleMultiSelect('colors', color)}
-                            className={`color-option ${filters.colors?.includes(color) ? 'active' : ''} ${filters.colors?.includes(color) ? 'active-filter' : ''}`}
-                         ><span style={{backgroundColor: color.toLowerCase()}}></span> {color}</button>
+                            key={colorObj.name}
+                            onClick={() => handleMultiSelect('colors', colorObj.name)}
+                            className={`color-option ${filters.colors?.includes(colorObj.name) ? 'active' : ''} ${filters.colors?.includes(colorObj.name) ? 'active-filter' : ''}`}
+                         ><span style={{backgroundColor: colorObj.code}}></span> {colorObj.name}</button>
                     ))}
                 </div>
             </div>

@@ -34,7 +34,7 @@ const EditProduct = () => {
   const [loading, setLoading] = useState(false)
   const [editingColorIndex, setEditingColorIndex] = useState(null)
   const [currentColor, setCurrentColor] = useState({ name: '', code: '#000000', images: [], sizes: [] })
-  const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0 })
+  const [currentSize, setCurrentSize] = useState({ size: '', price: '', quantity: 0, sizeVariantId: '' })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,8 +121,14 @@ const EditProduct = () => {
         ...prev,
         sizes: [...prev.sizes, { ...currentSize, quantity: parseInt(currentSize.quantity) || 0 }]
       }))
-      setCurrentSize({ size: '', price: '', quantity: 0 })
+      setCurrentSize({ size: '', price: '', quantity: 0, sizeVariantId: '' })
     }
+  }
+
+  const updateSizeField = (index, field, value) => {
+    const updatedSizes = [...currentColor.sizes]
+    updatedSizes[index] = { ...updatedSizes[index], [field]: value }
+    setCurrentColor(prev => ({ ...prev, sizes: updatedSizes }))
   }
 
   const addColor = () => {
@@ -131,7 +137,7 @@ const EditProduct = () => {
         name: currentColor.name,
         code: currentColor.code,
         image: currentColor.images[0] || '',
-        sizes: currentColor.sizes.map(({ size, price, quantity }) => ({ size, price, quantity }))
+        sizes: currentColor.sizes.map(({ size, price, quantity, sizeVariantId }) => ({ size, price, quantity, sizeVariantId }))
       }
       
       if (editingColorIndex !== null) {
@@ -561,8 +567,72 @@ const EditProduct = () => {
             </div>
 
             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Add Sizes</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 70px', gap: '12px', alignItems: 'end' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>Sizes</h4>
+              
+              {currentColor.sizes.map((size, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 140px 70px', gap: '12px', alignItems: 'end', marginBottom: '12px' }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '13px' }}>Size</label>
+                    <select
+                      className="form-select"
+                      value={size.size}
+                      onChange={(e) => updateSizeField(i, 'size', e.target.value)}
+                      style={{ height: '42px' }}
+                    >
+                      <option value="">Select</option>
+                      <option value="XS">XS</option>
+                      <option value="S">S</option>
+                      <option value="M">M</option>
+                      <option value="L">L</option>
+                      <option value="XL">XL</option>
+                      <option value="XXL">XXL</option>
+                      <option value="XXXL">XXXL</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '13px' }}>Price</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={size.price}
+                      onChange={(e) => updateSizeField(i, 'price', e.target.value)}
+                      placeholder="499.00"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '13px' }}>Quantity</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      value={size.quantity}
+                      onChange={(e) => updateSizeField(i, 'quantity', e.target.value)}
+                      placeholder="10"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '13px' }}>Variant ID</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={size.sizeVariantId}
+                      onChange={(e) => updateSizeField(i, 'sizeVariantId', e.target.value)}
+                      placeholder="123456"
+                    />
+                  </div>
+                  <div style={{ marginBottom: '18px' }}>
+                    <button
+                      type="button"
+                      onClick={() => removeSizeFromCurrentColor(i)}
+                      className="btn btn-secondary"
+                      style={{ height: '42px', padding: '0 10px', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 120px 120px 140px 70px', gap: '12px', alignItems: 'end' }}>
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '13px' }}>Size</label>
                   <select
@@ -601,32 +671,22 @@ const EditProduct = () => {
                     placeholder="10"
                   />
                 </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '13px' }}>Variant ID</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={currentSize.sizeVariantId}
+                    onChange={(e) => setCurrentSize(prev => ({ ...prev, sizeVariantId: e.target.value }))}
+                    placeholder="123456"
+                  />
+                </div>
                 <div style={{ marginBottom: '18px' }}>
                   <button type="button" onClick={addSize} className="btn btn-secondary" style={{ height: '42px', padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '13px' }}>
                     <Plus size={16} /> Add
                   </button>
                 </div>
               </div>
-
-              {currentColor.sizes.length > 0 && (
-                <div style={{ marginTop: '16px', padding: '12px', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#374151' }}>Added Sizes:</div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {currentColor.sizes.map((size, i) => (
-                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f3f4f6', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #e5e7eb' }}>
-                        <strong>{size.size}</strong> - ₹{size.price} <span style={{ color: '#6b7280' }}>(Qty: {size.quantity})</span>
-                        <button
-                          type="button"
-                          onClick={() => removeSizeFromCurrentColor(i)}
-                          style={{ marginLeft: '4px', padding: '2px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }}
-                        >
-                          <X size={14} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: '12px' }}>
@@ -704,6 +764,7 @@ const EditProduct = () => {
                             <div style={{ display: 'flex', gap: '12px', color: '#6b7280' }}>
                               <span>₹{size.price}</span>
                               <span>Qty: {size.quantity}</span>
+                              {size.sizeVariantId && <span style={{ fontFamily: 'monospace', background: '#fef3c7', padding: '2px 6px', borderRadius: '3px' }}>ID: {size.sizeVariantId}</span>}
                             </div>
                           </div>
                         ))}
