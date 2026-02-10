@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   Filter,
@@ -12,12 +12,14 @@ import {
   Download,
   FileText,
   Receipt,
+  Image as ImageIcon,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles } from "../api/order";
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
+import html2canvas from 'html2canvas';
 
 const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +37,7 @@ const OrdersList = () => {
   const [signatureUrl, setSignatureUrl] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const modalRef = useRef(null);
 
   useEffect(() => {
     fetchOrders();
@@ -1095,6 +1098,27 @@ const OrdersList = () => {
     return words.trim() + ' only';
   };
 
+  const downloadModalAsImage = async () => {
+    if (!modalRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(modalRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `order-${selectedOrder.id}-details.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('Failed to download image');
+    }
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1387,12 +1411,17 @@ const OrdersList = () => {
 
       {showViewModal && selectedOrder && (
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef}>
             <div className="modal-header">
               <h2>Order Details - #ORD-{selectedOrder.id}</h2>
-              <button onClick={() => setShowViewModal(false)}>
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={downloadModalAsImage} style={{ padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="Download as Image">
+                  <ImageIcon size={16} />
+                </button>
+                <button onClick={() => setShowViewModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
             </div>
             <div className="modal-body">
               <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
