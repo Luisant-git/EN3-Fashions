@@ -330,7 +330,7 @@ const ProductList = () => {
           color.sizes?.some(size => parseInt(size.quantity || 0) < 5)
         );
         return (
-          <div className="action-buttons">
+          <div className="action-buttons" style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }}>
             <button
               className="action-btn view"
               onClick={() => openModal("view", row)}
@@ -356,16 +356,6 @@ const ProductList = () => {
             >
               <Download size={16} />
             </button>
-            {/* {hasLowStock && (
-              <button
-                className="action-btn whatsapp"
-                onClick={() => handleLowStockAlert(row)}
-                title="Send Low Stock Alert"
-                style={{ backgroundColor: '#25D366' }}
-              >
-                <MessageCircle size={16} />
-              </button>
-            )} */}
           </div>
         );
       },

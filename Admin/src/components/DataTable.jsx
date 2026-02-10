@@ -23,7 +23,7 @@ const DataTable = ({ data, columns, searchTerm, searchKey }) => {
 
   return (
     <div className="data-table">
-      <div className="table-wrapper">
+      <div className="table-wrapper" style={{ maxHeight: '600px', overflowY: 'auto' }}>
         <table className="table">
           <thead>
             <tr>
