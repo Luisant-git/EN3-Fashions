@@ -20,6 +20,7 @@ import {
 import SalesAnalytics from '../components/SalesAnalytics';
 import TopSellingProducts from '../components/TopSellingProducts';
 import { getDashboardStats, getSalesAnalytics, getTopProducts, getCurrentOffers, getRecentOrders } from '../api/dashboardApi';
+import { getProducts } from '../api/productApi';
 import './Dashboard.scss'
 
 // You can create a separate component for this, but for simplicity, it's here
@@ -52,6 +53,7 @@ const Dashboard = () => {
   const [statsData, setStatsData] = useState([]);
   const [offers, setOffers] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const productsScrollRef = React.useRef(null);
 
@@ -71,11 +73,19 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [stats, offersData, ordersData] = await Promise.all([
+      const [stats, offersData, ordersData, productsData] = await Promise.all([
         getDashboardStats(),
         getCurrentOffers(),
-        getRecentOrders()
+        getRecentOrders(),
+        getProducts()
       ]);
+
+      const lowStock = productsData.filter(p => {
+        const hasLowStock = p.colors?.some(color => 
+          color.sizes?.some(size => parseInt(size.quantity || 0) < 5)
+        );
+        return hasLowStock;
+      }).slice(0, 10);
 
       setStatsData([
         {
@@ -114,6 +124,7 @@ const Dashboard = () => {
 
       setOffers(offersData);
       setRecentOrders(ordersData);
+      setLowStockProducts(lowStock);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -137,7 +148,7 @@ const Dashboard = () => {
             <Search size={20} className="search-icon" />
             <input type="text" placeholder="Search..." />
           </div>
-          <button className="icon-btn date-btn">
+          {/* <button className="icon-btn date-btn">
             <Calendar size={20} />
             <span>{todayDate}</span>
           </button>
@@ -146,7 +157,7 @@ const Dashboard = () => {
           </button>
           <button className="icon-btn">
             <UserCircle size={24} />
-          </button>
+          </button> */}
         </div>
       </header>
 
@@ -163,7 +174,7 @@ const Dashboard = () => {
             <h3>Recent Orders</h3>
             <span className="order-count">{recentOrders.length} orders</span>
           </div>
-          <div className="orders-table">
+          <div className="orders-table" style={{ maxHeight: '400px', overflowY: 'auto' }}>
             <table>
               <thead>
                 <tr>
@@ -202,6 +213,38 @@ const Dashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Low Stock Products */}
+        <div className="card low-stock-products">
+          <div className="card-header">
+            <h3>Low Stock Alert</h3>
+            <span className="stock-count">{lowStockProducts.length} products</span>
+          </div>
+          <div className="stock-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            {lowStockProducts.length > 0 ? lowStockProducts.map((product) => {
+              const lowStockVariants = [];
+              product.colors?.forEach(color => {
+                color.sizes?.forEach(size => {
+                  if (parseInt(size.quantity || 0) < 5) {
+                    lowStockVariants.push(`${color.name} - ${size.size} (${size.quantity})`);
+                  }
+                });
+              });
+              return (
+                <div key={product.id} className="stock-item">
+                  <img src={product.gallery?.[0]?.url || product.colors?.[0]?.image || '/placeholder.svg'} alt={product.name} />
+                  <div className="stock-info">
+                    <h4>{product.name}</h4>
+                    <p className="stock-level" style={{ fontSize: '12px', color: '#dc2626' }}>
+                      {lowStockVariants.join(', ')}
+                    </p>
+                  </div>
+                  <span className="stock-badge low">{lowStockVariants.length}</span>
+                </div>
+              );
+            }) : <p style={{color: '#6b7280', textAlign: 'center'}}>No low stock products</p>}
           </div>
         </div>
 

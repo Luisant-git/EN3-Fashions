@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Search, User, ChevronDown, Maximize2, Settings, LogOut } from 'lucide-react'
+import { Bell, Search, User, ChevronDown, Maximize2, Settings, LogOut, Menu } from 'lucide-react'
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const navigate = useNavigate()
@@ -16,6 +16,9 @@ const Header = () => {
     <header className="header">
       <div className="header-content">
         <div className="header-left">
+          <button className="mobile-menu-btn" onClick={onMenuClick}>
+            <Menu size={24} />
+          </button>
           <div className="search-container">
             <Search size={20} className="search-icon" />
             <input 

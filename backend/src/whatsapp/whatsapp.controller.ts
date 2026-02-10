@@ -86,4 +86,9 @@ export class WhatsappController {
   async getMessageStatus(@Query('messageId') messageId: string) {
     return this.whatsappService.getMessageStatus(messageId);
   }
+
+  @Post('low-stock-alert')
+  async sendLowStockAlert(@Body() body: { phoneNumber: string; productDetails: string }) {
+    return this.whatsappService.sendLowStockAlert(body.phoneNumber, body.productDetails);
+  }
 }

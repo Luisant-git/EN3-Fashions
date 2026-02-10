@@ -62,11 +62,28 @@ $header-height: 64px;
   }
 }
 
+@mixin responsive($breakpoint) {
+  @if $breakpoint == mobile {
+    @media (max-width: 480px) { @content; }
+  }
+  @if $breakpoint == tablet {
+    @media (max-width: 768px) { @content; }
+  }
+  @if $breakpoint == desktop {
+    @media (max-width: 1200px) { @content; }
+  }
+}
+
 // Reset
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -75,12 +92,22 @@ body {
   color: $gray-900;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+  min-height: 100vh;
 }
 
 // App Layout
 .app {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
 }
 
 .main-content {
@@ -89,153 +116,25 @@ body {
   flex-direction: column;
   margin-left: $sidebar-width;
   transition: margin-left 0.3s ease;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 
   &.sidebar-collapsed {
     margin-left: $sidebar-collapsed-width;
   }
+
+  @media (max-width: 768px) {
+    margin-left: 0 !important;
+    
+    &.sidebar-collapsed {
+      margin-left: 0 !important;
+    }
+  }
 }
 
 // Sidebar
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: $sidebar-width;
-  height: 100vh;
-  background: $white;
-  border-right: 1px solid $gray-200;
-  display: flex;
-  flex-direction: column;
-  z-index: 1000;
-  transition: width 0.3s ease;
-
-  &.collapsed {
-    width: $sidebar-collapsed-width;
-
-    .sidebar-header {
-      .logo-text {
-        display: none;
-      }
-    }
-
-    .menu-label {
-      display: none;
-    }
-
-    .expand-icon {
-      display: none;
-    }
-  }
-
-  .sidebar-header {
-    @include flex-between;
-    padding: 20px;
-    border-bottom: 1px solid $gray-200;
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .logo-icon {
-        width: 40px;
-        height: 40px;
-        background: #dc2626;
-        border-radius: 8px;
-        @include flex-center;
-        color: $white;
-        font-weight: 700;
-        font-size: 18px;
-      }
-
-      .logo-text {
-        font-weight: 600;
-        font-size: 16px;
-        color: $gray-900;
-      }
-    }
-
-    .collapse-btn {
-      @include button-base;
-      padding: 8px;
-      background: none;
-      color: $gray-500;
-
-      &:hover {
-        background: $gray-100;
-        color: $gray-700;
-      }
-    }
-  }
-
-  .sidebar-nav {
-    flex: 1;
-    padding: 16px 0;
-    overflow-y: auto;
-  }
-
-  .menu-item {
-    margin-bottom: 4px;
-
-    .menu-item-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: $gray-600;
-      text-decoration: none;
-
-      &:hover {
-        background: $gray-50;
-        color: $gray-900;
-      }
-
-      &.active {
-        background: #eff6ff;
-        color: $primary-color;
-        border-right: 3px solid $primary-color;
-      }
-
-      .menu-label {
-        flex: 1;
-        font-weight: 500;
-        font-size: 14px;
-      }
-
-      .expand-icon {
-        color: $gray-400;
-      }
-    }
-
-    .submenu {
-      background: $gray-50;
-
-      .submenu-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 20px 10px 52px;
-        cursor: pointer;
-        transition: all 0.2s;
-        color: $gray-600;
-        font-size: 14px;
-        text-decoration: none;
-
-        &:hover {
-          background: $gray-100;
-          color: $gray-900;
-        }
-
-        &.active {
-          background: #dbeafe;
-          color: $primary-color;
-        }
-      }
-    }
-  }
-}
+// Sidebar styles are in components/sidebar.scss
 
 // Header
 .header {
@@ -243,6 +142,10 @@ body {
   border-bottom: 1px solid $gray-200;
   padding: 0 24px;
   height: $header-height;
+
+  @media (max-width: 768px) {
+    padding: 0 12px;
+  }
 
   .header-content {
     @include flex-between;
@@ -466,27 +369,61 @@ body {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+
+  @include responsive(tablet) {
+    padding: 16px;
+  }
+
+  @include responsive(mobile) {
+    padding: 12px;
+  }
 }
 
 // Page Header
 .page-header {
   margin-bottom: 24px;
+  max-width: 100%;
+  overflow-x: hidden;
+
+  @include responsive(tablet) {
+    margin-bottom: 16px;
+  }
 
   h1 {
     font-size: 28px;
     font-weight: 700;
     color: $gray-900;
     margin-bottom: 4px;
+
+    @include responsive(tablet) {
+      font-size: 24px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 20px;
+    }
   }
 
   p {
     color: $gray-600;
     font-size: 16px;
+
+    @include responsive(tablet) {
+      font-size: 14px;
+    }
   }
 
   &.with-actions {
     @include flex-between;
     align-items: flex-start;
+
+    @include responsive(tablet) {
+      flex-direction: column;
+      gap: 12px;
+    }
 
     .header-left {
       h1 {
@@ -498,6 +435,20 @@ body {
       display: flex;
       gap: 12px;
       align-items: center;
+
+      @include responsive(tablet) {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      @include responsive(mobile) {
+        flex-direction: column;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
     }
   }
 }
@@ -550,14 +501,32 @@ body {
   @include card;
   padding: 24px;
 
+  @include responsive(tablet) {
+    padding: 16px;
+  }
+
+  @include responsive(mobile) {
+    padding: 12px;
+  }
+
   .card-header {
     @include flex-between;
     margin-bottom: 20px;
+
+    @include responsive(mobile) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
 
     h3 {
       font-size: 18px;
       font-weight: 600;
       color: $gray-900;
+
+      @include responsive(mobile) {
+        font-size: 16px;
+      }
     }
 
     .view-all {
@@ -592,6 +561,17 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 32px;
+
+  @include responsive(tablet) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @include responsive(mobile) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .stats-card {
@@ -731,6 +711,10 @@ body {
 .form-group {
   margin-bottom: 20px;
 
+  @include responsive(mobile) {
+    margin-bottom: 16px;
+  }
+
   .form-label {
     display: block;
     margin-bottom: 8px;
@@ -749,6 +733,17 @@ body {
     font-size: 14px;
     font-family: inherit;
     transition: all 0.2s;
+
+    @include responsive(tablet) {
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 16px;
+      padding: 12px 14px;
+      min-height: 44px;
+    }
 
     &:focus {
       outline: none;
@@ -771,6 +766,11 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+
+  @include responsive(tablet) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .form-grid {
@@ -778,11 +778,29 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 32px;
   margin-bottom: 32px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @include responsive(tablet) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
 }
 
 .form-section {
   @include card;
   padding: 24px;
+  max-width: 100%;
+  overflow-x: hidden;
+
+  @include responsive(tablet) {
+    padding: 16px;
+  }
 
   .section-header {
     margin-bottom: 20px;
@@ -791,6 +809,28 @@ body {
       font-size: 18px;
       font-weight: 600;
       color: $gray-900;
+
+      @include responsive(tablet) {
+        font-size: 17px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 16px;
+      }
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: $gray-900;
+
+      @include responsive(tablet) {
+        font-size: 18px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 17px;
+      }
     }
   }
 }
@@ -801,6 +841,16 @@ body {
   justify-content: flex-end;
   padding-top: 24px;
   border-top: 1px solid $gray-200;
+
+  @include responsive(mobile) {
+    flex-direction: column-reverse;
+    padding-top: 16px;
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 }
 
 // Filters
@@ -809,10 +859,56 @@ body {
   margin-bottom: 24px;
   gap: 16px;
 
+  @include responsive(tablet) {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 16px;
+  }
+
   .search-container {
     position: relative;
     flex: 1;
     max-width: 400px;
+
+    @include responsive(tablet) {
+      max-width: none;
+    }
+
+    .download-all-btn {
+      margin-left: 12px;
+      padding: 10px 16px;
+      background: $primary-color;
+      color: $white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+
+      @include responsive(tablet) {
+        margin-left: 0;
+        margin-top: 12px;
+        width: 100%;
+        justify-content: center;
+        font-size: 15px;
+        padding: 12px 18px;
+        min-height: 44px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 15px;
+        padding: 12px 18px;
+        min-height: 44px;
+      }
+
+      &:hover {
+        background: darken($primary-color, 10%);
+      }
+    }
 
     .search-icon {
       position: absolute;
@@ -829,6 +925,18 @@ body {
       border-radius: 8px;
       font-size: 14px;
 
+      @include responsive(tablet) {
+        font-size: 16px;
+        padding: 12px 14px 12px 40px;
+        min-height: 44px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 16px;
+        padding: 12px 14px 12px 40px;
+        min-height: 44px;
+      }
+
       &:focus {
         outline: none;
         border-color: $primary-color;
@@ -840,12 +948,29 @@ body {
     display: flex;
     gap: 12px;
 
+    @include responsive(tablet) {
+      flex-direction: column;
+    }
+
     .filter-select {
       padding: 10px 12px;
       border: 1px solid $gray-300;
       border-radius: 8px;
       font-size: 14px;
       background: $white;
+
+      @include responsive(tablet) {
+        width: 100%;
+        font-size: 16px;
+        padding: 12px 14px;
+        min-height: 44px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 16px;
+        padding: 12px 14px;
+        min-height: 44px;
+      }
 
       &:focus {
         outline: none;
@@ -859,6 +984,338 @@ body {
 .table-container {
   @include card;
   overflow: hidden;
+
+  .card-header {
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+
+      @include responsive(tablet) {
+        font-size: 17px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// Global Heading Styles
+h1, h2, h3, h4, h5, h6 {
+  @include responsive(tablet) {
+    word-break: break-word;
+  }
+
+  @include responsive(mobile) {
+    word-break: break-word;
+  }
+}
+
+h1 {
+  font-size: 28px;
+
+  @include responsive(tablet) {
+    font-size: 24px;
+  }
+
+  @include responsive(mobile) {
+    font-size: 20px;
+  }
+}
+
+h2 {
+  font-size: 24px;
+
+  @include responsive(tablet) {
+    font-size: 20px;
+  }
+
+  @include responsive(mobile) {
+    font-size: 18px;
+  }
+}
+
+h3 {
+  font-size: 20px;
+
+  @include responsive(tablet) {
+    font-size: 18px;
+  }
+
+  @include responsive(mobile) {
+    font-size: 16px;
+  }
+}
+
+h4 {
+  font-size: 18px;
+
+  @include responsive(tablet) {
+    font-size: 16px;
+  }
+
+  @include responsive(mobile) {
+    font-size: 15px;
+  }
+}
+
+// Card Headers
+.card-header {
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+
+    @include responsive(tablet) {
+      font-size: 17px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 16px;
+    }
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+
+    @include responsive(tablet) {
+      font-size: 18px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 17px;
+    }
+  }
+}
+
+// Modal Styles
+.modal-header {
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+
+    @include responsive(tablet) {
+      font-size: 20px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 18px;
+    }
+  }
+}
+
+.modal-content {
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+
+    @include responsive(tablet) {
+      font-size: 20px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 18px;
+    }
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+
+    @include responsive(tablet) {
+      font-size: 17px;
+    }
+
+    @include responsive(mobile) {
+      font-size: 16px;
+    }
+  }
+}
+
+// Page Header - Responsive
+.page-header {
+  margin-bottom: 24px;
+
+  @include responsive(tablet) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px;
+  }
+
+  @include responsive(mobile) {
+    margin-bottom: 16px;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+
+  > div {
+    @include responsive(mobile) {
+      width: 100%;
+    }
+  }
+
+  .header-left {
+    @include responsive(mobile) {
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 28px !important;
+      font-weight: 700;
+      color: $gray-900;
+      margin-bottom: 4px;
+
+      @include responsive(tablet) {
+        font-size: 24px !important;
+      }
+
+      @include responsive(mobile) {
+        font-size: 20px !important;
+      }
+    }
+
+    p {
+      color: $gray-600;
+      font-size: 14px !important;
+
+      @include responsive(tablet) {
+        font-size: 14px !important;
+      }
+
+      @include responsive(mobile) {
+        font-size: 13px !important;
+      }
+    }
+  }
+
+  h1 {
+    font-size: 28px !important;
+    font-weight: 700;
+    color: $gray-900;
+    margin-bottom: 4px;
+
+    @include responsive(tablet) {
+      font-size: 24px !important;
+    }
+
+    @include responsive(mobile) {
+      font-size: 20px !important;
+    }
+  }
+
+  h2 {
+    font-size: 24px !important;
+    font-weight: 600;
+    color: $gray-900;
+
+    @include responsive(tablet) {
+      font-size: 20px !important;
+    }
+
+    @include responsive(mobile) {
+      font-size: 18px !important;
+    }
+  }
+
+  h3 {
+    font-size: 20px !important;
+    font-weight: 600;
+    color: $gray-900;
+
+    @include responsive(tablet) {
+      font-size: 18px !important;
+    }
+
+    @include responsive(mobile) {
+      font-size: 16px !important;
+    }
+  }
+
+  p {
+    color: $gray-600;
+    font-size: 14px !important;
+
+    @include responsive(tablet) {
+      font-size: 14px !important;
+    }
+
+    @include responsive(mobile) {
+      font-size: 13px !important;
+    }
+  }
+
+  &.with-actions {
+    @include flex-between;
+    align-items: flex-start;
+
+    @include responsive(tablet) {
+      flex-direction: column !important;
+      gap: 16px;
+      align-items: stretch !important;
+    }
+
+    @include responsive(mobile) {
+      flex-direction: column !important;
+      gap: 12px;
+      align-items: stretch !important;
+    }
+  }
+
+  .btn {
+    @include responsive(mobile) {
+      width: 100% !important;
+    }
+  }
+}
+
+// Buttons - Responsive
+.btn {
+  @include button-base;
+
+  @include responsive(tablet) {
+    font-size: 15px;
+    padding: 12px 18px;
+    min-height: 44px;
+  }
+
+  @include responsive(mobile) {
+    font-size: 15px;
+    padding: 12px 18px;
+    min-height: 44px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  &.btn-primary {
+    background: $primary-color;
+    color: $white;
+
+    &:hover {
+      background: darken($primary-color, 10%);
+    }
+  }
+
+  &.btn-secondary {
+    background: $gray-200;
+    color: $gray-700;
+
+    &:hover {
+      background: $gray-300;
+    }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border: 1px solid $gray-300;
+    color: $gray-700;
+
+    &:hover {
+      background: $gray-50;
+    }
+  }
 }
 
 .data-table {
@@ -943,6 +1400,11 @@ body {
   .action-buttons {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
+
+    @include responsive(mobile) {
+      gap: 6px;
+    }
 
     .action-btn {
       padding: 6px;
@@ -950,6 +1412,23 @@ body {
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.2s;
+      min-width: 32px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      @include responsive(tablet) {
+        padding: 8px;
+        min-width: 36px;
+        min-height: 36px;
+      }
+
+      @include responsive(mobile) {
+        padding: 8px;
+        min-width: 36px;
+        min-height: 36px;
+      }
 
       &.view {
         background: #eff6ff;
@@ -2586,6 +3065,10 @@ body {
   justify-content: center;
   z-index: 2000;
   padding: 20px;
+
+  @include responsive(mobile) {
+    padding: 10px;
+  }
 }
 
 .modal {
@@ -2594,7 +3077,18 @@ body {
   border-radius: 12px;
   width: 100%;
   max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  @include responsive(tablet) {
+    max-width: 90vw;
+  }
+
+  @include responsive(mobile) {
+    max-width: 95vw;
+    border-radius: 8px;
+  }
 
   .modal-close {
     position: absolute;
@@ -2611,6 +3105,13 @@ body {
     transition: all 0.2s;
     z-index: 1;
 
+    @include responsive(mobile) {
+      width: 28px;
+      height: 28px;
+      top: 12px;
+      right: 12px;
+    }
+
     &:hover {
       background: $gray-200;
       color: $gray-900;
@@ -2620,12 +3121,22 @@ body {
   .modal-content {
     padding: 20px;
 
+    @include responsive(mobile) {
+      padding: 16px;
+    }
+
     h2 {
       font-size: 18px;
       font-weight: 600;
       color: $gray-900;
       margin-bottom: 16px;
       padding-right: 40px;
+
+      @include responsive(mobile) {
+        font-size: 16px;
+        margin-bottom: 12px;
+        padding-right: 32px;
+      }
     }
 
     &.view-modal {
@@ -2639,6 +3150,11 @@ body {
         margin: 0 auto 20px;
         display: block;
         background: $gray-50;
+
+        @include responsive(mobile) {
+          max-width: 150px;
+          height: 150px;
+        }
       }
 
       .modal-product-info {
@@ -2647,6 +3163,11 @@ body {
           font-size: 14px;
           color: $gray-700;
           line-height: 1.6;
+
+          @include responsive(mobile) {
+            font-size: 13px;
+            margin-bottom: 10px;
+          }
 
           strong {
             color: $gray-900;
@@ -2666,6 +3187,11 @@ body {
           display: flex;
           align-items: center;
           gap: 12px;
+
+          @include responsive(mobile) {
+            flex-direction: column;
+            align-items: flex-start;
+          }
 
           .current-image {
             width: 80px;
@@ -2714,6 +3240,10 @@ body {
           cursor: pointer;
           transition: all 0.2s;
 
+          @include responsive(mobile) {
+            padding: 16px 12px;
+          }
+
           &:hover {
             border-color: $primary-color;
             background: #eff6ff;
@@ -2729,11 +3259,19 @@ body {
             font-weight: 500;
             color: $gray-700;
             margin: 0 0 2px 0;
+
+            @include responsive(mobile) {
+              font-size: 12px;
+            }
           }
 
           span {
             font-size: 11px;
             color: $gray-500;
+
+            @include responsive(mobile) {
+              font-size: 10px;
+            }
           }
         }
       }
@@ -2747,6 +3285,11 @@ body {
         color: $gray-700;
         margin-bottom: 24px;
         line-height: 1.6;
+
+        @include responsive(mobile) {
+          font-size: 13px;
+          margin-bottom: 16px;
+        }
 
         strong {
           color: $gray-900;
@@ -2762,6 +3305,16 @@ body {
       margin-top: 16px;
       padding-top: 16px;
       border-top: 1px solid $gray-200;
+
+      @include responsive(mobile) {
+        flex-direction: column-reverse;
+        gap: 8px;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
     }
   }
 }
@@ -2823,7 +3376,7 @@ body {
   .header {
     .header-left {
       .search-container {
-        width: 200px;
+        width: 100%;
       }
     }
 
@@ -2841,7 +3394,40 @@ body {
       gap: 16px;
 
       .header-actions {
-        justify-content: flex-end;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+    }
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 8px 14px;
+  }
+
+  .dashboard-grid {
+    gap: 16px;
+  }
+
+  .bottom-section {
+    .top-products {
+      .product-item {
+        padding: 12px 0;
+
+        .product-image {
+          width: 40px;
+          height: 40px;
+        }
+
+        .product-info {
+          h4 {
+            font-size: 13px;
+          }
+
+          p {
+            font-size: 11px;
+          }
+        }
       }
     }
   }
@@ -2849,24 +3435,77 @@ body {
 
 @media (max-width: 480px) {
   .content-area {
-    padding: 16px;
+    padding: 12px;
   }
 
   .page-header {
     h1 {
-      font-size: 24px;
+      font-size: 20px;
+    }
+
+    p {
+      font-size: 13px;
     }
   }
 
   .card {
-    padding: 16px;
+    padding: 12px;
+    border-radius: 8px;
   }
 
   .form-section {
-    padding: 16px;
+    padding: 12px;
   }
 
   .summary-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .stats-card {
+    padding: 16px;
+
+    .stats-content {
+      .stats-header {
+        h3 {
+          font-size: 13px;
+        }
+      }
+
+      .stats-value {
+        .value {
+          font-size: 20px;
+        }
+
+        .stats-change {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .btn {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .modal {
+    .modal-content {
+      h2 {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .orders-list {
+    .status-tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+
+      .tab {
+        padding: 10px 16px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+    }
   }
 }
