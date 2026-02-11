@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Filter, Eye, Edit, Mail, Phone, MapPin, UserPlus } from 'lucide-react'
+import { Search, Filter, Eye, Edit, Mail, Phone, MapPin, UserPlus, Download } from 'lucide-react'
 import { getAllCustomers } from '../api/customerApi'
+import * as XLSX from 'xlsx'
 
 const CustomerList = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -32,6 +33,31 @@ const CustomerList = () => {
       setLoading(false)
     }
   }
+
+  const exportCustomersExcel = () => {
+    if (customers.length === 0) {
+      alert('No customers found to export');
+      return;
+    }
+
+    const excelData = customers.map((customer, index) => ({
+      'S.No': index + 1,
+      'Customer Name': customer.name || 'N/A',
+      'Email': customer.email || 'N/A',
+      'Phone': customer.phone || 'N/A',
+      'Total Orders': customer.ordersCount || 0,
+      'Total Spent': `₹${(customer.totalSpent || 0).toFixed(2)}`,
+      'Status': customer.status || 'N/A',
+      'Join Date': customer.joinDate ? new Date(customer.joinDate).toLocaleDateString('en-GB') : 'N/A',
+      'Last Order': customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString('en-GB') : 'N/A'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
+    
+    XLSX.writeFile(workbook, `customers-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
   const columns = [
     {
@@ -86,15 +112,24 @@ const CustomerList = () => {
       </div>
 
       <div className="filters-section">
-        <div className="search-container">
-          <Search size={20} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search customers..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
+        <div className="search-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <Search size={20} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search customers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <button
+            className="download-all-btn"
+            onClick={exportCustomersExcel}
+            title="Export Customers to Excel"
+          >
+            <Download size={16} /> Customer Report
+          </button>
         </div>
       </div>
 

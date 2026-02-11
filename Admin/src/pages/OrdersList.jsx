@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   Filter,
@@ -12,11 +12,14 @@ import {
   Download,
   FileText,
   Receipt,
+  Image as ImageIcon,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles } from "../api/order";
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
+import * as XLSX from 'xlsx';
+import html2canvas from 'html2canvas';
 
 const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,6 +35,9 @@ const OrdersList = () => {
   const [trackingId, setTrackingId] = useState("");
   const [trackingLink, setTrackingLink] = useState("");
   const [signatureUrl, setSignatureUrl] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const modalRef = useRef(null);
 
   useEffect(() => {
     fetchOrders();
@@ -505,6 +511,82 @@ const OrdersList = () => {
     pdf.save(`package-slip-${order.id}.pdf`);
   };
 
+  const exportPlacedOrdersExcel = () => {
+    let placedOrders = orders.filter(order => order.status === 'Placed');
+    
+    if (startDate || endDate) {
+      placedOrders = placedOrders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        
+        if (start && end) {
+          return orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        } else if (start) {
+          return orderDate >= start;
+        } else if (end) {
+          return orderDate <= new Date(end.setHours(23, 59, 59));
+        }
+        return true;
+      });
+    }
+    
+    if (placedOrders.length === 0) {
+      alert('No placed orders found for the selected date range');
+      return;
+    }
+
+    const excelData = placedOrders.map((order, index) => {
+      const totalQty = order.items?.reduce((sum, item) => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          return sum + item.bundleItems.length;
+        }
+        return sum + (item.quantity || 0);
+      }, 0) || 0;
+      
+      return {
+        'S.No': index + 1,
+        'Order ID': `ORD-${order.id}`,
+        'Customer': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+        'City': order.shippingAddress?.city || 'N/A',
+        'Phone': order.user?.phone || 'N/A',
+        'Products': `${order.items?.length || 0} items`,
+        'Quantity': totalQty,
+        'Total Amount': order.total,
+        'Status': order.status,
+        'Payment': order.paymentMethod || 'N/A',
+        'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
+        'Settlement Amount': (order.total - (order.deliveryFee || 0)).toFixed(2),
+        'Courier Charges': order.deliveryFee || 0
+      };
+    });
+
+    const totals = {
+      'S.No': '',
+      'Order ID': '',
+      'Customer': '',
+      'City': '',
+      'Phone': 'TOTAL',
+      'Products': '',
+      'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
+      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount']), 0).toFixed(2),
+      'Status': '',
+      'Payment': '',
+      'Order Date': '',
+      'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount']), 0).toFixed(2),
+      'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges']), 0).toFixed(2)
+    };
+
+    excelData.push(totals);
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Placed Orders');
+    
+    const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+    XLSX.writeFile(workbook, `placed-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const generateAllPackageSlips = () => {
     const placedOrders = orders.filter(order => order.status === 'Placed');
     
@@ -579,6 +661,36 @@ const OrdersList = () => {
     });
 
     pdf.save(`all-package-slips-placed.pdf`);
+  };
+
+  const exportAbandonedOrdersExcel = () => {
+    const abandonedOrders = orders.filter(order => order.status === 'Abandoned');
+    
+    if (abandonedOrders.length === 0) {
+      alert('No abandoned orders found');
+      return;
+    }
+
+    const excelData = abandonedOrders.map((order, index) => ({
+      'S.No': index + 1,
+      'Order ID': `ORD-${order.id}`,
+      'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+      'Phone': order.user?.phone || 'N/A',
+      'Email': order.user?.email || 'N/A',
+      'City': order.shippingAddress?.city || 'N/A',
+      'State': order.shippingAddress?.state || 'N/A',
+      'Total Amount': `₹${order.total}`,
+      'Items Count': order.items?.length || 0,
+      'Total Quantity': order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
+      'Date': new Date(order.createdAt).toLocaleString('en-GB'),
+      'Payment Method': order.paymentMethod || 'N/A'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Abandoned Orders');
+    
+    XLSX.writeFile(workbook, `abandoned-orders-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
 
@@ -978,6 +1090,27 @@ const OrdersList = () => {
     return words.trim() + ' only';
   };
 
+  const downloadModalAsImage = async () => {
+    if (!modalRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(modalRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `order-${selectedOrder.id}-details.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('Failed to download image');
+    }
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1214,12 +1347,46 @@ const OrdersList = () => {
             className="search-input"
           />
           {statusFilter === "placed" && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
+                />
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+              <button
+                className="download-all-btn"
+                onClick={exportPlacedOrdersExcel}
+                title="Export Placed Orders to Excel"
+              >
+                <Download size={16} /> Order Placed Report
+              </button>
+              <button
+                className="download-all-btn"
+                onClick={generateAllPackageSlips}
+                title="Download All Package Slips"
+              >
+                <Download size={16} /> Package Slips
+              </button>
+            </div>
+          )}
+          {statusFilter === "abandoned" && (
             <button
               className="download-all-btn"
-              onClick={generateAllPackageSlips}
-              title="Download All Package Slips"
+              onClick={exportAbandonedOrdersExcel}
+              title="Export Abandoned Orders to Excel"
             >
-              <Download size={16} /> Download All Package Slips
+              <Download size={16} /> Export Excel
             </button>
           )}
         </div>
@@ -1236,12 +1403,17 @@ const OrdersList = () => {
 
       {showViewModal && selectedOrder && (
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef}>
             <div className="modal-header">
               <h2>Order Details - #ORD-{selectedOrder.id}</h2>
-              <button onClick={() => setShowViewModal(false)}>
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={downloadModalAsImage} style={{ padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="Download as Image">
+                  <ImageIcon size={16} />
+                </button>
+                <button onClick={() => setShowViewModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
             </div>
             <div className="modal-body">
               <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

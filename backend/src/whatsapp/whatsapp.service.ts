@@ -574,4 +574,39 @@ export class WhatsappService {
       return { success: false, error: error.message };
     }
   }
+
+  async sendLowStockAlert(phoneNumber: string, productDetails: string) {
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: phoneNumber,
+          type: 'text',
+          text: { body: `🚨 Low Stock Alert\n\n${productDetails}` }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: phoneNumber,
+          message: `Low stock alert sent`,
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
 }

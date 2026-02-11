@@ -48,6 +48,14 @@ body {
   h3 {
     font-size: 1.1rem;
     font-weight: 600;
+
+    @media (max-width: 768px) {
+      font-size: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 0.95rem;
+    }
   }
 }
 
@@ -68,6 +76,12 @@ body {
   .stats-card {
     grid-column: span 1;
   }
+  .recent-orders {
+    grid-column: 1 / 5;
+  }
+  .low-stock-products {
+    grid-column: 1 / 3;
+  }
   .sales-analytics {
     grid-column: 1 / 5;
   }
@@ -76,9 +90,6 @@ body {
   }
   .current-offers {
     grid-column: 3 / 5;
-  }
-  .recent-orders {
-    grid-column: 1 / 5;
   }
 }
 
@@ -92,6 +103,14 @@ body {
   .header-title {
     font-size: 1.75rem;
     font-weight: 700;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.25rem;
+    }
   }
 
   .header-actions {
@@ -365,6 +384,60 @@ body {
   }
 }
 
+/* LOW STOCK PRODUCTS CARD */
+.low-stock-products {
+  .card-header {
+    .stock-count {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  }
+  .stock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .stock-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    img {
+      width: 50px;
+      height: 50px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+    .stock-info {
+      flex: 1;
+      h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .stock-level {
+        font-size: 0.8rem;
+        color: var(--text-light);
+      }
+    }
+    .stock-badge {
+      background: #ef4444;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  }
+}
+
 /* RECENT ORDERS CARD */
 .recent-orders {
   .card-header {
@@ -613,7 +686,7 @@ body {
 @media (max-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
-    .sales-analytics, .top-products, .current-offers {
+    .sales-analytics, .top-products, .current-offers, .low-stock-products {
       grid-column: span 2;
     }
   }
@@ -630,8 +703,11 @@ body {
   }
   .dashboard-grid {
     grid-template-columns: 1fr;
-    .stats-card, .sales-analytics, .top-products, .current-offers, .recent-orders {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    .stats-card, .sales-analytics, .top-products, .current-offers, .low-stock-products, .recent-orders {
       grid-column: span 1;
+      min-width: 280px;
     }
   }
   .recent-orders {

@@ -4,22 +4,57 @@
 .table-container {
   @include card;
   overflow: hidden;
+
+  @include responsive(tablet) {
+    border-radius: 8px;
+  }
 }
 
 .data-table {
   .table-wrapper {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    @include responsive(tablet) {
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: var(--gray-100);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--gray-400);
+        border-radius: 3px;
+      }
+    }
   }
 
   .table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px;
+
+    @include responsive(tablet) {
+      min-width: 1000px;
+    }
 
     th,
     td {
       padding: 12px 16px;
       text-align: left;
       border-bottom: 1px solid var(--gray-200);
+
+      @include responsive(tablet) {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      @include responsive(mobile) {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
     }
 
     th {
@@ -27,11 +62,20 @@
       font-weight: 600;
       font-size: 14px;
       color: var(--gray-700);
+      white-space: nowrap;
+
+      @include responsive(tablet) {
+        font-size: 13px;
+      }
     }
 
     td {
       font-size: 14px;
       color: var(--gray-900);
+
+      @include responsive(tablet) {
+        font-size: 13px;
+      }
     }
 
     tr:hover {
@@ -44,6 +88,11 @@
     height: 40px;
     border-radius: 6px;
     object-fit: cover;
+
+    @include responsive(mobile) {
+      width: 32px;
+      height: 32px;
+    }
   }
 
   .stock-badge {
@@ -51,6 +100,12 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 500;
+    white-space: nowrap;
+
+    @include responsive(mobile) {
+      padding: 3px 6px;
+      font-size: 11px;
+    }
 
     &.in-stock {
       background: #dcfce7;
@@ -73,6 +128,12 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 500;
+    white-space: nowrap;
+
+    @include responsive(mobile) {
+      padding: 3px 6px;
+      font-size: 11px;
+    }
 
     &.active {
       background: #dcfce7;
@@ -88,6 +149,15 @@
   .action-buttons {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
+
+    @include responsive(tablet) {
+      gap: 6px;
+    }
+
+    @include responsive(mobile) {
+      gap: 4px;
+    }
 
     .action-btn {
       padding: 6px;
@@ -95,6 +165,18 @@
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      @include responsive(mobile) {
+        padding: 5px;
+
+        svg {
+          width: 14px;
+          height: 14px;
+        }
+      }
 
       &.view {
         background: #eff6ff;
@@ -123,6 +205,24 @@
         }
       }
 
+      &.download {
+        background: #f0f9ff;
+        color: #0369a1;
+
+        &:hover {
+          background: #e0f2fe;
+        }
+      }
+
+      &.whatsapp {
+        background: #25D366;
+        color: white;
+
+        &:hover {
+          background: #1fb855;
+        }
+      }
+
       &.mail {
         background: #f0f9ff;
         color: #0369a1;
@@ -147,6 +247,18 @@
     @include flex-between;
     padding: 16px 20px;
     border-top: 1px solid var(--gray-200);
+    flex-wrap: wrap;
+    gap: 12px;
+
+    @include responsive(tablet) {
+      padding: 12px 16px;
+    }
+
+    @include responsive(mobile) {
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+    }
 
     .pagination-btn {
       @include button-base;
@@ -154,6 +266,11 @@
       background: var(--white);
       color: var(--gray-700);
       border: 1px solid var(--gray-300);
+
+      @include responsive(mobile) {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
 
       &:hover:not(:disabled) {
         background: var(--gray-50);
@@ -169,6 +286,11 @@
     .pagination-info {
       font-size: 14px;
       color: var(--gray-600);
+
+      @include responsive(mobile) {
+        font-size: 13px;
+        order: -1;
+      }
     }
   }
 }

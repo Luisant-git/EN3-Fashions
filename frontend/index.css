@@ -656,16 +656,25 @@ button:disabled {
 }
 
 @media (max-width: 768px) {
+    .hero-section {
+        min-height: 80vh;
+        padding-top: 70px;
+    }
     .hero-slide {
-        background-size: cover;
-        background-position: center top;
+        background-size: auto 100%;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 }
 
 @media (max-width: 480px) {
+    .hero-section {
+        min-height: 85vh;
+    }
     .hero-slide {
-        background-size: cover;
-        background-position: center center;
+        background-size: auto 100%;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 }
 
@@ -2200,7 +2209,7 @@ button:disabled {
     }
 
     .hero-section {
-        min-height: 50vh;
+        min-height: 70vh;
     }
     .hero-content h1 {
         font-size: 2.8rem;

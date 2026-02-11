@@ -70,6 +70,7 @@ import './styles/pages/settings.scss'
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAuthenticated') === 'true'
   })
@@ -109,9 +110,9 @@ function App() {
   return (
     <Router>
       <div className="app">
-        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} mobileOpen={mobileMenuOpen} setMobileOpen={setMobileMenuOpen} />
         <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-          <Header />
+          <Header onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
           <div className="content-area">
             <Routes>
               <Route path="/login" element={<Navigate to="/dashboard" replace />} />

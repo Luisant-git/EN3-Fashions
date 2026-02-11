@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, Filter, Plus, Edit, Trash2, Eye, X, Download } from "lucide-react";
+import { Search, Filter, Plus, Edit, Trash2, Eye, X, Download, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { jsPDF } from "jspdf";
@@ -13,6 +13,7 @@ import {
   getSubCategories,
   getBrands,
   uploadImage,
+  sendLowStockAlert,
 } from "../api";
 import "../styles/pages/product-list.scss";
 
@@ -195,7 +196,44 @@ const ProductList = () => {
     doc.save(`${product.name.replace(/\s+/g, '_')}_labels.pdf`);
   };
 
+  const handleLowStockAlert = async (product) => {
+    const lowStockVariants = [];
+    product.colors?.forEach(color => {
+      color.sizes?.forEach(size => {
+        if (parseInt(size.quantity || 0) < 5) {
+          lowStockVariants.push(`${color.name} - ${size.size}: ${size.quantity} units (ID: ${size.sizeVariantId})`);
+        }
+      });
+    });
+
+    if (lowStockVariants.length === 0) {
+      toast.info('No low stock variants found');
+      return;
+    }
+
+    const phoneNumber = prompt('Enter WhatsApp number (with country code, e.g., 919876543210):');
+    if (!phoneNumber) return;
+
+    const productDetails = `🚨 *LOW STOCK ALERT* 🚨\n\n📦 *Product:* ${product.name}\n⚠️ *Status:* Low Stock\n\n*Variants Running Low:*\n${lowStockVariants.map((v, i) => `${i + 1}. ${v}`).join('\n')}\n\n⏰ *Action Required:* Please restock immediately!\n\n_This is an automated alert from Inventory Management System_`;
+
+    try {
+      await sendLowStockAlert(phoneNumber, productDetails);
+      toast.success('Low stock alert sent successfully!');
+    } catch (err) {
+      toast.error('Failed to send alert: ' + err.message);
+    }
+  };
+
   const columns = [
+    {
+      key: "id",
+      label: "Product ID",
+      render: (value) => (
+        <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#6b7280' }}>
+          #{value}
+        </span>
+      ),
+    },
     {
       key: "gallery",
       label: "Image",
@@ -226,6 +264,28 @@ const ProductList = () => {
           {value?.length || 0} colors
         </span>
       ),
+    },
+    {
+      key: "totalQuantity",
+      label: "Total Quantity",
+      render: (_, row) => {
+        const totalQty = row.colors?.reduce((total, color) => 
+          total + (color.sizes?.reduce((sum, size) => sum + parseInt(size.quantity || 0), 0) || 0), 0
+        ) || 0;
+        const hasLowStock = row.colors?.some(color => 
+          color.sizes?.some(size => parseInt(size.quantity || 0) < 5)
+        );
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <span>{totalQty}</span>
+            {hasLowStock && (
+              <span className="stock-badge low-stock" style={{ fontSize: '11px' }}>
+                Low Stock
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "newArrivals",
@@ -265,35 +325,40 @@ const ProductList = () => {
     {
       key: "actions",
       label: "Actions",
-      render: (_, row) => (
-        <div className="action-buttons">
-          <button
-            className="action-btn view"
-            onClick={() => openModal("view", row)}
-          >
-            <Eye size={16} />
-          </button>
-          <button
-            className="action-btn edit"
-            onClick={() => navigate(`/edit-product/${row.id}`)}
-          >
-            <Edit size={16} />
-          </button>
-          <button
-            className="action-btn delete"
-            onClick={() => openModal("delete", row)}
-          >
-            <Trash2 size={16} />
-          </button>
-          <button
-            className="action-btn download"
-            onClick={() => downloadProductVariants(row)}
-            title="Download Variants"
-          >
-            <Download size={16} />
-          </button>
-        </div>
-      ),
+      render: (_, row) => {
+        const hasLowStock = row.colors?.some(color => 
+          color.sizes?.some(size => parseInt(size.quantity || 0) < 5)
+        );
+        return (
+          <div className="action-buttons" style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap' }}>
+            <button
+              className="action-btn view"
+              onClick={() => openModal("view", row)}
+            >
+              <Eye size={16} />
+            </button>
+            <button
+              className="action-btn edit"
+              onClick={() => navigate(`/edit-product/${row.id}`)}
+            >
+              <Edit size={16} />
+            </button>
+            <button
+              className="action-btn delete"
+              onClick={() => openModal("delete", row)}
+            >
+              <Trash2 size={16} />
+            </button>
+            <button
+              className="action-btn download"
+              onClick={() => downloadProductVariants(row)}
+              title="Download Variants"
+            >
+              <Download size={16} />
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -601,7 +666,7 @@ const ProductList = () => {
               <Search size={20} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search by name or size variant ID..."
+                placeholder="Search by product ID, name, or variant ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -651,8 +716,9 @@ const ProductList = () => {
               const categoryMatch = filterCategory === 'all' || p.categoryId === parseInt(filterCategory);
               const subCategoryMatch = filterSubCategory === 'all' || p.subCategoryId === parseInt(filterSubCategory);
               
-              // Search by name or sizeVariantId
+              // Search by product ID, name, or sizeVariantId
               const searchMatch = searchTerm === '' || 
+                p.id?.toString().includes(searchTerm) ||
                 p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 p.colors?.some(color => 
                   color.sizes?.some(size => 

@@ -11,34 +11,100 @@
         font-weight: 700;
         color: var(--gray-900);
         margin-bottom: 4px;
+
+        @include responsive(tablet) {
+          font-size: 24px;
+        }
+
+        @include responsive(mobile) {
+          font-size: 20px;
+        }
       }
 
       p {
         color: var(--gray-600);
         font-size: 16px;
+
+        @include responsive(mobile) {
+          font-size: 14px;
+        }
       }
     }
   }
 }
 
 .add-product {
+  max-width: 100%;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    padding: 0;
+  }
+
   .page-header {
     margin-bottom: 24px;
+
+    @include responsive(tablet) {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 16px;
+    }
+
+    @include responsive(mobile) {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 12px;
+    }
+
+    > div {
+      @include responsive(mobile) {
+        width: 100%;
+      }
+    }
 
     h1 {
       font-size: 28px;
       font-weight: 700;
       color: var(--gray-900);
       margin-bottom: 4px;
+
+      @include responsive(tablet) {
+        font-size: 24px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 20px;
+      }
     }
 
     p {
       color: var(--gray-600);
       font-size: 16px;
+
+      @include responsive(tablet) {
+        font-size: 15px;
+      }
+
+      @include responsive(mobile) {
+        font-size: 14px;
+      }
+    }
+
+    .btn {
+      @include responsive(mobile) {
+        width: 100% !important;
+      }
     }
   }
 
   .product-form {
+    max-width: 100%;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+      width: 100%;
+    }
+
     .image-upload-section {
       .image-upload-area {
         border: 2px dashed var(--gray-300);
@@ -357,6 +423,14 @@
         font-weight: 600;
         color: var(--gray-800);
         margin-bottom: 4px;
+
+        @include responsive(tablet) {
+          font-size: 17px;
+        }
+
+        @include responsive(mobile) {
+          font-size: 16px;
+        }
       }
 
       p {

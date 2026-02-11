@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers, MessageCircle} from 'lucide-react'
 
-const Sidebar = ({ collapsed, setCollapsed }) => {
+const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const [expandedItems, setExpandedItems] = useState({})
   const location = useLocation()
 
@@ -128,22 +128,28 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   }
 
   return (
-    <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        <div 
-          className="logo"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <div className="logo-icon">A</div>
-          {!collapsed && <span className="logo-text">Admin Panel</span>}
+    <>
+      {mobileOpen && <div className="mobile-overlay show" onClick={() => setMobileOpen(false)} />}
+      <div className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <div 
+            className="logo"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            <div className="logo-icon">A</div>
+            {!collapsed && <span className="logo-text">Admin Panel</span>}
+          </div>
+          <button className="mobile-close" onClick={() => setMobileOpen(false)}>
+            <X size={20} />
+          </button>
         </div>
-      </div>
 
-      
-      <nav className="sidebar-nav">
-        {menuItems.map(renderMenuItem)}
-      </nav>
-    </div>
+        
+        <nav className="sidebar-nav">
+          {menuItems.map(renderMenuItem)}
+        </nav>
+      </div>
+    </>
   )
 }
 

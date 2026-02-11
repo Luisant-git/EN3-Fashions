@@ -6,16 +6,35 @@
     align-items: flex-end;
     margin-bottom: 24px;
     gap: 16px;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
     .header-left {
       h1 {
         font-size: 2rem;
         font-weight: 700;
         color: var(--gray-900);
         margin-bottom: 4px;
+
+        @media (max-width: 640px) {
+          font-size: 1.5rem;
+        }
       }
       p {
         color: var(--gray-500);
         font-size: 1rem;
+
+        @media (max-width: 640px) {
+          font-size: 0.875rem;
+        }
       }
     }
     .btn {
@@ -31,6 +50,26 @@
     @include flex-between;
     margin-bottom: 24px;
     gap: 16px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+
+      .search-container,
+      .filter-group {
+        width: 100%;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        select {
+          width: 100%;
+        }
+      }
+    }
   }
 
   
