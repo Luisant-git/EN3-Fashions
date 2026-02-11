@@ -24,6 +24,7 @@ async function bootstrap() {
       }
     }
   });
+  app.useStaticAssets('dist', { prefix: '/' });
   
   const config = new DocumentBuilder()
     .setTitle('EN3 Fashions API')
