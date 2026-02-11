@@ -620,38 +620,30 @@ const OrdersList = () => {
     if (address) {
       pdf.setFont(undefined, 'bold');
       pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 10, shipY);
-      pdf.setFont(undefined, 'normal');
       shipY += 3.5;
       pdf.text(address.addressLine1 || '', 10, shipY);
       shipY += 3.5;
-      pdf.setFont(undefined, 'bold');
       pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 10, shipY);
-      pdf.setFont(undefined, 'normal');
       shipY += 3.5;
-      pdf.setFont(undefined, 'bold');
       pdf.text('Landmark:', 10, shipY);
-      pdf.setFont(undefined, 'normal');
       pdf.text(address.landmark || 'N/A', 26, shipY);
+      pdf.setFont(undefined, 'normal');
     }
     
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
-    pdf.text('SHIP FROM:', 55, 94);
-    pdf.setFont(undefined, 'normal');
+    pdf.text('SHIP FROM:', 50, 94);
     
     let fromY = 98;
-    pdf.text('KPG APPARELS', 55, fromY);
+    pdf.text('KPG APPARELS', 50, fromY);
     fromY += 3.5;
-    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 55, fromY);
+    pdf.text('2/3, KPG Buliding, Jothi Theater Road,', 50, fromY);
     fromY += 3.5;
-    pdf.text('Valipalayam,', 55, fromY);
-    pdf.setFont(undefined, 'bold');
-    pdf.text(' Tiruppur,', 73, fromY);
-    pdf.setFont(undefined, 'normal');
+    pdf.text('Valipalayam,', 50, fromY);
+    pdf.text(' Tiruppur,', 68, fromY);
     fromY += 3.5;
-    pdf.text('TAMIL NADU,', 55, fromY);
-    pdf.setFont(undefined, 'bold');
-    pdf.text(' 641601', 73, fromY);
+    pdf.text('TAMIL NADU,', 50, fromY);
+    pdf.text(' 641601', 68, fromY);
     pdf.setFont(undefined, 'normal');
     
     pdf.setFont(undefined, 'italic');
