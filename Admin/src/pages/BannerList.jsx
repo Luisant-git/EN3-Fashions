@@ -30,6 +30,7 @@ const BannerList = () => {
   const [editModal, setEditModal] = useState({ show: false, banner: null })
   const [editForm, setEditForm] = useState({ title: '', link: '', isActive: true, rowNumber: 1 })
   const [editImage, setEditImage] = useState(null)
+  const [editMobileImage, setEditMobileImage] = useState(null)
   const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
@@ -65,6 +66,8 @@ const BannerList = () => {
         isActive: banner.isActive,
         rowNumber: banner.rowNumber || 1
       })
+      setEditImage(null)
+      setEditMobileImage(null)
       setEditModal({ show: true, banner })
     } catch (error) {
       toast.error('Failed to fetch banner details')
@@ -77,21 +80,29 @@ const BannerList = () => {
     
     try {
       let imageUrl = editModal.banner.image
+      let mobileImageUrl = editModal.banner.mobileImage
       
       if (editImage) {
         const imageResponse = await uploadImage(editImage.file)
         imageUrl = imageResponse.url
       }
       
+      if (editMobileImage) {
+        const mobileImageResponse = await uploadImage(editMobileImage.file)
+        mobileImageUrl = mobileImageResponse.url
+      }
+      
       const updateData = {
         ...editForm,
-        image: imageUrl
+        image: imageUrl,
+        mobileImage: mobileImageUrl
       }
       
       await updateBanner(editModal.banner.id, updateData)
       toast.success('Banner updated successfully!')
       setEditModal({ show: false, banner: null })
       setEditImage(null)
+      setEditMobileImage(null)
       fetchBanners()
     } catch (error) {
       toast.error(error.message || 'Failed to update banner')
@@ -112,15 +123,20 @@ const BannerList = () => {
     }
   }
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e, isMobile = false) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
-        setEditImage({
+        const imageData = {
           file,
           url: event.target.result
-        })
+        }
+        if (isMobile) {
+          setEditMobileImage(imageData)
+        } else {
+          setEditImage(imageData)
+        }
       }
       reader.readAsDataURL(file)
     }
@@ -209,9 +225,18 @@ const BannerList = () => {
 
       {/* View Modal */}
       <Modal open={viewModal.show} onClose={() => setViewModal({ show: false, banner: null })}>
-        <div className="modal-content view-modal">
+        <div className="modal-content view-modal" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
           <h2>Banner Details</h2>
-          <img src={viewModal.banner?.image} alt={viewModal.banner?.title} className="modal-product-image" />
+          <div style={{ marginBottom: '16px' }}>
+            <strong>Desktop Banner:</strong>
+            <img src={viewModal.banner?.image} alt={viewModal.banner?.title} className="modal-product-image" style={{ width: '100%', maxWidth: '400px', marginTop: '8px' }} />
+          </div>
+          {viewModal.banner?.mobileImage && (
+            <div style={{ marginBottom: '16px' }}>
+              <strong>Mobile Banner:</strong>
+              <img src={viewModal.banner?.mobileImage} alt={`${viewModal.banner?.title} Mobile`} className="modal-product-image" style={{ width: '100%', maxWidth: '300px', marginTop: '8px' }} />
+            </div>
+          )}
           <div className="modal-product-info">
             <p><strong>Title:</strong> {viewModal.banner?.title}</p>
             <p><strong>Link:</strong> {viewModal.banner?.link}</p>
@@ -223,14 +248,14 @@ const BannerList = () => {
 
       {/* Edit Modal */}
       <Modal open={editModal.show} onClose={() => setEditModal({ show: false, banner: null })}>
-        <form className="modal-content edit-modal" onSubmit={handleUpdate}>
+        <form className="modal-content edit-modal" onSubmit={handleUpdate} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
           <h2>Edit Banner</h2>
           <div className="form-group">
-            <label className="form-label">Image</label>
+            <label className="form-label">Desktop Banner Image</label>
             <div className="image-edit-section">
               {(editImage?.url || editModal.banner?.image) ? (
                 <div className="image-preview-wrapper">
-                  <img src={editImage?.url || editModal.banner?.image} alt="Banner" className="current-image" />
+                  <img src={editImage?.url || editModal.banner?.image} alt="Desktop Banner" className="current-image" />
                   <button
                     type="button"
                     className="change-image-btn"
@@ -243,27 +268,57 @@ const BannerList = () => {
               ) : (
                 <div className="image-upload-area" onClick={() => document.getElementById('edit-banner-image').click()}>
                   <Upload size={28} />
-                  <p>Upload image</p>
-                  <span>PNG, JPG</span>
+                  <p>Upload desktop image</p>
+                  <span>PNG, JPG (1920x600px)</span>
                 </div>
               )}
               <input
                 type="file"
                 id="edit-banner-image"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={(e) => handleImageUpload(e, false)}
                 style={{ display: 'none' }}
               />
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Title *</label>
+            <label className="form-label">Mobile Banner Image</label>
+            <div className="image-edit-section">
+              {(editMobileImage?.url || editModal.banner?.mobileImage) ? (
+                <div className="image-preview-wrapper">
+                  <img src={editMobileImage?.url || editModal.banner?.mobileImage} alt="Mobile Banner" className="current-image" />
+                  <button
+                    type="button"
+                    className="change-image-btn"
+                    onClick={() => document.getElementById('edit-mobile-banner-image').click()}
+                  >
+                    <Upload size={14} />
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <div className="image-upload-area" onClick={() => document.getElementById('edit-mobile-banner-image').click()}>
+                  <Upload size={28} />
+                  <p>Upload mobile image</p>
+                  <span>PNG, JPG (768x400px - Optional)</span>
+                </div>
+              )}
+              <input
+                type="file"
+                id="edit-mobile-banner-image"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, true)}
+                style={{ display: 'none' }}
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Title</label>
             <input
               className="form-input"
               type="text"
               value={editForm.title}
               onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-              required
             />
           </div>
           <div className="form-group">
