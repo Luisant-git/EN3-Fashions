@@ -511,11 +511,11 @@ const OrdersList = () => {
     pdf.save(`package-slip-${order.id}.pdf`);
   };
 
-  const exportPlacedOrdersExcel = () => {
-    let placedOrders = orders.filter(order => order.status === 'Placed');
+  const exportAllOrdersExcel = () => {
+    let filteredOrders = orders;
     
     if (startDate || endDate) {
-      placedOrders = placedOrders.filter(order => {
+      filteredOrders = orders.filter(order => {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
@@ -531,12 +531,12 @@ const OrdersList = () => {
       });
     }
     
-    if (placedOrders.length === 0) {
-      alert('No placed orders found for the selected date range');
+    if (filteredOrders.length === 0) {
+      alert('No orders found for the selected date range');
       return;
     }
 
-    const excelData = placedOrders.map((order, index) => {
+    const excelData = filteredOrders.map((order, index) => {
       const totalQty = order.items?.reduce((sum, item) => {
         if (item.type === 'bundle' && item.bundleItems) {
           return sum + item.bundleItems.length;
@@ -581,10 +581,10 @@ const OrdersList = () => {
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Placed Orders');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'All Orders');
     
     const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
-    XLSX.writeFile(workbook, `placed-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(workbook, `all-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const generateAllPackageSlips = () => {
@@ -664,10 +664,27 @@ const OrdersList = () => {
   };
 
   const exportAbandonedOrdersExcel = () => {
-    const abandonedOrders = orders.filter(order => order.status === 'Abandoned');
+    let abandonedOrders = orders.filter(order => order.status === 'Abandoned');
+    
+    if (startDate || endDate) {
+      abandonedOrders = abandonedOrders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        
+        if (start && end) {
+          return orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        } else if (start) {
+          return orderDate >= start;
+        } else if (end) {
+          return orderDate <= new Date(end.setHours(23, 59, 59));
+        }
+        return true;
+      });
+    }
     
     if (abandonedOrders.length === 0) {
-      alert('No abandoned orders found');
+      alert('No abandoned orders found for the selected date range');
       return;
     }
 
@@ -690,7 +707,8 @@ const OrdersList = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Abandoned Orders');
     
-    XLSX.writeFile(workbook, `abandoned-orders-${new Date().toISOString().split('T')[0]}.xlsx`);
+    const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+    XLSX.writeFile(workbook, `abandoned-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
 
@@ -1346,7 +1364,7 @@ const OrdersList = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-          {statusFilter === "placed" && (
+          {statusFilter === "all" && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
                 <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
@@ -1366,28 +1384,39 @@ const OrdersList = () => {
               </div>
               <button
                 className="download-all-btn"
-                onClick={exportPlacedOrdersExcel}
-                title="Export Placed Orders to Excel"
+                onClick={exportAllOrdersExcel}
+                title="Export All Orders to Excel"
               >
-                <Download size={16} /> Order Placed Report
-              </button>
-              <button
-                className="download-all-btn"
-                onClick={generateAllPackageSlips}
-                title="Download All Package Slips"
-              >
-                <Download size={16} /> Package Slips
+                <Download size={16} /> Download Report
               </button>
             </div>
           )}
           {statusFilter === "abandoned" && (
-            <button
-              className="download-all-btn"
-              onClick={exportAbandonedOrdersExcel}
-              title="Export Abandoned Orders to Excel"
-            >
-              <Download size={16} /> Export Excel
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
+                />
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+              <button
+                className="download-all-btn"
+                onClick={exportAbandonedOrdersExcel}
+                title="Export Abandoned Orders to Excel"
+              >
+                <Download size={16} /> Download Report
+              </button>
+            </div>
           )}
         </div>
       </div>
