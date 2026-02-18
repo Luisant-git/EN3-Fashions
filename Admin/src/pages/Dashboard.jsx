@@ -84,7 +84,7 @@ const Dashboard = () => {
         const hasLowStock = p.colors?.some(color => 
           color.sizes?.some(size => parseInt(size.quantity || 0) < 5)
         );
-        return hasLowStock;
+        return hasLowStock && p.status !== 'inactive';
       }).slice(0, 10);
 
       setStatsData([

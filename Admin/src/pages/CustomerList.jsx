@@ -12,21 +12,44 @@ const CustomerList = () => {
   const [limit] = useState(10)
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCustomers()
     }, 500)
     return () => clearTimeout(timer)
-  }, [page, searchTerm])
+  }, [page, searchTerm, startDate, endDate])
 
   const fetchCustomers = async () => {
     setLoading(true)
     try {
-      const response = await getAllCustomers(page, limit, searchTerm)
-      setCustomers(response.data)
-      setTotal(response.total)
-      setTotalPages(response.totalPages)
+      if (startDate || endDate) {
+        const response = await getAllCustomersForExport(startDate, endDate)
+        const allCustomers = response.data
+        
+        let filtered = allCustomers
+        if (searchTerm) {
+          filtered = allCustomers.filter(customer => 
+            customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        }
+        
+        const startIndex = (page - 1) * limit
+        const endIndex = startIndex + limit
+        const paginatedData = filtered.slice(startIndex, endIndex)
+        
+        setCustomers(paginatedData)
+        setTotal(filtered.length)
+        setTotalPages(Math.ceil(filtered.length / limit))
+      } else {
+        const response = await getAllCustomers(page, limit, searchTerm)
+        setCustomers(response.data)
+        setTotal(response.total)
+        setTotalPages(response.totalPages)
+      }
     } catch (error) {
       console.error('Error fetching customers:', error)
     } finally {
@@ -35,12 +58,27 @@ const CustomerList = () => {
   }
 
   const exportCustomersExcel = () => {
-    if (customers.length === 0) {
-      alert('No customers found to export');
+    let filteredCustomers = customers;
+    
+    if (startDate || endDate) {
+      filteredCustomers = customers.filter(customer => {
+        const joinDate = new Date(customer.joinDate);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        
+        if (start && end) return joinDate >= start && joinDate <= end;
+        if (start) return joinDate >= start;
+        if (end) return joinDate <= end;
+        return true;
+      });
+    }
+
+    if (filteredCustomers.length === 0) {
+      alert('No customers found for the selected date range');
       return;
     }
 
-    const excelData = customers.map((customer, index) => ({
+    const excelData = filteredCustomers.map((customer, index) => ({
       'S.No': index + 1,
       'Customer Name': customer.name || 'N/A',
       'Email': customer.email || 'N/A',
@@ -56,7 +94,8 @@ const CustomerList = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
     
-    XLSX.writeFile(workbook, `customers-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+    const dateRange = startDate || endDate ? `-${startDate || 'start'}-to-${endDate || 'end'}` : '';
+    XLSX.writeFile(workbook, `customers-report${dateRange}-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const columns = [
@@ -112,23 +151,40 @@ const CustomerList = () => {
       </div>
 
       <div className="filters-section">
-        <div className="search-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <Search size={20} className="search-icon" />
+        <div className="search-container">
+          <Search size={20} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search customers..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="date-filter-container" style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>From Date</label>
             <input
-              type="text"
-              placeholder="Search customers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>To Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="form-input"
             />
           </div>
           <button
-            className="download-all-btn"
+            className="btn btn-primary"
             onClick={exportCustomersExcel}
-            title="Export Customers to Excel"
           >
-            <Download size={16} /> Customer Report
+            <Download size={16} /> Download Report
           </button>
         </div>
       </div>

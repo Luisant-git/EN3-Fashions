@@ -225,6 +225,11 @@ const ProductDetailPage = () => {
                 <div className="pdp-image-gallery">
                     <div className="pdp-main-image" onClick={() => window.innerWidth <= 768 && setShowZoom(true)} style={{ cursor: 'pointer', position: 'relative' }} onMouseEnter={() => window.innerWidth > 768 && setShowLens(true)} onMouseLeave={() => setShowLens(false)} onMouseMove={(e) => { if (window.innerWidth > 768) { const rect = e.currentTarget.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; setLensPosition({ x, y, width: rect.width, height: rect.height }); } }}>
                         <img src={activeImage} alt={product.name} />
+                        {product.mrp && selectedSize?.price && (
+                            <div style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: '#ff4444', color: 'white', padding: '8px 12px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px', zIndex: 10 }}>
+                                {Math.round(((product.mrp - selectedSize.price) / product.mrp) * 100)}% OFF
+                            </div>
+                        )}
                         {showLens && window.innerWidth > 768 && lensPosition.width && (
                             <div style={{ position: 'absolute', width: '150px', height: '150px', border: '2px solid #000', backgroundColor: 'rgba(255,255,255,0.3)', pointerEvents: 'none', left: lensPosition.x - 75, top: lensPosition.y - 75 }} />
                         )}
