@@ -137,59 +137,62 @@ const CheckoutPage = () => {
 
         setIsPlacingOrder(true);
         try {
-            const razorpayOrder = await createPaymentOrder(finalTotal, token);
+            // Create order first with pending status
+            const orderData = {
+                subtotal: subtotal.toString(),
+                deliveryFee: deliveryFee.toString(),
+                total: finalTotal.toString(),
+                discount: discount.toString(),
+                couponCode: appliedCoupon?.code || undefined,
+                paymentMethod: 'online',
+                shippingAddress: { ...formData, state: selectedState.value },
+                deliveryOption: { 
+                    fee: deliveryFee, 
+                    name: 'Standard Delivery',
+                    gst: {
+                        rate: GST_RATE,
+                        amount: gstAmount,
+                        cgst: cgst,
+                        sgst: sgst,
+                        igst: igst,
+                        isSameState: isSameState
+                    }
+                }
+            };
+            
+            const orderResponse = await createOrder(orderData);
+            const dbOrderId = orderResponse.id;
+            const razorpayOrderId = orderResponse.razorpayOrderId;
             
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: razorpayOrder.amount,
-                currency: razorpayOrder.currency,
+                amount: Math.round(finalTotal * 100),
+                currency: 'INR',
                 name: 'EN3 Trends',
                 description: 'Order Payment',
-                order_id: razorpayOrder.id,
+                order_id: razorpayOrderId,
                 handler: async (response) => {
                     setIsPlacingOrder(true);
                     try {
                         const verification = await verifyPayment({
                             orderId: response.razorpay_order_id,
                             paymentId: response.razorpay_payment_id,
-                            signature: response.razorpay_signature
+                            signature: response.razorpay_signature,
+                            dbOrderId: dbOrderId
                         }, token);
 
                         if (verification.success) {
-                            const orderData = {
-                                subtotal: subtotal.toString(),
-                                deliveryFee: deliveryFee.toString(),
-                                total: finalTotal.toString(),
-                                discount: discount.toString(),
-                                couponCode: appliedCoupon?.code || undefined,
-                                paymentMethod: verification.paymentMethod || 'online',
-                                shippingAddress: { ...formData, state: selectedState.value },
-                                deliveryOption: { 
-                                    fee: deliveryFee, 
-                                    name: 'Standard Delivery',
-                                    gst: {
-                                        rate: GST_RATE,
-                                        amount: gstAmount,
-                                        cgst: cgst,
-                                        sgst: sgst,
-                                        igst: igst,
-                                        isSameState: isSameState
-                                    }
-                                }
-                            };
-                            
-                            const order = await createOrder(orderData);
                             await fetchCart();
                             toast.success('Payment successful! Order placed.');
                             setTimeout(() => {
-                                navigate('/order-confirmation', { state: { order }, replace: true });
+                                navigate('/order-confirmation', { state: { order: orderResponse }, replace: true });
                             }, 500);
                         } else {
                             toast.error('Payment verification failed');
                         }
                     } catch (error) {
-                        console.error('Order creation error:', error);
-                        toast.error('Payment received but order failed. Contact support.');
+                        console.error('Payment verification error:', error);
+                        toast.error('Payment verification failed. Contact support with Order ID: ' + dbOrderId);
                     } finally {
                         setIsPlacingOrder(false);
                     }
@@ -197,32 +200,7 @@ const CheckoutPage = () => {
                 modal: {
                     ondismiss: async () => {
                         setIsPlacingOrder(false);
-                        try {
-                            const abandonedData = {
-                                subtotal: subtotal.toString(),
-                                deliveryFee: deliveryFee.toString(),
-                                total: finalTotal.toString(),
-                                discount: discount.toString(),
-                                couponCode: appliedCoupon?.code || undefined,
-                                paymentMethod: 'abandoned',
-                                shippingAddress: { ...formData, state: selectedState.value },
-                                deliveryOption: { 
-                                    fee: deliveryFee, 
-                                    name: 'Standard Delivery',
-                                    gst: {
-                                        rate: GST_RATE,
-                                        amount: gstAmount,
-                                        cgst: cgst,
-                                        sgst: sgst,
-                                        igst: igst,
-                                        isSameState: isSameState
-                                    }
-                                }
-                            };
-                            await createOrder(abandonedData);
-                        } catch (error) {
-                            console.error('Failed to save abandoned checkout:', error);
-                        }
+                        toast.info('Payment cancelled. Your order is saved as pending.');
                     }
                 },
                 prefill: {
@@ -233,7 +211,7 @@ const CheckoutPage = () => {
             };
 
             const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', (response) => {
+            rzp.on('payment.failed', async (response) => {
                 setIsPlacingOrder(false);
                 toast.error('Payment failed: ' + (response.error?.description || 'Please try again'));
             });
@@ -242,8 +220,7 @@ const CheckoutPage = () => {
             setIsPlacingOrder(false);
         } catch (error) {
             console.error('Error:', error);
-            toast.error('Failed to initiate payment');
-        } finally {
+            toast.error('Failed to create order');
             setIsPlacingOrder(false);
         }
     };

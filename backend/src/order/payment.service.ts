@@ -16,11 +16,11 @@ export class PaymentService {
     });
   }
 
-  async createOrder(amount: number, currency: string = 'INR') {
+  async createOrder(amount: number, currency: string = 'INR', receipt?: string) {
     const options = {
       amount: Math.round(amount * 100),
       currency,
-      receipt: `receipt_${Date.now()}`,
+      receipt: receipt || `receipt_${Date.now()}`,
     };
     return this.razorpay.orders.create(options);
   }

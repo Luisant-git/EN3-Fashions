@@ -212,6 +212,7 @@ model Order {
   couponCode      String?
   total           String
   paymentMethod   String
+  razorpayPaymentId String?
   shippingAddress Json
   deliveryOption  Json
   invoiceUrl      String?

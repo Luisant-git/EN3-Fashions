@@ -17,11 +17,24 @@ export class OrderController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new order' })
+  @ApiOperation({ summary: 'Create a new order with payment' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createOrder(@Request() req, @Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.createOrder(req.user.userId, createOrderDto);
+    // Create order with pending status first
+    const order = await this.orderService.createOrder(req.user.userId, createOrderDto);
+    
+    // If payment method is online, create Razorpay order
+    if (createOrderDto.paymentMethod === 'online') {
+      const razorpayOrder = await this.paymentService.createOrder(
+        parseFloat(createOrderDto.total),
+        'INR',
+        order.id.toString()
+      );
+      return { ...order, razorpayOrderId: razorpayOrder.id };
+    }
+    
+    return order;
   }
 
   @Get()
@@ -71,7 +84,7 @@ export class OrderController {
   @Post('payment/create')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create Razorpay order' })
+  @ApiOperation({ summary: 'Create Razorpay order (deprecated - use POST /orders instead)' })
   async createPaymentOrder(@Body() body: { amount: number }) {
     return this.paymentService.createOrder(body.amount);
   }
@@ -79,10 +92,32 @@ export class OrderController {
   @Post('payment/verify')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verify Razorpay payment' })
-  async verifyPayment(@Body() body: { orderId: string; paymentId: string; signature: string }) {
+  @ApiOperation({ summary: 'Verify Razorpay payment and update order' })
+  async verifyPayment(
+    @Request() req,
+    @Body() body: { orderId: string; paymentId: string; signature: string; dbOrderId: number }
+  ) {
     const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
-    const paymentMethod = isValid ? await this.paymentService.getPaymentMethod(body.paymentId) : 'online';
-    return { success: isValid, paymentMethod };
+    
+    if (isValid) {
+      const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
+      // Update order status to Placed after successful payment
+      await this.orderService.updateOrderAfterPayment(
+        body.dbOrderId,
+        'Placed',
+        paymentMethod,
+        body.paymentId
+      );
+      return { success: true, paymentMethod };
+    }
+    
+    // If payment failed, mark order as abandoned
+    await this.orderService.updateOrderAfterPayment(
+      body.dbOrderId,
+      'Abandoned',
+      'online',
+      null
+    );
+    return { success: false };
   }
 }

@@ -41,8 +41,13 @@ export class OrderService {
       }
     }
 
-    // Determine order status
-    const orderStatus = createOrderDto.paymentMethod === 'abandoned' ? 'Abandoned' : 'Placed';
+    // Determine order status - pending for online payment, placed for COD, abandoned for abandoned
+    let orderStatus = 'pending';
+    if (createOrderDto.paymentMethod === 'abandoned') {
+      orderStatus = 'Abandoned';
+    } else if (createOrderDto.paymentMethod === 'cod') {
+      orderStatus = 'Placed';
+    }
 
     // Create order with items
     const order = await this.prisma.order.create({
@@ -76,12 +81,45 @@ export class OrderService {
       include: { items: true }
     });
 
-    // Clear cart only if order is placed successfully (not abandoned)
-    if (orderStatus !== 'Abandoned') {
+    // Clear cart and send notification only for COD or abandoned orders
+    if (orderStatus === 'Placed' || orderStatus === 'Abandoned') {
       await this.prisma.cartItem.deleteMany({
         where: { cartId: cart.id }
       });
-      // Send WhatsApp confirmation only for successful orders
+      if (orderStatus === 'Placed') {
+        await this.whatsappService.sendOrderConfirmation(order);
+      }
+    }
+
+    return order;
+  }
+
+  async updateOrderAfterPayment(
+    orderId: number,
+    status: string,
+    paymentMethod: string,
+    paymentId: string | null
+  ) {
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status,
+        paymentMethod,
+        razorpayPaymentId: paymentId
+      },
+      include: { items: true, user: true }
+    });
+
+    // Clear cart and send notification only if payment was successful
+    if (status === 'Placed') {
+      const cart = await this.prisma.cart.findUnique({
+        where: { userId: order.userId }
+      });
+      if (cart) {
+        await this.prisma.cartItem.deleteMany({
+          where: { cartId: cart.id }
+        });
+      }
       await this.whatsappService.sendOrderConfirmation(order);
     }
 
