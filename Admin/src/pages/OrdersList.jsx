@@ -1112,12 +1112,31 @@ const OrdersList = () => {
     if (!modalRef.current) return;
     
     try {
+      // Store original styles
+      const modalBody = modalRef.current.querySelector('.modal-body');
+      const originalOverflow = modalBody.style.overflow;
+      const originalMaxHeight = modalBody.style.maxHeight;
+      
+      // Remove scroll and height restrictions temporarily
+      modalBody.style.overflow = 'visible';
+      modalBody.style.maxHeight = 'none';
+      
+      // Wait for layout to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = await html2canvas(modalRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
         allowTaint: true,
+        scrollY: -window.scrollY,
+        scrollX: -window.scrollX,
+        windowHeight: modalRef.current.scrollHeight,
       });
+      
+      // Restore original styles
+      modalBody.style.overflow = originalOverflow;
+      modalBody.style.maxHeight = originalMaxHeight;
       
       const link = document.createElement('a');
       link.download = `order-${selectedOrder.id}-details.png`;
@@ -1448,8 +1467,8 @@ const OrdersList = () => {
               <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="order-info">
                   <h4>Order Information</h4>
-                  <p><strong>Customer:</strong> {selectedOrder.user?.name}</p>
-                  <p><strong>Email:</strong> {selectedOrder.user?.email}</p>
+                  <p><strong>Customer:</strong> {selectedOrder.user?.name || selectedOrder.shippingAddress?.fullName || 'N/A'}</p>
+                  <p><strong>Email:</strong> {selectedOrder.user?.email || 'N/A'}</p>
                   <p><strong>Status:</strong> {selectedOrder.status}</p>
                   <p><strong>Payment:</strong> {selectedOrder.paymentMethod}</p>
                   {selectedOrder.couponCode && (
