@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import icon from '/icon.png';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -34,6 +34,18 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 
+const MetaPixelTracker = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+        if (window.fbq) {
+            window.fbq('track', 'PageView');
+        }
+    }, [location]);
+
+    return null;
+};
+
 const App = () => {
     const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
     const [whatsappMessage, setWhatsappMessage] = useState('');
@@ -43,6 +55,7 @@ const App = () => {
             <CartProvider>
                 <WishlistProvider>
                     <Router>
+                        <MetaPixelTracker />
                         <div className="app-container">
                             <TopHeader />
                             <Header />
