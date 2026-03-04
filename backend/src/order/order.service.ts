@@ -42,7 +42,7 @@ export class OrderService {
     }
  
     // Determine order status
-    const orderStatus = createOrderDto.paymentMethod === 'abandoned' ? 'Abandoned' : 'Placed';
+    const orderStatus = createOrderDto.paymentMethod === 'online' ? 'Pending' : 'Placed';
  
     // Create order with items
     const order = await this.prisma.order.create({
@@ -76,12 +76,13 @@ export class OrderService {
       include: { items: true }
     });
  
-    // Clear cart only if order is placed successfully (not abandoned)
-    if (orderStatus !== 'Abandoned') {
+    // Clear cart only for COD orders (Placed status)
+    // For online payments (Pending status), cart will be cleared after payment verification
+    if (orderStatus === 'Placed') {
       await this.prisma.cartItem.deleteMany({
         where: { cartId: cart.id }
       });
-      // Send WhatsApp confirmation only for successful orders
+      // Send WhatsApp confirmation only for COD orders
       await this.whatsappService.sendOrderConfirmation(order);
     }
  
