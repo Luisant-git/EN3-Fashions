@@ -8,6 +8,7 @@ import { createOrder } from '../api/orderApi';
 import { validateCoupon, getActiveCoupons } from '../api/couponApi';
 import { createPaymentOrder, verifyPayment } from '../api/paymentApi';
 import { getShippingRules } from '../api/shippingApi';
+import API_BASE_URL from '../config/api';
 import LoadingSpinner from './LoadingSpinner';
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -199,8 +200,24 @@ const CheckoutPage = () => {
                 },
                 modal: {
                     ondismiss: async () => {
+                        try {
+                            // Update order status to Abandoned
+                            await fetch(`${API_BASE_URL}/orders/${dbOrderId}/status`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ 
+                                    status: 'Abandoned',
+                                    paymentMethod: 'abandoned'
+                                })
+                            });
+                        } catch (error) {
+                            console.error('Failed to update order status:', error);
+                        }
                         setIsPlacingOrder(false);
-                        toast.info('Payment cancelled. Your order is saved as pending.');
+                        toast.info('Payment cancelled.');
                     }
                 },
                 prefill: {
