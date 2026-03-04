@@ -80,9 +80,17 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verify Razorpay payment' })
-  async verifyPayment(@Body() body: { orderId: string; paymentId: string; signature: string }) {
+  async verifyPayment(@Body() body: { orderId: string; paymentId: string; signature: string; dbOrderId: number }) {
     const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
-    const paymentMethod = isValid ? await this.paymentService.getPaymentMethod(body.paymentId) : 'online';
-    return { success: isValid, paymentMethod };
+    
+    if (isValid && body.dbOrderId) {
+      // Update order status to Placed and clear cart
+      await this.orderService.updateOrderStatus(body.dbOrderId, 'Placed');
+      
+      const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
+      return { success: true, paymentMethod };
+    }
+    
+    return { success: false };
   }
 }

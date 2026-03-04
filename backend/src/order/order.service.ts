@@ -124,6 +124,21 @@ export class OrderService {
       data: updateData,
       include: { items: true }
     });
+
+    // If payment successful, clear cart and send WhatsApp
+    if (status === 'Placed') {
+      // Clear user's cart
+      const cart = await this.prisma.cart.findUnique({
+        where: { userId: order.userId }
+      });
+      if (cart) {
+        await this.prisma.cartItem.deleteMany({
+          where: { cartId: cart.id }
+        });
+      }
+      // Send WhatsApp confirmation
+      await this.whatsappService.sendOrderConfirmation(order);
+    }
  
     // Send WhatsApp notification based on status
     if (status === 'Shipped') {
