@@ -80,37 +80,51 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verify Razorpay payment' })
-  async verifyPayment(@Request() req, @Body() body: { orderId: string; paymentId: string; signature: string; dbOrderId: number }) {
+  async verifyPayment(@Request() req, @Body() body: any) {
     console.log('=== PAYMENT VERIFICATION STARTED ===');
-    console.log('Request body:', JSON.stringify(body, null, 2));
+    console.log('Raw request body:', req.body);
+    console.log('Parsed body:', body);
+    console.log('Body keys:', Object.keys(body));
     console.log('User ID:', req.user.userId);
     
+    const { orderId, paymentId, signature, dbOrderId } = body;
+    console.log('Extracted fields:');
+    console.log('- orderId:', orderId);
+    console.log('- paymentId:', paymentId);
+    console.log('- signature:', signature);
+    console.log('- dbOrderId:', dbOrderId);
+    
     try {
-      const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
+      if (!orderId || !paymentId || !signature) {
+        console.log('Missing required fields for signature verification');
+        return { success: false, error: 'Missing payment verification data' };
+      }
+      
+      const isValid = this.paymentService.verifyPayment(orderId, paymentId, signature);
       console.log('Payment signature valid:', isValid);
       
-      if (isValid && body.dbOrderId) {
-        console.log('Fetching order with ID:', body.dbOrderId);
+      if (isValid && dbOrderId) {
+        console.log('Fetching order with ID:', dbOrderId);
         
         // Check if order exists
-        const existingOrder = await this.orderService.getOrderById(req.user.userId, body.dbOrderId);
+        const existingOrder = await this.orderService.getOrderById(req.user.userId, dbOrderId);
         
         if (!existingOrder) {
-          console.log('Order not found for ID:', body.dbOrderId);
+          console.log('Order not found for ID:', dbOrderId);
           return { success: false, error: 'Order not found' };
         }
         
-        console.log(`Updating order ${body.dbOrderId} from ${existingOrder.status} to Placed`);
+        console.log(`Updating order ${dbOrderId} from ${existingOrder.status} to Placed`);
         
         // Update order status to Placed regardless of current status (Pending or Abandoned)
-        await this.orderService.updateOrderStatus(body.dbOrderId, 'Placed');
+        await this.orderService.updateOrderStatus(dbOrderId, 'Placed');
         
         console.log('Order status updated successfully');
         
         // Cleanup old pending orders (instead of cron job)
         await this.orderService.cleanupOldPendingOrders();
         
-        const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
+        const paymentMethod = await this.paymentService.getPaymentMethod(paymentId);
         console.log('=== PAYMENT VERIFICATION SUCCESS ===');
         return { success: true, paymentMethod, orderStatus: 'Placed' };
       }
