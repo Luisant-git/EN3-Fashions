@@ -1,23 +1,33 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
+let prismaInstance: PrismaClient | null = null;
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    super({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL + '?connection_limit=1&pool_timeout=0'
+    if (!prismaInstance) {
+      prismaInstance = new PrismaClient({
+        datasources: {
+          db: {
+            url: process.env.DATABASE_URL
+          }
         }
-      }
-    });
+      });
+    }
+    super();
+    return prismaInstance as any;
   }
 
   async onModuleInit() {
-    await this.$connect();
+    if (prismaInstance && !prismaInstance.$connect) {
+      await prismaInstance.$connect();
+    }
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
+    if (prismaInstance) {
+      await prismaInstance.$disconnect();
+    }
   }
 }

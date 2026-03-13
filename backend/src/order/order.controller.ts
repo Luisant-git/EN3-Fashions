@@ -81,14 +81,22 @@ export class OrderController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verify Razorpay payment' })
   async verifyPayment(@Request() req, @Body() body: { orderId: string; paymentId: string; signature: string; dbOrderId: number }) {
+    console.log('=== PAYMENT VERIFICATION STARTED ===');
+    console.log('Request body:', JSON.stringify(body, null, 2));
+    console.log('User ID:', req.user.userId);
+    
     try {
       const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
+      console.log('Payment signature valid:', isValid);
       
       if (isValid && body.dbOrderId) {
+        console.log('Fetching order with ID:', body.dbOrderId);
+        
         // Check if order exists
         const existingOrder = await this.orderService.getOrderById(req.user.userId, body.dbOrderId);
         
         if (!existingOrder) {
+          console.log('Order not found for ID:', body.dbOrderId);
           return { success: false, error: 'Order not found' };
         }
         
@@ -97,16 +105,21 @@ export class OrderController {
         // Update order status to Placed regardless of current status (Pending or Abandoned)
         await this.orderService.updateOrderStatus(body.dbOrderId, 'Placed');
         
+        console.log('Order status updated successfully');
+        
         // Cleanup old pending orders (instead of cron job)
         await this.orderService.cleanupOldPendingOrders();
         
         const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
+        console.log('=== PAYMENT VERIFICATION SUCCESS ===');
         return { success: true, paymentMethod, orderStatus: 'Placed' };
       }
       
+      console.log('Payment verification failed - invalid signature or missing dbOrderId');
       return { success: false, error: 'Payment verification failed' };
     } catch (error) {
-      console.error('Payment verification error:', error);
+      console.error('=== PAYMENT VERIFICATION ERROR ===');
+      console.error('Error details:', error);
       return { success: false, error: 'Payment verification failed' };
     }
   }
