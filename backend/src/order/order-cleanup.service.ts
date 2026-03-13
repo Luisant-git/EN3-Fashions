@@ -6,14 +6,14 @@ import { PrismaService } from '../prisma.service';
 export class OrderCleanupService {
   constructor(private prisma: PrismaService) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async cleanupPendingOrders() {
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
     const result = await this.prisma.order.updateMany({
       where: {
         status: 'Pending',
-        createdAt: { lt: fifteenMinutesAgo }
+        createdAt: { lt: twoMinutesAgo }
       },
       data: { status: 'Abandoned' }
     });

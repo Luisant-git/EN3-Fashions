@@ -80,17 +80,31 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verify Razorpay payment' })
-  async verifyPayment(@Body() body: { orderId: string; paymentId: string; signature: string; dbOrderId: number }) {
-    const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
-    
-    if (isValid && body.dbOrderId) {
-      // Update order status to Placed and clear cart
-      await this.orderService.updateOrderStatus(body.dbOrderId, 'Placed');
+  async verifyPayment(@Request() req, @Body() body: { orderId: string; paymentId: string; signature: string; dbOrderId: number }) {
+    try {
+      const isValid = this.paymentService.verifyPayment(body.orderId, body.paymentId, body.signature);
       
-      const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
-      return { success: true, paymentMethod };
+      if (isValid && body.dbOrderId) {
+        // Check if order exists
+        const existingOrder = await this.orderService.getOrderById(req.user.userId, body.dbOrderId);
+        
+        if (!existingOrder) {
+          return { success: false, error: 'Order not found' };
+        }
+        
+        console.log(`Updating order ${body.dbOrderId} from ${existingOrder.status} to Placed`);
+        
+        // Update order status to Placed regardless of current status (Pending or Abandoned)
+        await this.orderService.updateOrderStatus(body.dbOrderId, 'Placed');
+        
+        const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
+        return { success: true, paymentMethod, orderStatus: 'Placed' };
+      }
+      
+      return { success: false, error: 'Payment verification failed' };
+    } catch (error) {
+      console.error('Payment verification error:', error);
+      return { success: false, error: 'Payment verification failed' };
     }
-    
-    return { success: false };
   }
 }
