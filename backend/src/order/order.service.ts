@@ -47,7 +47,7 @@ export class OrderService {
     const orderStatus = createOrderDto.paymentMethod === 'online' ? 'Pending' : 'Placed';
  
     // Create Razorpay order for online payments
-    let razorpayOrderId = null;
+    let razorpayOrderId: string | null = null;
     if (createOrderDto.paymentMethod === 'online') {
       const razorpayOrder = await this.paymentService.createOrder(parseFloat(createOrderDto.total));
       razorpayOrderId = razorpayOrder.id;
