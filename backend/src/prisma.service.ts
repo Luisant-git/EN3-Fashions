@@ -7,29 +7,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     super({
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
-      log: ['error', 'warn'],
+          url: process.env.DATABASE_URL + '?connection_limit=1&pool_timeout=0'
+        }
+      }
     });
   }
 
   async onModuleInit() {
-    try {
-      await this.$connect();
-      console.log('Database connected successfully');
-    } catch (error) {
-      console.error('Database connection failed:', error);
-      // Retry connection after 5 seconds
-      setTimeout(async () => {
-        try {
-          await this.$connect();
-          console.log('Database reconnected successfully');
-        } catch (retryError) {
-          console.error('Database reconnection failed:', retryError);
-        }
-      }, 5000);
-    }
+    await this.$connect();
   }
 
   async onModuleDestroy() {
