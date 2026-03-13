@@ -6,7 +6,8 @@ import { PrismaService } from '../prisma.service';
 export class OrderCleanupService {
   constructor(private prisma: PrismaService) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  // Temporarily disabled to fix connection issues
+  // @Cron(CronExpression.EVERY_MINUTE)
   async cleanupPendingOrders() {
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
@@ -21,5 +22,10 @@ export class OrderCleanupService {
     if (result.count > 0) {
       console.log(`Marked ${result.count} pending orders as abandoned`);
     }
+  }
+
+  // Manual cleanup method that can be called when needed
+  async manualCleanup() {
+    return this.cleanupPendingOrders();
   }
 }

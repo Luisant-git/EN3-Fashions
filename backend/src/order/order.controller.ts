@@ -97,6 +97,9 @@ export class OrderController {
         // Update order status to Placed regardless of current status (Pending or Abandoned)
         await this.orderService.updateOrderStatus(body.dbOrderId, 'Placed');
         
+        // Cleanup old pending orders (instead of cron job)
+        await this.orderService.cleanupOldPendingOrders();
+        
         const paymentMethod = await this.paymentService.getPaymentMethod(body.paymentId);
         return { success: true, paymentMethod, orderStatus: 'Placed' };
       }

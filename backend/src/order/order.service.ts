@@ -156,4 +156,22 @@ export class OrderService {
  
     return order;
   }
+
+  async cleanupOldPendingOrders() {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    
+    const result = await this.prisma.order.updateMany({
+      where: {
+        status: 'Pending',
+        createdAt: { lt: twoMinutesAgo }
+      },
+      data: { status: 'Abandoned' }
+    });
+
+    if (result.count > 0) {
+      console.log(`Cleaned up ${result.count} old pending orders`);
+    }
+    
+    return result.count;
+  }
 }
