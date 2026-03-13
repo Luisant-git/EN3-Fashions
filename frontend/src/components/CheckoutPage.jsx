@@ -175,6 +175,9 @@ const CheckoutPage = () => {
                 handler: async (response) => {
                     setIsPlacingOrder(true);
                     try {
+                        console.log('Razorpay response:', response);
+                        console.log('Available keys:', Object.keys(response));
+                        
                         const verification = await verifyPayment({
                             orderId: response.razorpay_order_id,
                             paymentId: response.razorpay_payment_id,
