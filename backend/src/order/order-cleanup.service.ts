@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma.service';
 export class OrderCleanupService {
   constructor(private prisma: PrismaService) {}
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async cleanupPendingOrders() {
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
