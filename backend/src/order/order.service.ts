@@ -3,13 +3,15 @@ import { PrismaService } from '../prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CouponService } from '../coupon/coupon.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { PaymentService } from './payment.service';
  
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
     private couponService: CouponService,
-    private whatsappService: WhatsappService
+    private whatsappService: WhatsappService,
+    private paymentService: PaymentService
   ) {}
  
   async createOrder(userId: number, createOrderDto: CreateOrderDto) {
@@ -44,6 +46,13 @@ export class OrderService {
     // Determine order status
     const orderStatus = createOrderDto.paymentMethod === 'online' ? 'Pending' : 'Placed';
  
+    // Create Razorpay order for online payments
+    let razorpayOrderId = null;
+    if (createOrderDto.paymentMethod === 'online') {
+      const razorpayOrder = await this.paymentService.createOrder(parseFloat(createOrderDto.total));
+      razorpayOrderId = razorpayOrder.id;
+    }
+
     // Create order with items
     const order = await this.prisma.order.create({
       data: {
@@ -86,7 +95,11 @@ export class OrderService {
       await this.whatsappService.sendOrderConfirmation(order);
     }
  
-    return order;
+    // Return order with Razorpay order ID for online payments
+    return {
+      ...order,
+      razorpayOrderId
+    };
   }
  
   async getUserOrders(userId: number) {
