@@ -11,22 +11,40 @@ export class CustomerService {
     return 'This action adds a new customer';
   }
 
-  async findAll(page: number = 1, limit: number = 10, search: string = '') {
+  async findAll(page: number = 1, limit: number = 10, search: string = '', startDate?: string, endDate?: string) {
     const skip = (page - 1) * limit;
     
-    const where = search ? {
-      OR: [
+    const where: any = {};
+    
+    // Search filter
+    if (search) {
+      where.OR = [
         { name: { contains: search, mode: 'insensitive' as any } },
         { email: { contains: search, mode: 'insensitive' as any } },
         { phone: { contains: search, mode: 'insensitive' as any } },
-      ],
-    } : {};
+      ];
+    }
+    
+    // Date filter
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Add 23:59:59 to include the entire end date
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        where.createdAt.lte = endDateTime;
+      }
+    }
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         skip,
         take: limit,
+        orderBy: { createdAt: 'desc' },
         include: {
           orders: {
             select: {

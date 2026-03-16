@@ -5,3 +5,14 @@ export const getAllCustomers = async (page = 1, limit = 10, search = '') => {
   const response = await axiosInstance.get('/customer', { params });
   return response.data;
 };
+
+export const getAllCustomersForExport = async (startDate = '', endDate = '') => {
+  const params = { 
+    page: 1, 
+    limit: 10000, // Large limit to get all customers
+    ...(startDate && { startDate }),
+    ...(endDate && { endDate })
+  };
+  const response = await axiosInstance.get('/customer', { params });
+  return response.data;
+};

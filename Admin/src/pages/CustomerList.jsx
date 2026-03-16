@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Search, Filter, Eye, Edit, Mail, Phone, MapPin, UserPlus, Download } from 'lucide-react'
-import { getAllCustomers } from '../api/customerApi'
+import { getAllCustomers, getAllCustomersForExport } from '../api/customerApi'
 import * as XLSX from 'xlsx'
 
 const CustomerList = () => {
@@ -57,45 +57,43 @@ const CustomerList = () => {
     }
   }
 
-  const exportCustomersExcel = () => {
-    let filteredCustomers = customers;
-    
-    if (startDate || endDate) {
-      filteredCustomers = customers.filter(customer => {
-        const joinDate = new Date(customer.joinDate);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
-        
-        if (start && end) return joinDate >= start && joinDate <= end;
-        if (start) return joinDate >= start;
-        if (end) return joinDate <= end;
-        return true;
-      });
+  const exportCustomersExcel = async () => {
+    try {
+      let customersToExport = customers;
+      
+      // If date filters are applied, get all customers for that date range
+      if (startDate || endDate) {
+        const response = await getAllCustomersForExport(startDate, endDate);
+        customersToExport = response.data;
+      }
+
+      if (customersToExport.length === 0) {
+        alert('No customers found for the selected date range');
+        return;
+      }
+
+      const excelData = customersToExport.map((customer, index) => ({
+        'S.No': index + 1,
+        'Customer Name': customer.name || 'N/A',
+        'Email': customer.email || 'N/A',
+        'Phone': customer.phone || 'N/A',
+        'Total Orders': customer.ordersCount || 0,
+        'Total Spent': `₹${(customer.totalSpent || 0).toFixed(2)}`,
+        'Status': customer.status || 'N/A',
+        'Join Date': customer.joinDate ? new Date(customer.joinDate).toLocaleDateString('en-GB') : 'N/A',
+        'Last Order': customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString('en-GB') : 'N/A'
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
+      
+      const dateRange = startDate || endDate ? `-${startDate || 'start'}-to-${endDate || 'end'}` : '';
+      XLSX.writeFile(workbook, `customers-report${dateRange}-${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+      console.error('Error exporting customers:', error);
+      alert('Failed to export customers. Please try again.');
     }
-
-    if (filteredCustomers.length === 0) {
-      alert('No customers found for the selected date range');
-      return;
-    }
-
-    const excelData = filteredCustomers.map((customer, index) => ({
-      'S.No': index + 1,
-      'Customer Name': customer.name || 'N/A',
-      'Email': customer.email || 'N/A',
-      'Phone': customer.phone || 'N/A',
-      'Total Orders': customer.ordersCount || 0,
-      'Total Spent': `₹${(customer.totalSpent || 0).toFixed(2)}`,
-      'Status': customer.status || 'N/A',
-      'Join Date': customer.joinDate ? new Date(customer.joinDate).toLocaleDateString('en-GB') : 'N/A',
-      'Last Order': customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString('en-GB') : 'N/A'
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
-    
-    const dateRange = startDate || endDate ? `-${startDate || 'start'}-to-${endDate || 'end'}` : '';
-    XLSX.writeFile(workbook, `customers-report${dateRange}-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const columns = [
