@@ -20,36 +20,15 @@ const CustomerList = () => {
       fetchCustomers()
     }, 500)
     return () => clearTimeout(timer)
-  }, [page, searchTerm, startDate, endDate])
+  }, [page, searchTerm])
 
   const fetchCustomers = async () => {
     setLoading(true)
     try {
-      if (startDate || endDate) {
-        const response = await getAllCustomersForExport(startDate, endDate)
-        const allCustomers = response.data
-        
-        let filtered = allCustomers
-        if (searchTerm) {
-          filtered = allCustomers.filter(customer => 
-            customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        }
-        
-        const startIndex = (page - 1) * limit
-        const endIndex = startIndex + limit
-        const paginatedData = filtered.slice(startIndex, endIndex)
-        
-        setCustomers(paginatedData)
-        setTotal(filtered.length)
-        setTotalPages(Math.ceil(filtered.length / limit))
-      } else {
-        const response = await getAllCustomers(page, limit, searchTerm)
-        setCustomers(response.data)
-        setTotal(response.total)
-        setTotalPages(response.totalPages)
-      }
+      const response = await getAllCustomers(page, limit, searchTerm)
+      setCustomers(response.data)
+      setTotal(response.total)
+      setTotalPages(response.totalPages)
     } catch (error) {
       console.error('Error fetching customers:', error)
     } finally {
@@ -59,12 +38,26 @@ const CustomerList = () => {
 
   const exportCustomersExcel = async () => {
     try {
-      let customersToExport = customers;
+      // Get all customers for export
+      const response = await getAllCustomersForExport();
+      let customersToExport = response.data;
       
-      // If date filters are applied, get all customers for that date range
+      // Apply date filtering like in Orders page
       if (startDate || endDate) {
-        const response = await getAllCustomersForExport(startDate, endDate);
-        customersToExport = response.data;
+        customersToExport = customersToExport.filter(customer => {
+          const customerDate = new Date(customer.joinDate);
+          const start = startDate ? new Date(startDate) : null;
+          const end = endDate ? new Date(endDate) : null;
+          
+          if (start && end) {
+            return customerDate >= start && customerDate <= new Date(end.setHours(23, 59, 59));
+          } else if (start) {
+            return customerDate >= start;
+          } else if (end) {
+            return customerDate <= new Date(end.setHours(23, 59, 59));
+          }
+          return true;
+        });
       }
 
       if (customersToExport.length === 0) {
@@ -88,8 +81,8 @@ const CustomerList = () => {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
       
-      const dateRange = startDate || endDate ? `-${startDate || 'start'}-to-${endDate || 'end'}` : '';
-      XLSX.writeFile(workbook, `customers-report${dateRange}-${new Date().toISOString().split('T')[0]}.xlsx`);
+      const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+      XLSX.writeFile(workbook, `customers-report${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
       console.error('Error exporting customers:', error);
       alert('Failed to export customers. Please try again.');
