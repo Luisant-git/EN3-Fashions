@@ -1323,15 +1323,15 @@ const OrdersList = () => {
             <p>Shipped</p>
           </div>
         </div>
-        {/* <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
-          <div className="stat-icon delivered">
-            <CheckCircle size={24} />
+        <div className="stat-card" onClick={() => setStatusFilter("abandoned")}>
+          <div className="stat-icon abandoned">
+            <X size={24} />
           </div>
           <div className="stat-content">
-            <h3>{statusCounts.delivered}</h3>
-            <p>Delivered</p>
+            <h3>{statusCounts.abandoned}</h3>
+            <p>Abandoned</p>
           </div>
-        </div> */}
+        </div>
       </div>
 
       <div className="status-tabs">
