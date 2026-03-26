@@ -154,7 +154,9 @@ export class OrderService {
     }
  
     // Send WhatsApp notification based on status
-    if (status === 'Shipped') {
+    if (status === 'Accepted') {
+      await this.whatsappService.sendOrderAccepted(order);
+    } else if (status === 'Shipped') {
       const trackingInfo = {
         courier: courierName || order.courierName || 'N/A',
         trackingId: trackingId || order.trackingId || 'N/A',

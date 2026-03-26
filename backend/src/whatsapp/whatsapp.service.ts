@@ -392,7 +392,7 @@ export class WhatsappService {
                 type: 'body',
                 parameters: [
                   { type: 'text', text: name },
-                  { type: 'text', text: order.id.toString() },
+                  { type: 'text', text: `#ORD-${order.id}` },
                   { type: 'text', text: order.total },
                   { type: 'text', text: order.paymentMethod }
                 ]
@@ -426,6 +426,57 @@ export class WhatsappService {
     }
   }
 
+  async sendOrderAccepted(order: any) {
+    const phoneNumber = order.shippingAddress.mobile;
+    const name = order.shippingAddress.fullName;
+
+    try {
+      const response = await axios.post(
+        `${this.apiUrl}/${this.phoneNumberId}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: phoneNumber,
+          type: 'template',
+          template: {
+            name: 'order_ready_to_ship',
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: name },
+                  { type: 'text', text: `#ORD-${order.id}` }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      await this.prisma.whatsappMessage.create({
+        data: {
+          messageId: response.data.messages[0].id,
+          from: phoneNumber,
+          message: `Order ${order.id} accepted notification sent`,
+          direction: 'outgoing',
+          status: 'sent'
+        }
+      });
+
+      console.log(`WhatsApp accepted message sent to ${phoneNumber}:`, response.data);
+      return { success: true, messageId: response.data.messages[0].id };
+    } catch (error) {
+      console.error('WhatsApp API Error:', error.response?.data || error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
   async sendOrderShipped(order: any, trackingInfo: { courier: string; trackingId: string; trackingUrl: string }, invoiceUrl: string) {
     const phoneNumber = order.shippingAddress.mobile;
     const name = order.shippingAddress.fullName;
@@ -449,7 +500,7 @@ export class WhatsappService {
                 type: 'body',
                 parameters: [
                   { type: 'text', text: name },
-                  { type: 'text', text: order.id.toString() },
+                  { type: 'text', text: `#ORD-${order.id}` },
                   { type: 'text', text: trackingInfo.courier },
                   { type: 'text', text: trackingInfo.trackingId },
                   { type: 'text', text: trackingInfo.trackingUrl }
@@ -540,7 +591,7 @@ export class WhatsappService {
                 type: 'body',
                 parameters: [
                   { type: 'text', text: name },
-                  { type: 'text', text: order.id.toString() },
+                  { type: 'text', text: `#ORD-${order.id}` },
                   { type: 'text', text: order.total },
                   { type: 'text', text: order.paymentMethod },
                   { type: 'text', text: invoiceUrl }
