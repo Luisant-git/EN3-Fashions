@@ -74,6 +74,11 @@
           background: #dcfce7;
           color: var(--success-color);
         }
+
+        &.abandoned {
+          background: #fee2e2;
+          color: #dc2626;
+        }
       }
 
       .stat-content {

@@ -46,7 +46,7 @@ const Footer = () => {
             </div>
         </div>
         <div className="footer-bottom">
-            <p>© 2025 EN3 Fashions. All rights reserved by KPG Apparels.</p>
+            <p>© 2026 EN3 Fashions. All rights reserved by KPG Apparels.</p>
         </div>
     </footer>
     );

@@ -8,6 +8,7 @@ import { createOrder } from '../api/orderApi';
 import { validateCoupon, getActiveCoupons } from '../api/couponApi';
 import { createPaymentOrder, verifyPayment } from '../api/paymentApi';
 import { getShippingRules } from '../api/shippingApi';
+import { updateShippingAddress } from '../api/authApi';
 import API_BASE_URL from '../config/api';
 import LoadingSpinner from './LoadingSpinner';
 const CheckoutPage = () => {
@@ -138,6 +139,23 @@ const CheckoutPage = () => {
 
         setIsPlacingOrder(true);
         try {
+            // Save shipping address to user profile
+            try {
+                const addressData = {
+                    name: formData.fullName,
+                    addressLine: formData.addressLine1,
+                    landmark: formData.landmark,
+                    city: formData.city,
+                    state: selectedState.value,
+                    pincode: formData.pincode,
+                    mobile: formData.mobile
+                };
+                await updateShippingAddress(token, addressData);
+            } catch (addressError) {
+                console.error('Failed to save address to profile:', addressError);
+                // Don't stop the order process if address saving fails
+            }
+
             // Create order first with pending status
             const orderData = {
                 subtotal: subtotal.toString(),

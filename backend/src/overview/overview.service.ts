@@ -6,7 +6,12 @@ export class OverviewService {
   constructor(private prisma: PrismaService) {}
 
   async getQuickStats() {
-    const orders = await this.prisma.order.findMany();
+    // Only include shipped and placed orders for revenue calculation
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: { in: ['Shipped', 'Placed'] }
+      }
+    });
     const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total), 0);
     const totalOrders = orders.length;
     const totalUsers = await this.prisma.user.count();
@@ -83,12 +88,18 @@ export class OverviewService {
   }
 
   async getTopPerformers() {
+    // Only include order items from shipped and placed orders
     const topProducts = await this.prisma.orderItem.groupBy({
       by: ['productId', 'name'],
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 4,
-      where: { productId: { not: null } }
+      where: { 
+        productId: { not: null },
+        order: {
+          status: { in: ['Shipped', 'Placed'] }
+        }
+      }
     });
 
     return topProducts.map(p => ({

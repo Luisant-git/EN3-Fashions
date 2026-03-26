@@ -11,18 +11,22 @@ export class DashboardService {
     const sixtyDaysAgo = new Date();
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-    // Current period stats
+    // Current period stats - only shipped and placed orders
     const currentOrders = await this.prisma.order.findMany({
-      where: { createdAt: { gte: thirtyDaysAgo } }
+      where: { 
+        createdAt: { gte: thirtyDaysAgo },
+        status: { in: ['Shipped', 'Placed'] }
+      }
     });
 
-    // Previous period stats for comparison
+    // Previous period stats for comparison - only shipped and placed orders
     const previousOrders = await this.prisma.order.findMany({
       where: { 
         createdAt: { 
           gte: sixtyDaysAgo,
           lt: thirtyDaysAgo 
-        } 
+        },
+        status: { in: ['Shipped', 'Placed'] }
       }
     });
 
@@ -89,7 +93,8 @@ export class DashboardService {
             createdAt: {
               gte: startDate,
               lte: endDate
-            }
+            },
+            status: { in: ['Shipped', 'Placed'] }
           }
         });
         

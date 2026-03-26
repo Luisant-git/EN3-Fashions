@@ -37,15 +37,37 @@ const OrdersPage = () => {
                              <p><strong>Shipping Address:</strong> {order.shippingAddress.fullName}, {order.shippingAddress.addressLine1}, {order.shippingAddress.addressLine2 && `${order.shippingAddress.addressLine2}, `}{order.shippingAddress.landmark && `${order.shippingAddress.landmark}, `}{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</p>
                              <p><strong>Delivery:</strong> {order.deliveryOption.name} (+₹{order.deliveryOption.fee})</p>
                              {(order.status === 'Shipped' || order.status === 'Delivered') && (
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <div style={{ marginTop: '12px' }}>
                                     {order.invoiceUrl && (
-                                        <a href={order.invoiceUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', borderRadius: '4px', textDecoration: 'none', fontSize: '14px' }}>
+                                        <a 
+                                            href={order.invoiceUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            style={{ 
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '8px 16px', 
+                                                backgroundColor: 'var(--primary-color)', 
+                                                color: 'white', 
+                                                borderRadius: '5px', 
+                                                textDecoration: 'none', 
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                fontFamily: 'var(--font-family)',
+                                                transition: 'all 0.2s ease-in-out',
+                                                border: '1px solid transparent',
+                                                cursor: 'pointer'
+                                            }}
+                                            onMouseOver={(e) => e.target.style.opacity = '0.9'}
+                                            onMouseOut={(e) => e.target.style.opacity = '1'}
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                <polyline points="7,10 12,15 17,10"/>
+                                                <line x1="12" y1="15" x2="12" y2="3"/>
+                                            </svg>
                                             Download Invoice
-                                        </a>
-                                    )}
-                                    {order.packageSlipUrl && (
-                                        <a href={order.packageSlipUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', background: '#10b981', color: 'white', borderRadius: '4px', textDecoration: 'none', fontSize: '14px' }}>
-                                            Download Package Slip
                                         </a>
                                     )}
                                 </div>

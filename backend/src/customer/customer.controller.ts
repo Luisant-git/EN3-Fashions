@@ -17,8 +17,10 @@ export class CustomerController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('search') search: string = '',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
-    return this.customerService.findAll(+page, +limit, search);
+    return this.customerService.findAll(+page, +limit, search, startDate, endDate);
   }
 
   @Get('search/phone')

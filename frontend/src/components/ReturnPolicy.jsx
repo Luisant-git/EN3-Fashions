@@ -33,7 +33,7 @@ const ReturnPolicy = () => {
                     <section>
                         <h2>3. Return Process</h2>
                         <ul>
-                            <li>Email us at support@en3fashions.in with order details.</li>
+                            <li>WhatsApp Us at +91 95976 89888 with product details.</li>
                             <li>Provide product photos/video for verification.</li>
                             <li>Once approved, pickup will be arranged.</li>
                             <li>Upon inspection, refund/replacement will be processed.</li>
