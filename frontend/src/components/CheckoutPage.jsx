@@ -235,6 +235,8 @@ const CheckoutPage = () => {
                                     paymentMethod: 'abandoned'
                                 })
                             });
+                            // Refresh user profile even when payment is cancelled
+                            await refreshUser();
                         } catch (error) {
                             console.error('Failed to update order status:', error);
                         }
@@ -252,6 +254,8 @@ const CheckoutPage = () => {
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', async (response) => {
                 setIsPlacingOrder(false);
+                // Refresh user profile even when payment fails
+                await refreshUser();
                 toast.error('Payment failed: ' + (response.error?.description || 'Please try again'));
             });
             
