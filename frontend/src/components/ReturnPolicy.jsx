@@ -7,7 +7,7 @@ const ReturnPolicy = () => {
                 <h1>Return And Exchange Policy</h1>
                 <div className="policy-content">
                     <p>Last updated: 14-03-2026</p>
-                    <p>At EN3 Fashions, we are committed to providing you with high-quality products. To maintain our quality standards and offer the best pricing, we follow a strict "No Return / No Refund" policy. We offer exchanges only under the following specific circumstances:</p>
+                    <p>At EN3 Fashions, we are committed to providing you with high-quality products. To maintain our quality standards and offer the best pricing, we follow a strict <strong>"No Return / No Refund"</strong> policy. We offer exchanges only under the following specific circumstances:</p>
                     
                     <section>
                         <h2>1. Conditions for Exchange</h2>

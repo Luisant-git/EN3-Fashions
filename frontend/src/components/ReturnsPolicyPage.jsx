@@ -4,7 +4,7 @@ const ReturnsPolicyPage = () => (
     <div className="static-page-container">
         <h1>Return And Exchange Policy</h1>
 
-        <p>At EN3 Fashions, we are committed to providing you with high-quality products. To maintain our quality standards and offer the best pricing, we follow a strict "No Return / No Refund" policy. We offer exchanges only under the following specific circumstances:</p>
+        <p>At EN3 Fashions, we are committed to providing you with high-quality products. To maintain our quality standards and offer the best pricing, we follow a strict <strong>"No Return / No Refund"</strong> policy. We offer exchanges only under the following specific circumstances:</p>
 
         <h2>1. Conditions for Exchange</h2>
         <p>An exchange will be processed only if:</p>
