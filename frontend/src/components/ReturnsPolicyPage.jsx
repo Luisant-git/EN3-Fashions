@@ -2,17 +2,31 @@ import React from 'react';
 
 const ReturnsPolicyPage = () => (
     <div className="static-page-container">
-        <h1>Returns & Policies</h1>
+        <h1>Return And Exchange Policy</h1>
 
-        <h2>Return Policy</h2>
-        <p>We want you to be completely satisfied with your purchase. If you are not happy with your order for any reason, you can return it within 30 days of the delivery date for a full refund or exchange. To be eligible for a return, your item must be unused and in the same condition that you received it. It must also be in the original packaging with all tags attached.</p>
-        <p>To initiate a return, please visit our online returns portal or contact our customer support team with your order number.</p>
+        <p>At EN3 Fashions, we are committed to providing you with high-quality products. To maintain our quality standards and offer the best pricing, we follow a strict "No Return / No Refund" policy. We offer exchanges only under the following specific circumstances:</p>
 
-        <h2>Exchange Policy</h2>
-        <p>If you need to exchange an item for a different size or color, please follow the return process for the original item and place a new order for the desired item. This ensures you get your new item as quickly as possible.</p>
+        <h2>1. Conditions for Exchange</h2>
+        <p>An exchange will be processed only if:</p>
+        <ul>
+            <li><strong>Damaged Product:</strong> The item received is physically damaged or defective upon arrival.</li>
+            <li><strong>Incorrect Size:</strong> The size received is different from the size you ordered on the website.</li>
+            <li><strong>Incorrect Color:</strong> The color of the product received is significantly different from what was shown on our website (excluding minor shade variations due to screen brightness).</li>
+        </ul>
 
-        <h2>Refunds</h2>
-        <p>Once your return is received and inspected, we will send you an email to notify you that we have received your returned item. We will also notify you of the approval or rejection of your refund. If you are approved, your refund will be processed, and a credit will automatically be applied to your original method of payment within 7-10 business days.</p>
+        <h2>2. Reporting a Problem</h2>
+        <p>To be eligible for an exchange, you must notify us within 48 hours of receiving the package.</p>
+        <ul>
+            <li><strong>Contact Us:</strong> WhatsApp us at +91 70101 24370.</li>
+            <li><strong>Proof Required:</strong> You must provide your Order ID and clear photos or an unboxing video showing the damage or the incorrect size/color tag.</li>
+        </ul>
+
+        <h2>3. Exchange Process</h2>
+        <ul>
+            <li>Once your request is verified and approved, we will arrange for the item to be picked up or ask you to ship it back to us.</li>
+            <li>The item must be unused, unwashed, and in its original packaging with all tags intact.</li>
+            <li>After we receive and inspect the item, we will ship the correct/replacement product to you at no additional cost.</li>
+        </ul>
 
         <h2>Privacy Policy</h2>
         <p>Your privacy is important to us. This section outlines the types of personal information we collect and how we use, disclose, and protect that information. We collect information you provide directly to us, such as when you create an account, place an order, or contact customer service. We use this information to process your transactions, communicate with you, and improve our services. We do not sell your personal information to third parties.</p>

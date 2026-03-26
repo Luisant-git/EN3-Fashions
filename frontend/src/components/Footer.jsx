@@ -16,7 +16,7 @@ const Footer = () => {
             <div className="footer-column">
                 <h4>Policy</h4>
                 <ul>
-                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/return-policy'); window.scrollTo(0, 0); }}>Return Policy</a></li>
+                    <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/return-policy'); window.scrollTo(0, 0); }}>Return And Exchange Policy</a></li>
                     <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/shipping-policy'); window.scrollTo(0, 0); }}>Shipping Policy</a></li>
                     <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/privacy-policy'); }}>Privacy Policy</a></li>
                     <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/terms-of-service'); }}>Terms of Service</a></li>
