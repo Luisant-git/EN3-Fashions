@@ -23,7 +23,13 @@ class ShippingAddressDto {
 
   @ApiProperty({ example: 'Apt 4B', required: false })
   @IsString()
+  @IsOptional()
   addressLine2?: string;
+
+  @ApiProperty({ example: 'Near Park', required: false })
+  @IsString()
+  @IsOptional()
+  landmark?: string;
 
   @ApiProperty({ example: 'Mumbai' })
   @IsString()

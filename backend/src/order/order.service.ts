@@ -53,6 +53,26 @@ export class OrderService {
       razorpayOrderId = razorpayOrder.id;
     }
 
+    // Update user's shipping address (excluding mobile number)
+    const shippingAddressToSave = {
+      name: createOrderDto.shippingAddress.fullName,
+      addressLine: createOrderDto.shippingAddress.addressLine1,
+      addressLine2: createOrderDto.shippingAddress.addressLine2,
+      landmark: createOrderDto.shippingAddress.landmark,
+      city: createOrderDto.shippingAddress.city,
+      state: createOrderDto.shippingAddress.state,
+      pincode: createOrderDto.shippingAddress.pincode
+      // Note: mobile number is excluded from profile update
+    };
+
+    // Update user's profile with new shipping address
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        shippingAddress: shippingAddressToSave
+      }
+    });
+
     // Create order with items
     const order = await this.prisma.order.create({
       data: {

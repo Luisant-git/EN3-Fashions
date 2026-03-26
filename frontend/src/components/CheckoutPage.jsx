@@ -16,7 +16,7 @@ const CheckoutPage = () => {
     const location = useLocation();
     // const deliveryOption = location.state?.deliveryOption || { fee: 50, name: 'Standard Delivery' };
     const { cart, fetchCart } = useContext(CartContext);
-    const { user, token } = useContext(AuthContext);
+    const { user, token, refreshUser } = useContext(AuthContext);
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -205,6 +205,7 @@ const CheckoutPage = () => {
 
                         if (verification.success) {
                             await fetchCart();
+                            await refreshUser(); // Refresh user profile with updated shipping address
                             toast.success('Payment successful! Order placed.');
                             setTimeout(() => {
                                 navigate('/order-confirmation', { state: { order: orderResponse }, replace: true });
