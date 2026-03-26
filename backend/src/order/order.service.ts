@@ -156,9 +156,9 @@ export class OrderService {
     // Send WhatsApp notification based on status
     if (status === 'Shipped') {
       const trackingInfo = {
-        courier: courierName || 'N/A',
-        trackingId: trackingId || 'N/A',
-        trackingUrl: trackingLink || 'N/A'
+        courier: courierName || order.courierName || 'N/A',
+        trackingId: trackingId || order.trackingId || 'N/A',
+        trackingUrl: trackingLink || order.trackingLink || 'N/A'
       };
       const invoiceFilename = `invoice-${order.id}.pdf`;
       await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);

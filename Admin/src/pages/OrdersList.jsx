@@ -75,9 +75,9 @@ const OrdersList = () => {
   const handleEditOrder = (order) => {
     setSelectedOrder(order);
     setNewStatus(order.status);
-    setCourierName("");
-    setTrackingId("");
-    setTrackingLink("");
+    setCourierName(order.courierName === "not provided" ? "" : (order.courierName || ""));
+    setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
+    setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
     setShowEditModal(true);
   };
 
@@ -384,7 +384,7 @@ const OrdersList = () => {
       let invoiceUrl = null;
       let packageSlipUrl = null;
 
-      if (newStatus === 'Shipped') {
+      if (newStatus === 'Accepted') {
         // Fetch fresh order data directly from API
         const freshOrders = await fetchOrdersApi();
         const orderToUse = freshOrders.find(o => o.id === selectedOrder.id);
@@ -1163,6 +1163,7 @@ const OrdersList = () => {
     return {
       pending: orders.filter((o) => o.status === "pending").length,
       placed: orders.filter((o) => o.status === "Placed").length,
+      accepted: orders.filter((o) => o.status === "Accepted").length,
       shipped: orders.filter((o) => o.status === "Shipped").length,
       delivered: orders.filter((o) => o.status === "Delivered").length,
       abandoned: orders.filter((o) => o.status === "Abandoned").length,
@@ -1177,6 +1178,8 @@ const OrdersList = () => {
         return <Clock size={16} />;
       case "placed":
         return <Package size={16} />;
+      case "accepted":
+        return <CheckCircle size={16} />;
       case "shipped":
         return <Truck size={16} />;
       case "delivered":
@@ -1276,7 +1279,7 @@ const OrdersList = () => {
               <Edit size={16} />
             </button>
           )}
-          {(row.status === 'Placed' || row.status === 'Shipped' || row.status === 'Delivered') && (
+          {(row.status === 'Placed' || row.status === 'Accepted' || row.status === 'Shipped' || row.status === 'Delivered') && (
             <button
               className="action-btn download"
               title="Download Combined Document"
@@ -1314,6 +1317,15 @@ const OrdersList = () => {
             <p>Placed</p>
           </div>
         </div>
+        <div className="stat-card" onClick={() => setStatusFilter("accepted")}>
+          <div className="stat-icon accepted" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+            <CheckCircle size={24} />
+          </div>
+          <div className="stat-content">
+            <h3>{statusCounts.accepted}</h3>
+            <p>Accepted</p>
+          </div>
+        </div>
         <div className="stat-card" onClick={() => setStatusFilter("shipped")}>
           <div className="stat-icon shipped">
             <Truck size={24} />
@@ -1346,6 +1358,12 @@ const OrdersList = () => {
           onClick={() => setStatusFilter("placed")}
         >
           Placed
+        </button>
+        <button
+          className={statusFilter === "accepted" ? "tab active" : "tab"}
+          onClick={() => setStatusFilter("accepted")}
+        >
+          Accepted
         </button>
         <button
           className={statusFilter === "shipped" ? "tab active" : "tab"}
@@ -1566,12 +1584,13 @@ const OrdersList = () => {
                     style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
                   >
                     <option value="Placed">Placed</option>
+                    <option value="Accepted">Accepted</option>
                     <option value="Shipped">Shipped</option>
                     <option value="Delivered">Delivered</option>
                     <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
-                {newStatus === 'Shipped' && (
+                {newStatus === 'Accepted' && (
                   <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                     <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
                       📄 Invoice and package slip will be automatically generated and uploaded.
