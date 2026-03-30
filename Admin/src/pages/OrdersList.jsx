@@ -537,27 +537,46 @@ const OrdersList = () => {
     }
 
     const excelData = filteredOrders.map((order, index) => {
-      const totalQty = order.items?.reduce((sum, item) => {
+      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+      order.items?.forEach(item => {
         if (item.type === 'bundle' && item.bundleItems) {
-          return sum + item.bundleItems.length;
+          item.bundleItems.forEach(b => {
+            names.push(`${item.name} (${b.color})`);
+            sizes.push(b.size || 'N/A');
+            colors.push(b.color || 'N/A');
+            variantIds.push(b.sizeVariantId || 'N/A');
+            qtys.push(1);
+          });
+        } else {
+          names.push(item.name || 'N/A');
+          sizes.push(item.size || 'N/A');
+          colors.push(item.color || 'N/A');
+          variantIds.push(item.sizeVariantId || 'N/A');
+          qtys.push(item.quantity || 1);
         }
-        return sum + (item.quantity || 0);
-      }, 0) || 0;
+      });
       
+      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+
       return {
         'S.No': index + 1,
         'Order ID': `ORD-${order.id}`,
         'Customer': order.user?.name || order.shippingAddress?.fullName || 'N/A',
         'City': order.shippingAddress?.city || 'N/A',
         'Phone': order.user?.phone || 'N/A',
-        'Products': `${order.items?.length || 0} items`,
+        'Products': `${names.length || 0} items`,
+        'Product Name': names.join(', \n') || 'N/A',
+        'Size': sizes.join(', \n') || 'N/A',
+        'Color': colors.join(', \n') || 'N/A',
+        'Variant ID': variantIds.join(', \n') || 'N/A',
+        'Item Qty': qtys.join(', \n') || '0',
         'Quantity': totalQty,
-        'Total Amount': order.total,
+        'Total Amount': parseFloat(order.total || 0),
         'Status': order.status,
         'Payment': order.paymentMethod || 'N/A',
         'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
-        'Settlement Amount': (order.total - (order.deliveryFee || 0)).toFixed(2),
-        'Courier Charges': order.deliveryFee || 0
+        'Settlement Amount': (parseFloat(order.total || 0) - parseFloat(order.deliveryFee || 0)).toFixed(2),
+        'Courier Charges': parseFloat(order.deliveryFee || 0).toFixed(2)
       };
     });
 
@@ -568,13 +587,18 @@ const OrdersList = () => {
       'City': '',
       'Phone': 'TOTAL',
       'Products': '',
+      'Product Name': '',
+      'Size': '',
+      'Color': '',
+      'Variant ID': '',
+      'Item Qty': '',
       'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
-      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount']), 0).toFixed(2),
+      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
       'Status': '',
       'Payment': '',
       'Order Date': '',
-      'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount']), 0).toFixed(2),
-      'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges']), 0).toFixed(2)
+      'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount'] || 0), 0).toFixed(2),
+      'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges'] || 0), 0).toFixed(2)
     };
 
     excelData.push(totals);
@@ -688,20 +712,70 @@ const OrdersList = () => {
       return;
     }
 
-    const excelData = abandonedOrders.map((order, index) => ({
-      'S.No': index + 1,
-      'Order ID': `ORD-${order.id}`,
-      'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
-      'Phone': order.user?.phone || 'N/A',
-      'Email': order.user?.email || 'N/A',
-      'City': order.shippingAddress?.city || 'N/A',
-      'State': order.shippingAddress?.state || 'N/A',
-      'Total Amount': `₹${order.total}`,
-      'Items Count': order.items?.length || 0,
-      'Total Quantity': order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
-      'Date': new Date(order.createdAt).toLocaleString('en-GB'),
-      'Payment Method': order.paymentMethod || 'N/A'
-    }));
+    const excelData = abandonedOrders.map((order, index) => {
+      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+      order.items?.forEach(item => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          item.bundleItems.forEach(b => {
+            names.push(`${item.name} (${b.color})`);
+            sizes.push(b.size || 'N/A');
+            colors.push(b.color || 'N/A');
+            variantIds.push(b.sizeVariantId || 'N/A');
+            qtys.push(1);
+          });
+        } else {
+          names.push(item.name || 'N/A');
+          sizes.push(item.size || 'N/A');
+          colors.push(item.color || 'N/A');
+          variantIds.push(item.sizeVariantId || 'N/A');
+          qtys.push(item.quantity || 1);
+        }
+      });
+      
+      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+
+      return {
+        'S.No': index + 1,
+        'Order ID': `ORD-${order.id}`,
+        'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+        'Phone': order.user?.phone || 'N/A',
+        'Email': order.user?.email || 'N/A',
+        'City': order.shippingAddress?.city || 'N/A',
+        'State': order.shippingAddress?.state || 'N/A',
+        'Items Count': names.length || 0,
+        'Product Name': names.join(', \n') || 'N/A',
+        'Size': sizes.join(', \n') || 'N/A',
+        'Color': colors.join(', \n') || 'N/A',
+        'Variant ID': variantIds.join(', \n') || 'N/A',
+        'Item Qty': qtys.join(', \n') || '0',
+        'Total Quantity': totalQty,
+        'Total Amount': parseFloat(order.total || 0),
+        'Date': new Date(order.createdAt).toLocaleString('en-GB'),
+        'Payment Method': order.paymentMethod || 'N/A'
+      };
+    });
+
+    const totals = {
+      'S.No': '',
+      'Order ID': '',
+      'Customer Name': '',
+      'Phone': '',
+      'Email': '',
+      'City': '',
+      'State': 'TOTAL',
+      'Items Count': excelData.reduce((sum, row) => sum + row['Items Count'], 0),
+      'Product Name': '',
+      'Size': '',
+      'Color': '',
+      'Variant ID': '',
+      'Item Qty': '',
+      'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
+      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+      'Date': '',
+      'Payment Method': ''
+    };
+
+    excelData.push(totals);
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
@@ -737,13 +811,27 @@ const OrdersList = () => {
     }
 
     const excelData = shippedOrders.map((order, index) => {
-      const totalQty = order.items?.reduce((sum, item) => {
+      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+      order.items?.forEach(item => {
         if (item.type === 'bundle' && item.bundleItems) {
-          return sum + item.bundleItems.length;
+          item.bundleItems.forEach(b => {
+            names.push(`${item.name} (${b.color})`);
+            sizes.push(b.size || 'N/A');
+            colors.push(b.color || 'N/A');
+            variantIds.push(b.sizeVariantId || 'N/A');
+            qtys.push(1);
+          });
+        } else {
+          names.push(item.name || 'N/A');
+          sizes.push(item.size || 'N/A');
+          colors.push(item.color || 'N/A');
+          variantIds.push(item.sizeVariantId || 'N/A');
+          qtys.push(item.quantity || 1);
         }
-        return sum + (item.quantity || 0);
-      }, 0) || 0;
+      });
       
+      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+
       return {
         'S.No': index + 1,
         'Order ID': `ORD-${order.id}`,
@@ -752,15 +840,20 @@ const OrdersList = () => {
         'Email': order.user?.email || 'N/A',
         'City': order.shippingAddress?.city || 'N/A',
         'State': order.shippingAddress?.state || 'N/A',
-        'Total Amount': parseFloat(order.total),
-        'Items Count': order.items?.length || 0,
+        'Items Count': names.length || 0,
+        'Product Name': names.join(', \n') || 'N/A',
+        'Size': sizes.join(', \n') || 'N/A',
+        'Color': colors.join(', \n') || 'N/A',
+        'Variant ID': variantIds.join(', \n') || 'N/A',
+        'Item Qty': qtys.join(', \n') || '0',
         'Total Quantity': totalQty,
         'Courier Name': order.courierName || 'N/A',
         'Tracking ID': order.trackingId || 'N/A',
         'Tracking Link': order.trackingLink || 'N/A',
         'Shipped Date': new Date(order.updatedAt).toLocaleString('en-GB'),
         'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
-        'Payment Method': order.paymentMethod || 'N/A'
+        'Payment Method': order.paymentMethod || 'N/A',
+        'Total Amount': parseFloat(order.total || 0)
       };
     });
 
@@ -769,18 +862,23 @@ const OrdersList = () => {
       'Order ID': '',
       'Customer Name': '',
       'Phone': '',
-      'Email': 'TOTAL',
+      'Email': '',
       'City': '',
-      'State': '',
-      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount']), 0).toFixed(2),
+      'State': 'TOTAL',
       'Items Count': excelData.reduce((sum, row) => sum + row['Items Count'], 0),
+      'Product Name': '',
+      'Size': '',
+      'Color': '',
+      'Variant ID': '',
+      'Item Qty': '',
       'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
       'Courier Name': '',
       'Tracking ID': '',
       'Tracking Link': '',
       'Shipped Date': '',
       'Order Date': '',
-      'Payment Method': ''
+      'Payment Method': '',
+      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2)
     };
 
     excelData.push(totals);
@@ -1238,7 +1336,23 @@ const OrdersList = () => {
     const matchesStatus =
       statusFilter === "all" ||
       order.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+      
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const orderDate = new Date(order.createdAt);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      
+      if (start && end) {
+        matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+      } else if (start) {
+        matchesDate = orderDate >= start;
+      } else if (end) {
+        matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+      }
+    }
+      
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const getStatusCounts = () => {
