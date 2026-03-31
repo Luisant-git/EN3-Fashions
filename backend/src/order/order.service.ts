@@ -42,7 +42,18 @@ export class OrderService {
         throw new Error('Invalid coupon: ' + error.message);
       }
     }
- 
+
+    // Validate COD if selected
+    if (createOrderDto.paymentMethod === 'cod') {
+      const pincode = await this.prisma.pincode.findUnique({
+        where: { pincode: createOrderDto.shippingAddress.pincode }
+      });
+      
+      if (pincode && pincode.codAvailable === false) {
+        throw new Error('Cash on Delivery is not available for this pincode');
+      }
+    }
+  
     // Determine order status
     const orderStatus = createOrderDto.paymentMethod === 'online' ? 'Pending' : 'Placed';
  

@@ -11,6 +11,8 @@ import { getShippingRules } from '../api/shippingApi';
 import { updateShippingAddress } from '../api/authApi';
 import API_BASE_URL from '../config/api';
 import LoadingSpinner from './LoadingSpinner';
+import { getAppSettings } from '../api/settingsApi';
+
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,7 +28,9 @@ const CheckoutPage = () => {
     const couponInputRef = useRef(null);
     const [selectedState, setSelectedState] = useState(null);
     const [shippingRules, setShippingRules] = useState([]);
-    const [deliveryFee, setDeliveryFee] = useState(0);
+    const [baseDeliveryFee, setBaseDeliveryFee] = useState(0);
+    const [codShippingFee, setCodShippingFee] = useState(0);
+    const [paymentMethod, setPaymentMethod] = useState('online');
     const [deliveryAvailable, setDeliveryAvailable] = useState(true);
     const [formData, setFormData] = useState({
         fullName: '',
@@ -84,15 +88,21 @@ const CheckoutPage = () => {
     }, [token]);
 
     useEffect(() => {
-        const fetchShippingRules = async () => {
+        const fetchData = async () => {
             try {
-                const rules = await getShippingRules();
+                const [rules, settings] = await Promise.all([
+                    getShippingRules(),
+                    getAppSettings()
+                ]);
                 setShippingRules(rules);
+                if (settings.codShippingCharge) {
+                    setCodShippingFee(settings.codShippingCharge);
+                }
             } catch (error) {
-                console.error('Failed to fetch shipping rules:', error);
+                console.error('Failed to fetch data:', error);
             }
         };
-        fetchShippingRules();
+        fetchData();
     }, []);
 
     const BUSINESS_STATE = 'Tamil Nadu';
@@ -105,14 +115,16 @@ const CheckoutPage = () => {
             const stateEnum = selectedState.value.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
             const rule = shippingRules.find(r => r.state === stateEnum);
             if (rule) {
-                setDeliveryFee(rule.flatShippingRate);
+                setBaseDeliveryFee(rule.flatShippingRate);
                 setDeliveryAvailable(true);
             } else {
-                setDeliveryFee(0);
+                setBaseDeliveryFee(0);
                 setDeliveryAvailable(false);
             }
         }
     }, [selectedState, shippingRules]);
+
+    const deliveryFee = paymentMethod === 'cod' ? (baseDeliveryFee + codShippingFee) : baseDeliveryFee;
     const subtotalAfterDiscount = subtotal - discount;
     
     const isSameState = selectedState?.value === BUSINESS_STATE;
@@ -156,18 +168,18 @@ const CheckoutPage = () => {
                 // Don't stop the order process if address saving fails
             }
 
-            // Create order first with pending status
+            // Create order first
             const orderData = {
                 subtotal: subtotal.toString(),
                 deliveryFee: deliveryFee.toString(),
                 total: finalTotal.toString(),
                 discount: discount.toString(),
                 couponCode: appliedCoupon?.code || undefined,
-                paymentMethod: 'online',
+                paymentMethod: paymentMethod,
                 shippingAddress: { ...formData, state: selectedState.value },
                 deliveryOption: { 
                     fee: deliveryFee, 
-                    name: 'Standard Delivery',
+                    name: paymentMethod === 'cod' ? 'Cash on Delivery' : 'Standard Delivery',
                     gst: {
                         rate: GST_RATE,
                         amount: gstAmount,
@@ -180,6 +192,18 @@ const CheckoutPage = () => {
             };
             
             const orderResponse = await createOrder(orderData);
+            
+            if (paymentMethod === 'cod') {
+                await fetchCart();
+                await refreshUser();
+                toast.success('Order placed successfully (Cash on Delivery)!');
+                setTimeout(() => {
+                    navigate('/order-confirmation', { state: { order: orderResponse }, replace: true });
+                }, 500);
+                setIsPlacingOrder(false);
+                return;
+            }
+
             const dbOrderId = orderResponse.id;
             const razorpayOrderId = orderResponse.razorpayOrderId;
             
@@ -294,11 +318,12 @@ const CheckoutPage = () => {
                             <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} required />
                              <input type="tel" placeholder="Mobile Number" value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} required />
                         </section>
+
                         <section>
                             <h2>Available Coupons</h2>
                             {availableCoupons.length > 0 && (
                                 <div className="available-coupons">
-                                    {availableCoupons.map(coupon => (
+                                    {availableCoupons.map((coupon) => (
                                         <div 
                                             key={coupon.id} 
                                             className="coupon-card"
@@ -380,8 +405,57 @@ const CheckoutPage = () => {
                                 </div>
                             )}
                         </section>
-                        <button type="submit" className="confirm-pay-btn" disabled={isPlacingOrder}>
-                            {isPlacingOrder ? <LoadingSpinner /> : 'Make Payment'}
+
+                        <section>
+                            <h2>Payment Method</h2>
+                            <div className="payment-methods">
+                                <div 
+                                    className={`payment-method-card ${paymentMethod === 'online' ? 'selected' : ''}`}
+                                    onClick={() => setPaymentMethod('online')}
+                                >
+                                    <input 
+                                        type="radio" 
+                                        name="paymentMethod" 
+                                        checked={paymentMethod === 'online'} 
+                                        onChange={() => setPaymentMethod('online')}
+                                    />
+                                    <div className="payment-method-icon">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                    </div>
+                                    <div className="payment-method-info">
+                                        <span className="payment-method-name">Online Payment</span>
+                                        <span className="payment-method-desc">Secure payment via Razorpay, UPI, Card, NetBanking</span>
+                                    </div>
+                                </div>
+                                <div 
+                                    className={`payment-method-card ${paymentMethod === 'cod' ? 'selected' : ''}`}
+                                    onClick={() => setPaymentMethod('cod')}
+                                >
+                                    <input 
+                                        type="radio" 
+                                        name="paymentMethod" 
+                                        checked={paymentMethod === 'cod'} 
+                                        onChange={() => setPaymentMethod('cod')}
+                                    />
+                                    <div className="payment-method-icon">
+                                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="1" y="3" width="15" height="13"></rect>
+                                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                        </svg>
+                                    </div>
+                                    <div className="payment-method-info">
+                                        <span className="payment-method-name">Cash on Delivery</span>
+                                        <span className="payment-method-desc">Pay in cash upon delivery at your doorstep</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <button type="submit" className="confirm-pay-btn" style={{ marginTop: '30px' }} disabled={isPlacingOrder}>
+                            {isPlacingOrder ? <LoadingSpinner /> : (paymentMethod === 'cod' ? 'Place Order (COD)' : 'Make Payment')}
                         </button>
                     </form>
                 </div>
@@ -429,10 +503,18 @@ const CheckoutPage = () => {
                         </div>
                     )}
                     {selectedState && deliveryAvailable && (
-                        <div className="summary-row">
-                            <span>Delivery Fee</span>
-                            <span>₹{deliveryFee.toFixed(2)}</span>
-                        </div>
+                        <>
+                            <div className="summary-row">
+                                <span>Delivery Fee</span>
+                                <span>₹{baseDeliveryFee.toFixed(2)}</span>
+                            </div>
+                            {paymentMethod === 'cod' && codShippingFee > 0 && (
+                                <div className="summary-row">
+                                    <span>COD Charge</span>
+                                    <span>₹{codShippingFee.toFixed(2)}</span>
+                                </div>
+                            )}
+                        </>
                     )}
                     {selectedState && !deliveryAvailable && (
                         <div className="summary-row" style={{ color: '#ef4444' }}>

@@ -746,7 +746,7 @@ button:disabled {
 }
 
 .home-section {
-    padding: 4rem 3rem;
+    padding: 4rem 3rem 4rem 3rem;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -3115,4 +3115,395 @@ button:disabled {
 
 .size-chart-link:hover {
     text-decoration: underline;
+}
+/* Checkout Page Premium Styles */
+.checkout-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: var(--font-family);
+}
+
+.checkout-page h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: var(--secondary-color);
+    text-align: left;
+}
+
+.checkout-content {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.checkout-form {
+    flex: 1.5;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.checkout-summary {
+    flex: 1;
+    background: var(--section-bg-color);
+    padding: 30px;
+    border-radius: 12px;
+    position: sticky;
+    top: 140px;
+    border: 1px solid var(--border-color);
+}
+
+.checkout-form section {
+    margin-bottom: 35px;
+}
+
+.checkout-form h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    border-bottom: 2px solid var(--light-grey);
+    padding-bottom: 10px;
+}
+
+.checkout-form input[type="text"],
+.checkout-form input[type="tel"],
+.checkout-form select {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.checkout-form input:focus,
+.checkout-form select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+/* Payment Methods Grid */
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.payment-method-card {
+    position: relative;
+    padding: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.payment-method-card:hover {
+    border-color: var(--primary-color);
+    background: rgba(244, 67, 54, 0.02);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.payment-method-card.selected {
+    border-color: var(--primary-color);
+    background: rgba(244, 67, 54, 0.05);
+}
+
+.payment-method-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.payment-method-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--light-grey);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.payment-method-card.selected .payment-method-icon {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.payment-method-info {
+    flex: 1;
+}
+
+.payment-method-name {
+    display: block;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: var(--secondary-color);
+}
+
+.payment-method-desc {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Checkmark indicator */
+.payment-method-card::after {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.payment-method-card.selected::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.confirm-pay-btn {
+    width: 100%;
+    padding: 16px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.confirm-pay-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+    background-color: #d32f2f;
+}
+
+/* Order Summary Refinement */
+.checkout-summary h2 {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    color: var(--secondary-color);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.summary-row.total {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border-color);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--secondary-color);
+}
+
+@media (max-width: 992px) {
+    .checkout-content {
+        flex-direction: column;
+    }
+    .checkout-summary {
+        width: 100%;
+        position: static;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 768px) {
+    .payment-methods {
+        grid-template-columns: 1fr;
+    }
+    .checkout-form {
+        padding: 20px;
+    }
+}
+
+/* Instagram Feed Section */
+.instagram-feed-section {
+    padding: 0 3rem 4rem 3rem;
+    background-color: #fff;
+    text-align: center;
+}
+
+.section-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--secondary-color);
+}
+
+.section-header p {
+    color: #666;
+    margin-bottom: 2.5rem;
+    font-size: 0.95rem;
+}
+
+.instagram-carousel-container {
+    overflow: hidden;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.instagram-feed-grid {
+    display: flex;
+    gap: 2rem;
+    transition: transform 0.5s ease;
+}
+
+.instagram-feed-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s;
+    overflow: hidden;
+    flex: 0 0 calc(25% - 1.5rem);
+    width: calc(25% - 1.5rem);
+}
+
+.instagram-feed-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+}
+
+.instagram-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 2rem;
+}
+
+.instagram-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.instagram-dot.active {
+    background: var(--primary-color);
+}
+
+/* Customer Reviews Section */
+.customer-reviews-section {
+    padding: 0 3rem 4rem 3rem;
+    background-color: var(--section-bg-color);
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.reviews-media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.review-media-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    background: #000;
+    aspect-ratio: 5/6;
+}
+
+.review-video-player, 
+.review-image-display {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s ease;
+}
+
+.review-media-card:hover .review-video-player,
+.review-media-card:hover .review-image-display {
+    transform: scale(1.1);
+}
+
+.media-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2.5rem 1.25rem 1.25rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 992px) {
+    .instagram-feed-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .reviews-media-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .review-media-card {
+        aspect-ratio: 4/5;
+    }
+    .instagram-feed-section {
+        padding: 3rem 1.5rem;
+    }
+    .instagram-feed-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .section-header h2 {
+        font-size: 1.6rem;
+    }
 }

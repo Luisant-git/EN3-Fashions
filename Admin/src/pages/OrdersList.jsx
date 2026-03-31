@@ -384,7 +384,7 @@ const OrdersList = () => {
       let invoiceUrl = null;
       let packageSlipUrl = null;
 
-      if (newStatus === 'Accepted') {
+      if (newStatus === 'Shipped') {
         // Fetch fresh order data directly from API
         const freshOrders = await fetchOrdersApi();
         const orderToUse = freshOrders.find(o => o.id === selectedOrder.id);
@@ -408,7 +408,7 @@ const OrdersList = () => {
         // Always generate new PDFs
         try {
           console.log('Generating invoice at:', new Date().toLocaleString('en-GB'));
-          const invoicePdf = generateInvoicePDF(orderToUse, false);
+          const invoicePdf = generateInvoicePDF(freshOrders.find(o => o.id === selectedOrder.id), false);
           const invoiceBlob = generatePDFBlob(invoicePdf);
           const invoiceFile = new File([invoiceBlob], `invoice-${orderToUse.id}.pdf`, { type: 'application/pdf' });
           const invoiceResult = await uploadFile(invoiceFile);
@@ -1813,7 +1813,7 @@ const OrdersList = () => {
                     <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
-                {newStatus === 'Accepted' && (
+                {newStatus === 'Shipped' && (
                   <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
                     <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
                       📄 Invoice and package slip will be automatically generated and uploaded.

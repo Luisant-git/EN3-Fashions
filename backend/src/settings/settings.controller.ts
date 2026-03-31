@@ -11,7 +11,7 @@ export class SettingsController {
   }
 
   @Put()
-  updateSettings(@Body() body: { signatureUrl: string }) {
-    return this.settingsService.updateSettings(body.signatureUrl);
+  updateSettings(@Body() body: { signatureUrl?: string, codShippingCharge?: number }) {
+    return this.settingsService.updateSettings(body.signatureUrl, body.codShippingCharge);
   }
 }

@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 
 const Settings = () => {
   const [signatureUrl, setSignatureUrl] = useState('');
+  const [codShippingCharge, setCodShippingCharge] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
 
@@ -20,6 +21,9 @@ const Settings = () => {
       if (data.signatureUrl) {
         setSignatureUrl(data.signatureUrl);
         setPreviewUrl(data.signatureUrl);
+      }
+      if (data.codShippingCharge !== undefined) {
+        setCodShippingCharge(data.codShippingCharge);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -47,11 +51,14 @@ const Settings = () => {
       await fetch(`${API_BASE_URL}/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signatureUrl })
+        body: JSON.stringify({ 
+          signatureUrl,
+          codShippingCharge: parseFloat(codShippingCharge) || 0
+        })
       });
-      toast.success('Signature saved successfully!');
+      toast.success('Settings saved successfully!');
     } catch (error) {
-      toast.error('Failed to save signature');
+      toast.error('Failed to save settings');
     }
   };
 
@@ -85,16 +92,35 @@ const Settings = () => {
                 <img src={previewUrl} alt="Signature" />
               </div>
             )}
-
-            <button 
-              className="btn btn-primary save-btn" 
-              onClick={handleSave}
-              disabled={!signatureUrl}
-            >
-              <Save size={20} />
-              Save Settings
-            </button>
           </div>
+        </div>
+
+        <div className="settings-card" style={{ marginTop: '24px' }}>
+          <h3>COD Settings</h3>
+          <p className="settings-description">Manage Cash on Delivery options</p>
+          
+          <div className="cod-settings-field" style={{ marginBottom: '20px' }}>
+            <label htmlFor="cod-charge" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              COD Shipping Charge (Additional)
+            </label>
+            <input
+              type="number"
+              id="cod-charge"
+              className="form-control"
+              value={codShippingCharge}
+              onChange={(e) => setCodShippingCharge(e.target.value)}
+              placeholder="Enter amount (e.g. 50)"
+              style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd', width: '200px' }}
+            />
+          </div>
+
+          <button 
+            className="btn btn-primary save-btn" 
+            onClick={handleSave}
+          >
+            <Save size={20} />
+            Save Settings
+          </button>
         </div>
       </div>
     </div>

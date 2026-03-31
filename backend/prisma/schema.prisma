@@ -322,10 +322,11 @@ model WhatsappSession {
 }
 
 model AppSettings {
-  id           Int      @id @default(autoincrement())
-  signatureUrl String?
-  updatedAt    DateTime @updatedAt
-  createdAt    DateTime @default(now())
+  id                 Int      @id @default(autoincrement())
+  signatureUrl       String?
+  codShippingCharge  Float    @default(0)
+  updatedAt          DateTime @updatedAt
+  createdAt          DateTime @default(now())
 }
 
 model Pincode {
