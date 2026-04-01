@@ -163,6 +163,16 @@ export class OrderService {
     if (trackingId) updateData.trackingId = trackingId;
     if (trackingLink) updateData.trackingLink = trackingLink;
    
+    const existingOrder = await this.prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    const protectedStatuses = ['Placed', 'Accepted', 'Shipped', 'Delivered', 'Cancelled'];
+    if (existingOrder && protectedStatuses.includes(existingOrder.status) && status === 'Abandoned') {
+      console.log(`Prevented marking a ${existingOrder.status} order (${orderId}) as Abandoned`);
+      return existingOrder;
+    }
+
     const order = await this.prisma.order.update({
       where: { id: orderId },
       data: updateData,
@@ -204,12 +214,12 @@ export class OrderService {
   }
 
   async cleanupOldPendingOrders() {
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
     
     const result = await this.prisma.order.updateMany({
       where: {
         status: 'Pending',
-        createdAt: { lt: twoMinutesAgo }
+        createdAt: { lt: thirtyMinutesAgo }
       },
       data: { status: 'Abandoned' }
     });

@@ -9,12 +9,12 @@ export class OrderCleanupService {
   // Run every 2 minutes to cleanup old pending orders
   @Cron('*/2 * * * *')
   async cleanupPendingOrders() {
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
     
     const result = await this.prisma.order.updateMany({
       where: {
         status: 'Pending',
-        createdAt: { lt: twoMinutesAgo }
+        createdAt: { lt: thirtyMinutesAgo }
       },
       data: { status: 'Abandoned' }
     });

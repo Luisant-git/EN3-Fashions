@@ -246,24 +246,6 @@ const CheckoutPage = () => {
                 },
                 modal: {
                     ondismiss: async () => {
-                        try {
-                            // Update order status to Abandoned
-                            await fetch(`${API_BASE_URL}/orders/${dbOrderId}/status`, {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({ 
-                                    status: 'Abandoned',
-                                    paymentMethod: 'abandoned'
-                                })
-                            });
-                            // Refresh user profile even when payment is cancelled
-                            await refreshUser();
-                        } catch (error) {
-                            console.error('Failed to update order status:', error);
-                        }
                         setIsPlacingOrder(false);
                         toast.info('Payment cancelled.');
                     }
