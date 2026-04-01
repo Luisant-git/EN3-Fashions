@@ -49,6 +49,9 @@ export class ShiprocketService {
 
     const shippingAddress: any = order.shippingAddress;
     
+    const totalAmount = parseFloat(order.total);
+    const originalSubtotal = order.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    
     const shiprocketData = {
       order_id: order.id.toString(),
       order_date: order.createdAt.toISOString().split('T')[0],
@@ -64,23 +67,31 @@ export class ShiprocketService {
       billing_email: order.user?.email || "customer@example.com",
       billing_phone: shippingAddress.mobile || order.user?.phone || "",
       shipping_is_billing: true,
-      order_items: order.items.map(item => ({
-        name: item.name,
-        sku: item.sizeVariantId || item.productId?.toString() || 'SKU',
-        units: item.quantity,
-        selling_price: parseFloat(item.price),
-        discount: 0,
-        tax: 0,
-        hsn: item.hsnCode || ""
-      })),
+      order_items: order.items.map(item => {
+        const itemPrice = parseFloat(item.price);
+        // Calculate proportional price so sum of items equals final total
+        const proportionalPrice = originalSubtotal > 0 
+          ? (itemPrice * (totalAmount / originalSubtotal)) 
+          : itemPrice;
+          
+        return {
+          name: item.name,
+          sku: item.sizeVariantId || item.productId?.toString() || 'SKU',
+          units: item.quantity,
+          selling_price: Math.round(proportionalPrice * 100) / 100,
+          discount: 0,
+          tax: 0,
+          hsn: item.hsnCode || ""
+        };
+      }),
       payment_method: order.paymentMethod.toUpperCase() === 'COD' ? 'Postpaid' : 'Prepaid',
-      shipping_charges: parseFloat(order.deliveryFee),
+      shipping_charges: 0,
       giftwrap_charges: 0,
       transaction_charges: 0,
-      total_discount: parseFloat(order.discount || '0'),
-      sub_total: parseFloat(order.total),
+      total_discount: 0,
+      sub_total: totalAmount,
       length: 10,
-      width: 10,
+      breadth: 10,
       height: 10,
       weight: 0.5
     };
