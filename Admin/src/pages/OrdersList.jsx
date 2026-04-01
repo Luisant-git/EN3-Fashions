@@ -1844,33 +1844,48 @@ const OrdersList = () => {
                     <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
                       📄 Invoice and package slip will be automatically generated and uploaded.
                     </p>
-                    <div style={{ marginBottom: '15px' }}>
-                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name (Optional)</label>
-                      <input
-                        type="text"
-                        value={courierName}
-                        onChange={(e) => setCourierName(e.target.value)}
-                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                      />
-                    </div>
-                    <div style={{ marginBottom: '15px' }}>
-                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID (Optional)</label>
-                      <input
-                        type="text"
-                        value={trackingId}
-                        onChange={(e) => setTrackingId(e.target.value)}
-                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link (Optional)</label>
-                      <input
-                        type="text"
-                        value={trackingLink}
-                        onChange={(e) => setTrackingLink(e.target.value)}
-                        style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                      />
-                    </div>
+                    {selectedOrder?.trackingId ? (
+                      <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#e6f4ea', borderRadius: '6px', border: '1px solid #ceead6' }}>
+                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#137333' }}><strong>✓ Automatically Synced via Shiprocket</strong></p>
+                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Courier:</strong> {selectedOrder.courierName || 'Shiprocket'}</p>
+                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Tracking ID:</strong> {selectedOrder.trackingId}</p>
+                        {selectedOrder.trackingLink && (
+                          <p style={{ margin: '0', fontSize: '14px', color: '#333' }}>
+                            <strong>Tracking Link:</strong> <a href={selectedOrder.trackingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>Click here to track</a>
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ marginBottom: '15px' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name (Manual Fallback)</label>
+                          <input
+                            type="text"
+                            value={courierName}
+                            onChange={(e) => setCourierName(e.target.value)}
+                            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                          />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID (Manual Fallback)</label>
+                          <input
+                            type="text"
+                            value={trackingId}
+                            onChange={(e) => setTrackingId(e.target.value)}
+                            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link (Manual Fallback)</label>
+                          <input
+                            type="text"
+                            value={trackingLink}
+                            onChange={(e) => setTrackingLink(e.target.value)}
+                            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
                 <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
