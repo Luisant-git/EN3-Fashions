@@ -55,7 +55,7 @@ export class ShiprocketService {
     const shiprocketData = {
       order_id: order.id.toString(),
       order_date: order.createdAt.toISOString().split('T')[0],
-      pickup_location: "Primary",
+      pickup_location: "warehouse",
       billing_customer_name: shippingAddress.fullName || order.user?.name || 'Customer',
       billing_last_name: "",
       billing_address: shippingAddress.addressLine1,
