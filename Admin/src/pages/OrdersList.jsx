@@ -15,7 +15,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
-import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles } from "../api/order";
+import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket } from "../api/order";
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
@@ -443,6 +443,22 @@ const OrdersList = () => {
       alert('Failed to update order status');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handlePushToShiprocket = async (orderId) => {
+    if (!window.confirm('Are you sure you want to push this order to Shiprocket?')) return;
+    
+    try {
+      setLoading(true);
+      await pushToShiprocket(orderId);
+      alert('Order successfully pushed to Shiprocket!');
+      await fetchOrders();
+    } catch (error) {
+      console.error('Shiprocket Error:', error);
+      alert(error.message || 'Failed to push order to Shiprocket');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1482,6 +1498,16 @@ const OrdersList = () => {
               onClick={() => generateCombinedDocument(row)}
             >
               <Receipt size={16} />
+            </button>
+          )}
+          {row.status === 'Accepted' && (
+            <button
+              className="action-btn view"
+              title="Push to Shiprocket"
+              style={{ backgroundColor: '#fff7ed', color: '#f97316' }}
+              onClick={() => handlePushToShiprocket(row.id)}
+            >
+              <Truck size={16} />
             </button>
           )}
         </div>

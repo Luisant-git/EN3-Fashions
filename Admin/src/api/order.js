@@ -97,3 +97,22 @@ export const deleteOrderFiles = async (orderId) => {
     throw error;
   }
 };
+
+export const pushToShiprocket = async (orderId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/webhook/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to push to Shiprocket');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};

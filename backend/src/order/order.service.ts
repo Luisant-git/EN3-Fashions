@@ -155,22 +155,28 @@ export class OrderService {
     });
   }
  
-  async updateOrderStatus(orderId: number, status: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string) {
-    const updateData: any = { status };
+  async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string) {
+    const updateData: any = {};
+    if (status) updateData.status = status;
     if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
     if (packageSlipUrl) updateData.packageSlipUrl = packageSlipUrl;
-    if (courierName) updateData.courierName = courierName;
-    if (trackingId) updateData.trackingId = trackingId;
-    if (trackingLink) updateData.trackingLink = trackingLink;
+    if (courierName && courierName !== "not provided") updateData.courierName = courierName;
+    if (trackingId && trackingId !== "not provided") updateData.trackingId = trackingId;
+    if (trackingLink && trackingLink !== "not provided") updateData.trackingLink = trackingLink;
    
     const existingOrder = await this.prisma.order.findUnique({
       where: { id: orderId }
     });
 
     const protectedStatuses = ['Placed', 'Accepted', 'Shipped', 'Delivered', 'Cancelled'];
-    if (existingOrder && protectedStatuses.includes(existingOrder.status) && status === 'Abandoned') {
+    if (status === 'Abandoned' && existingOrder && protectedStatuses.includes(existingOrder.status)) {
       console.log(`Prevented marking a ${existingOrder.status} order (${orderId}) as Abandoned`);
-      return existingOrder;
+      // Even if we don't update status, we should still update other fields if provided
+      if (Object.keys(updateData).length > 1) {
+        delete updateData.status;
+      } else {
+        return existingOrder;
+      }
     }
 
     const order = await this.prisma.order.update({
