@@ -5,13 +5,15 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PaymentService } from './payment.service';
+import { ShiprocketService } from '../shiprocket/shiprocket.service';
  
 @ApiTags('Orders')
 @Controller('orders')
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
-    private readonly paymentService: PaymentService
+    private readonly paymentService: PaymentService,
+    private readonly shiprocketService: ShiprocketService
   ) {}
  
   @Post()
@@ -57,7 +59,7 @@ export class OrderController {
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   async updateOrderStatus(@Param('orderId') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
-    return this.orderService.updateOrderStatus(
+    const order = await this.orderService.updateOrderStatus(
       parseInt(orderId),
       updateOrderStatusDto.status,
       updateOrderStatusDto.invoiceUrl,
@@ -66,6 +68,19 @@ export class OrderController {
       updateOrderStatusDto.trackingId,
       updateOrderStatusDto.trackingLink
     );
+
+    // Automatically push to Shiprocket if status is 'Accepted' and not already pushed
+    if (updateOrderStatusDto.status === 'Accepted' && !order.trackingId) {
+      try {
+        console.log(`Auto-triggering Shiprocket creation for Order #${orderId} due to status change to "Accepted"`);
+        await this.shiprocketService.createShiprocketOrder(parseInt(orderId));
+      } catch (error) {
+        console.error(`Failed to auto-create Shiprocket order for Order #${orderId}:`, error.message);
+        // We don't throw here to avoid failing the whole status update request
+      }
+    }
+
+    return order;
   }
  
   @Post('payment/create')
