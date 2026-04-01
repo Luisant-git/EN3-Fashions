@@ -17,14 +17,15 @@ export class ShiprocketService {
     }
 
     try {
+      console.log('Attempting Shiprocket login...');
       const response = await axios.post(`${this.baseUrl}/auth/login`, {
         email: 'en3fashions@gmail.com',
         password: 'RLq1WuMnejxytCnMC$7*tah2yW*@2jCD',
       });
 
       this.token = response.data.token;
-      // Set expiry to 23 hours from now to be safe
       this.tokenExpiry = Date.now() + 23 * 60 * 60 * 1000;
+      console.log('Shiprocket login successful. Token acquired.');
       return this.token;
     } catch (error) {
       console.error('Shiprocket login failed:', error.response?.data || error.message);
@@ -33,6 +34,7 @@ export class ShiprocketService {
   }
 
   async createShiprocketOrder(orderId: number) {
+    console.log(`=== STARTING SHIPROCKET ORDER CREATION FOR ORDER #${orderId} ===`);
     const token = await this.login();
     
     const order = await this.prisma.order.findUnique({
@@ -40,15 +42,17 @@ export class ShiprocketService {
       include: { items: true, user: true },
     });
 
-    if (!order) throw new Error('Order not found');
+    if (!order) {
+      console.error(`Order #${orderId} not found for Shiprocket creation`);
+      throw new Error('Order not found');
+    }
 
     const shippingAddress: any = order.shippingAddress;
     
-    // Preparation for Shiprocket order creation
     const shiprocketData = {
       order_id: order.id.toString(),
       order_date: order.createdAt.toISOString().split('T')[0],
-      pickup_location: "Primary", // Should ideally be configurable
+      pickup_location: "Primary",
       billing_customer_name: shippingAddress.fullName || order.user?.name || 'Customer',
       billing_last_name: "",
       billing_address: shippingAddress.addressLine1,
@@ -75,16 +79,19 @@ export class ShiprocketService {
       transaction_charges: 0,
       total_discount: parseFloat(order.discount || '0'),
       sub_total: parseFloat(order.total),
-      length: 10, // Default dimensions
+      length: 10,
       width: 10,
       height: 10,
       weight: 0.5
     };
 
+    console.log('Sending data to Shiprocket:', JSON.stringify(shiprocketData, null, 2));
+
     try {
       const response = await axios.post(`${this.baseUrl}/orders/create/adhoc`, shiprocketData, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Shiprocket response:', JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error) {
       console.error('Shiprocket order creation failed:', error.response?.data || error.message);
