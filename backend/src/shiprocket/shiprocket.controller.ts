@@ -48,22 +48,24 @@ export class ShiprocketController {
 
     // Mapping based on user request:
     // NEW -> Accepted
-    // PICKED UP -> Accepted
-    // IN TRANSIT -> Accepted
-    // OUT FOR DELIVERY -> Accepted
-    // DELIVERED -> Shipped
+    // PICKED UP -> Shipped
+    // IN TRANSIT -> Shipped
+    // OUT FOR DELIVERY -> Shipped
+    // DELIVERED -> Delivered
     // CANCELLED -> Cancelled
     // RTO (Return) -> Cancelled
 
     switch (shiprocketStatus) {
       case 'NEW':
+        internalStatus = 'Accepted';
+        break;
       case 'PICKED UP':
       case 'IN TRANSIT':
       case 'OUT FOR DELIVERY':
-        internalStatus = 'Accepted';
+        internalStatus = 'Shipped';
         break;
       case 'DELIVERED':
-        internalStatus = 'Shipped'; // User specifically asked for Shipped here
+        internalStatus = 'Delivered';
         break;
       case 'CANCELED':
       case 'CANCELLED':

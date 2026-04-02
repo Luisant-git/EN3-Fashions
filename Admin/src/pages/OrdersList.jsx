@@ -1557,6 +1557,15 @@ const OrdersList = () => {
             <p>Shipped</p>
           </div>
         </div>
+        <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
+          <div className="stat-icon delivered" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+            <CheckCircle size={24} />
+          </div>
+          <div className="stat-content">
+            <h3>{statusCounts.delivered}</h3>
+            <p>Delivered</p>
+          </div>
+        </div>
         <div className="stat-card" onClick={() => setStatusFilter("abandoned")}>
           <div className="stat-icon abandoned">
             <X size={24} />
@@ -1593,12 +1602,12 @@ const OrdersList = () => {
         >
           Shipped
         </button>
-        {/* <button
+        <button
           className={statusFilter === "delivered" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("delivered")}
         >
           Delivered
-        </button> */}
+        </button>
         <button
           className={statusFilter === "cancelled" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("cancelled")}
