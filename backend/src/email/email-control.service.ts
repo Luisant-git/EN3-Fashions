@@ -52,8 +52,19 @@ export class EmailControlService implements OnModuleInit {
       });
     });
 
-    imap.once('error', (err) => console.error('IMAP error:', err));
-    imap.connect();
+    imap.once('error', (err) => {
+      if (err.message.includes('AUTHENTICATIONFAILED')) {
+        console.warn('⚠️ [Email Control] Gmail Authentication Failed. Please check your App Password.');
+      } else {
+        console.error('❌ [Email Control] IMAP Error:', err.message);
+      }
+    });
+    
+    try {
+      imap.connect();
+    } catch (e) {
+      console.error('❌ [Email Control] Connection Error:', e.message);
+    }
   }
 
   async processCommand(command: string) {
