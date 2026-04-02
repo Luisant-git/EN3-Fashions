@@ -1499,7 +1499,7 @@ const OrdersList = () => {
           >
             <Eye size={16} />
           </button>
-          {row.status !== 'Shipped' && row.status !== 'Cancelled' && (
+          {row.status !== 'Delivered' && row.status !== 'Cancelled' && (
             <button
               className="action-btn edit"
               title="Edit Order"
