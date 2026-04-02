@@ -150,19 +150,46 @@ export class DashboardService {
 
   async getRecentOrders() {
     const orders = await this.prisma.order.findMany({
-      take: 5,
+      take: 10,
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, email: true, phone: true } } }
+      include: { 
+        user: { select: { name: true, email: true, phone: true } },
+        items: { select: { id: true } }
+      }
     });
 
-    return orders.map(order => ({
-      id: order.id,
-      customer: order.user?.name || 'Guest',
-      email: order.user?.email || '',
-      phone: order.user?.phone || '',
-      total: `₹${parseFloat(order.total).toFixed(2)}`,
-      status: order.status,
-      date: order.createdAt.toLocaleDateString('en-GB')
-    }));
+    return orders.map(order => {
+      const shipping = order.shippingAddress as any;
+      const profile = order.user;
+      
+      // Fallback logic: Shipping Name -> Profile Name -> 'Guest'
+      let customerName = (shipping?.fullName || shipping?.name);
+      if (!customerName || customerName.toLowerCase() === 'guest') {
+        customerName = profile?.name || 'Guest';
+      }
+
+      // Fallback logic for Email
+      let email = (shipping?.email);
+      if (!email || email === '') {
+        email = profile?.email || '';
+      }
+
+      // Fallback logic for Phone
+      let phone = (shipping?.mobileNumber || shipping?.phone);
+      if (!phone || phone === '') {
+        phone = profile?.phone || '';
+      }
+
+      return {
+        id: order.id,
+        customer: customerName,
+        email: email,
+        phone: phone,
+        items: order.items.length,
+        total: `₹${parseFloat(order.total).toFixed(2)}`,
+        status: order.status,
+        date: order.createdAt.toLocaleDateString('en-GB')
+      };
+    });
   }
 }
