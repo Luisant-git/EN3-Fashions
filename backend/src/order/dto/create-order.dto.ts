@@ -57,6 +57,11 @@ export class CreateOrderDto {
   @IsString()
   deliveryFee: string;
 
+  @ApiProperty({ example: '35.00', required: false })
+  @IsOptional()
+  @IsString()
+  codFee?: string;
+
   @ApiProperty({ example: '1547.00' })
   @IsString()
   total: string;

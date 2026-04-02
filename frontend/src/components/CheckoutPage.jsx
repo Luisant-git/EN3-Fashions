@@ -171,14 +171,15 @@ const CheckoutPage = () => {
             // Create order first
             const orderData = {
                 subtotal: subtotal.toString(),
-                deliveryFee: deliveryFee.toString(),
+                deliveryFee: baseDeliveryFee.toString(),
+                codFee: (paymentMethod === 'cod' ? codShippingFee : 0).toString(),
                 total: finalTotal.toString(),
                 discount: discount.toString(),
                 couponCode: appliedCoupon?.code || undefined,
                 paymentMethod: paymentMethod,
                 shippingAddress: { ...formData, state: selectedState.value },
                 deliveryOption: { 
-                    fee: deliveryFee, 
+                    fee: deliveryFee, // Still passed in deliveryOption for invoice backwards compat
                     name: paymentMethod === 'cod' ? 'Cash on Delivery' : 'Standard Delivery',
                     gst: {
                         rate: GST_RATE,

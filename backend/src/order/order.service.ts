@@ -91,6 +91,7 @@ export class OrderService {
         status: orderStatus,
         subtotal: createOrderDto.subtotal,
         deliveryFee: createOrderDto.deliveryFee,
+        codFee: createOrderDto.codFee || '0',
         discount,
         couponCode,
         total: createOrderDto.total,

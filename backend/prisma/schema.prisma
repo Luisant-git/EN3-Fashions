@@ -208,6 +208,7 @@ model Order {
   status          String      @default("pending")
   subtotal        String
   deliveryFee     String
+  codFee          String?     @default("0")
   discount        String?     @default("0")
   couponCode      String?
   total           String

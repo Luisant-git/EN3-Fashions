@@ -286,13 +286,16 @@ const OrdersList = () => {
     const subtotal = parseFloat(order.subtotal) || 0;
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const codFee = parseFloat(order.codFee) || (order.deliveryOption?.codFee ? parseFloat(order.deliveryOption.codFee) : 0) || 0;
     const total = parseFloat(order.total) || 0;
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
     
+    console.log('Generating PDF for order:', order.id, { subtotal, deliveryFee, codFee, total });
+    
     const gstRate = 5;
     const afterDiscount = subtotal - discount;
-    const totalWithDelivery = afterDiscount + deliveryFee;
+    const totalWithDelivery = afterDiscount + deliveryFee + codFee;
     const baseAmount = totalWithDelivery / (1 + gstRate / 100);
     const gstAmount = totalWithDelivery - baseAmount;
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
@@ -316,6 +319,13 @@ const OrdersList = () => {
     pdf.text('Delivery Fee (incl. GST):', 30, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
+
+    if (codFee > 0) {
+      pdf.text('COD Charge (incl. GST):', 30, yPos);
+      pdf.text(`Rs.${codFee.toFixed(2)}`, 190, yPos, { align: 'right' });
+      yPos += 6;
+    }
+
     pdf.text('Taxable Amount:', 30, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
@@ -1157,12 +1167,13 @@ const OrdersList = () => {
     const subtotal = parseFloat(order.subtotal) || 0;
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const codFee = parseFloat(order.codFee) || 0;
     const total = parseFloat(order.total) || 0;
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
     const gstRate = 5;
     const afterDiscount = subtotal - discount;
-    const totalWithDelivery = afterDiscount + deliveryFee;
+    const totalWithDelivery = afterDiscount + deliveryFee + codFee;
     const baseAmount = totalWithDelivery / (1 + gstRate / 100);
     const gstAmount = totalWithDelivery - baseAmount;
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
@@ -1183,6 +1194,12 @@ const OrdersList = () => {
     pdf.text('Delivery Fee (incl. GST):', 118, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 200, yPos, { align: 'right' });
     yPos += 3;
+
+    if (codFee > 0) {
+      pdf.text('COD Charge (incl. GST):', 118, yPos);
+      pdf.text(`Rs.${codFee.toFixed(2)}`, 200, yPos, { align: 'right' });
+      yPos += 3;
+    }
     
     pdf.text('Taxable Amount:', 118, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
@@ -1749,6 +1766,14 @@ const OrdersList = () => {
                   <p><strong>Payment:</strong> {selectedOrder.paymentMethod}</p>
                   {selectedOrder.couponCode && (
                     <p><strong>Coupon:</strong> {selectedOrder.couponCode}</p>
+                  )}
+                  <p><strong>Subtotal:</strong> ₹{selectedOrder.subtotal}</p>
+                  <p><strong>Delivery Fee:</strong> ₹{selectedOrder.deliveryFee}</p>
+                  {parseFloat(selectedOrder.codFee) > 0 && (
+                    <p><strong>COD Fee:</strong> ₹{selectedOrder.codFee}</p>
+                  )}
+                  {selectedOrder.discount && parseFloat(selectedOrder.discount) > 0 && (
+                    <p><strong>Discount:</strong> -₹{selectedOrder.discount}</p>
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
                 </div>
