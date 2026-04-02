@@ -71,7 +71,7 @@ const CartProviderInner = ({ children }) => {
             toast.success('Item added to cart!');
         } catch (error) {
             console.error('Error adding to cart:', error);
-            toast.error('Failed to add item to cart');
+            toast.error(error.message || 'Failed to add item to cart');
         } finally {
             setLoading(false);
         }
@@ -97,7 +97,7 @@ const CartProviderInner = ({ children }) => {
                 await fetchCart();
             } catch (error) {
                 console.error('Error updating quantity:', error);
-                toast.error('Failed to update quantity');
+                toast.error(error.message || 'Failed to update quantity');
             }
         }
     };

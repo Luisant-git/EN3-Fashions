@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CouponService } from '../coupon/coupon.service';
@@ -24,6 +24,9 @@ export class OrderService {
     if (!cart || cart.items.length === 0) {
       throw new Error('Cart is empty');
     }
+
+    // Final stock validation before order creation
+    await this.validateItemsStock(cart.items);
  
     // Apply coupon if provided
     let discount = '0';
@@ -113,7 +116,7 @@ export class OrderService {
             hsnCode: item.hsnCode
           }))
         }
-      },
+      } as any,
       include: { items: true }
     });
  
@@ -123,6 +126,10 @@ export class OrderService {
       await this.prisma.cartItem.deleteMany({
         where: { cartId: cart.id }
       });
+      
+      // Deduct stock for COD orders
+      await this.deductStock((order as any).items);
+      
       // Send WhatsApp confirmation only for COD orders
       await this.whatsappService.sendOrderConfirmation(order);
     }
@@ -197,6 +204,12 @@ export class OrderService {
           where: { cartId: cart.id }
         });
       }
+
+      // Deduct stock for online orders (after payment verification)
+      if (existingOrder?.status !== 'Placed') {
+        await this.deductStock((order as any).items);
+      }
+
       // Send WhatsApp confirmation
       await this.whatsappService.sendOrderConfirmation(order);
     }
@@ -236,5 +249,96 @@ export class OrderService {
     }
     
     return result.count;
+  }
+
+  private async validateItemsStock(items: any[]) {
+    for (const item of items) {
+      if (!item.productId) continue;
+      const product = await this.prisma.product.findUnique({ where: { id: item.productId } });
+      if (!product || !product.colors) continue;
+
+      const colors = product.colors as any[];
+      
+      if (item.type === 'bundle' && item.bundleItems) {
+        for (const bItem of (item.bundleItems as any[])) {
+          const color = colors.find(c => c.name === bItem.color);
+          const size = color?.sizes.find(s => s.size === bItem.size);
+          const avail = parseInt(size?.quantity || '0');
+          if (avail < 1) {
+            throw new BadRequestException(`Item ${product.name} (${bItem.color} - ${bItem.size}) is now sold out.`);
+          }
+        }
+      } else {
+        const color = colors.find(c => c.name === item.color);
+        const size = color?.sizes.find(s => s.size === item.size);
+        const avail = parseInt(size?.quantity || '0');
+        const req = item.quantity || 1;
+        if (avail < req) {
+          throw new BadRequestException(`Only ${avail} units left for ${product.name} (${item.color} - ${item.size}).`);
+        }
+      }
+    }
+  }
+
+  private async deductStock(orderItems: any[]) {
+    for (const item of orderItems) {
+      if (!item.productId) continue;
+      
+      const product = await this.prisma.product.findUnique({
+        where: { id: item.productId }
+      });
+      
+      if (!product || !product.colors) continue;
+      
+      let colors = product.colors as any[];
+      
+      if (item.type === 'bundle' && item.bundleItems) {
+        // Handle Bundles
+        const bundleItems = item.bundleItems as any[];
+        bundleItems.forEach(bItem => {
+          colors = colors.map(color => {
+            if (color.name === bItem.color) {
+              const updatedSizes = color.sizes.map(size => {
+                if (size.size === bItem.size) {
+                  const currentQty = parseInt(size.quantity || '0');
+                  const deductQty = 1; // Each item in bundle counts as 1
+                  return {
+                    ...size,
+                    quantity: Math.max(0, currentQty - deductQty).toString()
+                  };
+                }
+                return size;
+              });
+              return { ...color, sizes: updatedSizes };
+            }
+            return color;
+          });
+        });
+      } else {
+        // Handle Single Items
+        colors = colors.map(color => {
+          if (color.name === item.color) {
+            const updatedSizes = color.sizes.map(size => {
+              if (size.size === item.size) {
+                const currentQty = parseInt(size.quantity || '0');
+                const deductQty = parseInt(item.quantity || '1');
+                return {
+                  ...size,
+                  quantity: Math.max(0, currentQty - deductQty).toString()
+                };
+              }
+              return size;
+            });
+            return { ...color, sizes: updatedSizes };
+          }
+          return color;
+        });
+      }
+      
+      await this.prisma.product.update({
+        where: { id: item.productId },
+        data: { colors }
+      });
+    }
   }
 }

@@ -32,6 +32,28 @@ const ProductCard = ({ product, navigate, showDiscount = false }) => {
                 ) : (
                     <div className="bundle-tag">Bundle Available</div>
                 )}
+                
+                {product.colors && product.colors.every(color => 
+                    color.sizes?.every(size => parseInt(size.quantity || 0) <= 0)
+                ) && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        padding: '10px 20px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        zIndex: 2,
+                        textTransform: 'uppercase',
+                        width: '80%',
+                        textAlign: 'center'
+                    }}>
+                        Out of Stock
+                    </div>
+                )}
                  <button 
                     className={`wishlist-toggle ${isInWishlist(product.id) ? 'active' : ''}`}
                     onClick={(e) => { 

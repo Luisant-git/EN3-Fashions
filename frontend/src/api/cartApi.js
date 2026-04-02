@@ -16,7 +16,8 @@ export const addToCart = async (item) => {
   });
   
   if (!response.ok) {
-    throw new Error('Failed to add item to cart');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to add item to cart');
   }
   
   return response.json();
@@ -55,7 +56,8 @@ export const updateCartQuantity = async (itemId, quantity) => {
   });
   
   if (!response.ok) {
-    throw new Error('Failed to update quantity');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to update quantity');
   }
   
   return response.json();

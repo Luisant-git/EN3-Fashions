@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 
@@ -35,6 +35,11 @@ export class CartService {
     });
 
     if (existingItem) {
+      // Validate stock for existing item increment
+      if (productId) {
+        await this.validateStock(productId as number, addToCartDto.color || '', addToCartDto.size || '', existingItem.quantity + (addToCartDto.quantity || 1));
+      }
+
       // Update quantity and sizeVariantId for existing item
       return this.prisma.cartItem.update({
         where: { id: existingItem.id },
@@ -45,7 +50,10 @@ export class CartService {
       });
     }
 
-    // Create new cart item
+    // Validate stock for new item
+    if (productId && addToCartDto.type !== 'bundle') {
+      await this.validateStock(productId as number, addToCartDto.color || '', addToCartDto.size || '', (addToCartDto.quantity || 1));
+    }
     return this.prisma.cartItem.create({
       data: {
         cartId: cart.id,
@@ -95,6 +103,14 @@ export class CartService {
 
     if (!cart) return null;
 
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId }
+    });
+
+    if (item && item.productId && item.type !== 'bundle') {
+      await this.validateStock(item.productId, item.color || '', item.size || '', quantity);
+    }
+
     return this.prisma.cartItem.update({
       where: { 
         id: itemId,
@@ -102,6 +118,26 @@ export class CartService {
       },
       data: { quantity }
     });
+  }
+
+  private async validateStock(productId: number, colorName: string, sizeName: string, requestedQty: number) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId }
+    });
+
+    if (!product || !product.colors) return;
+
+    const colors = product.colors as any[];
+    const color = colors.find(c => c.name === colorName);
+    if (!color) return;
+
+    const size = color.sizes?.find(s => s.size === sizeName);
+    if (!size) return;
+
+    const availableQty = parseInt(size.quantity || '0');
+    if (requestedQty > availableQty) {
+      throw new BadRequestException(`Only ${availableQty} units available for this variant.`);
+    }
   }
 
   async clearCart(userId: number) {

@@ -151,6 +151,18 @@ const ProductDetailPage = () => {
     const handleBundleAddToCart = () => {
         if (bundleSelections.length < 2 || !bundlePrice) return;
         
+        // Final safety check for stock
+        const isAnyOutOfStock = bundleSelections.some(sel => {
+            const color = product.colors.find(c => c.name === sel.color);
+            const sizeInfo = color?.sizes.find(s => s.size === sel.size);
+            return parseInt(sizeInfo?.quantity || 0) === 0;
+        });
+
+        if (isAnyOutOfStock) {
+            toast.error('One or more selected bundle items are now out of stock.');
+            return;
+        }
+
         const bundleItem = {
             id: `bundle-${product.id}-${Date.now()}`,
             name: `${product.name} Bundle (${bundleSelections.length} items)`,
@@ -179,6 +191,17 @@ const ProductDetailPage = () => {
     const handleBundleBuyNow = () => {
         if (bundleSelections.length < 2 || !bundlePrice) return;
         
+        const isAnyOutOfStock = bundleSelections.some(sel => {
+            const color = product.colors.find(c => c.name === sel.color);
+            const sizeInfo = color?.sizes.find(s => s.size === sel.size);
+            return parseInt(sizeInfo?.quantity || 0) === 0;
+        });
+
+        if (isAnyOutOfStock) {
+            toast.error('One or more selected bundle items are now out of stock.');
+            return;
+        }
+
         const bundleItem = {
             id: `bundle-${product.id}-${Date.now()}`,
             name: `${product.name} Bundle (${bundleSelections.length} items)`,
@@ -296,23 +319,52 @@ const ProductDetailPage = () => {
                         )}
                     </div>
                     <div className="pdp-size-options">
-                        {selectedColor?.sizes.map(size => (
-                            <button 
-                                key={size.size}
-                                className={`pdp-size-btn ${selectedSize?.size === size.size ? 'active' : ''}`}
-                                onClick={() => setSelectedSize(size)}
-                            >
-                                {size.size}
-                            </button>
-                        ))}
+                        {selectedColor?.sizes.map(size => {
+                            const qty = parseInt(size.quantity || 0);
+                            return (
+                                <button 
+                                    key={size.size}
+                                    className={`pdp-size-btn ${selectedSize?.size === size.size ? 'active' : ''} ${qty === 0 ? 'pdp-size-btn-out' : ''}`}
+                                    onClick={() => setSelectedSize(size)}
+                                    style={qty === 0 ? { opacity: 0.5, textDecoration: 'line-through' } : {}}
+                                >
+                                    {size.size}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
+                {selectedSize && (
+                    <div className="stock-status-container" style={{ marginBottom: '1.5rem' }}>
+                        {parseInt(selectedSize.quantity || 0) > 0 && parseInt(selectedSize.quantity || 0) <= 5 && (
+                            <p style={{ color: '#d97706', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                                ⚠️ Only {selectedSize.quantity} left in stock!
+                            </p>
+                        )}
+                        {parseInt(selectedSize.quantity || 0) === 0 && (
+                            <p style={{ color: '#dc2626', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                                ❌ Out of Stock - Currently unavailable
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 <div className="pdp-actions">
-                    <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={cartLoading || !selectedSize}>
+                    <button 
+                        className="add-to-cart-btn" 
+                        onClick={handleAddToCart} 
+                        disabled={cartLoading || !selectedSize || parseInt(selectedSize.quantity || 0) === 0}
+                        style={(!selectedSize || parseInt(selectedSize.quantity || 0) === 0) ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                    >
                         {cartLoading ? <LoadingSpinner /> : 'Add to Cart'}
                     </button>
-                    <button className="buy-now-btn" onClick={handleBuyNow} disabled={cartLoading || !selectedSize}>
+                    <button 
+                        className="buy-now-btn" 
+                        onClick={handleBuyNow} 
+                        disabled={cartLoading || !selectedSize || parseInt(selectedSize.quantity || 0) === 0}
+                        style={(!selectedSize || parseInt(selectedSize.quantity || 0) === 0) ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                    >
                         {cartLoading ? <LoadingSpinner /> : 'Buy Now'}
                     </button>
                     <button 
@@ -355,11 +407,14 @@ const ProductDetailPage = () => {
                                         onChange={(e) => handleBundleSelection(color.name, e.target.value)}
                                     >
                                         <option value="">Choose a size</option>
-                                        {color.sizes.map(size => (
-                                            <option key={size.size} value={size.size}>
-                                                {size.size} - ₹{size.price}
-                                            </option>
-                                        ))}
+                                        {color.sizes.map(size => {
+                                            const isOut = parseInt(size.quantity || 0) === 0;
+                                            return (
+                                                <option key={size.size} value={size.size} disabled={isOut}>
+                                                    {size.size} - ₹{size.price} {isOut ? '(Out of Stock)' : ''}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                             ))}
