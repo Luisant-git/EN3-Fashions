@@ -341,4 +341,15 @@ export class OrderService {
       });
     }
   }
-}
+
+  async logSystemError(userId: number | null, orderId: number | null, status: string | null, action: string, errorMessage: string) {
+    try {
+      await this.prisma.systemErrorLog.create({
+        data: { userId, orderId, status, action, errorMessage }
+      });
+      console.log(`[System Error Logged] Action: ${action} | Error: ${errorMessage}`);
+    } catch (e) {
+      console.error('CRITICAL: Failed to write to SystemErrorLog database table:', e.message);
+    }
+  }
+}

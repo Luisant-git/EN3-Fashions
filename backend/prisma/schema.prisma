@@ -365,3 +365,13 @@ model SizeChart {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
+
+model SystemErrorLog {
+  id           Int      @id @default(autoincrement())
+  userId       Int?
+  orderId      Int?
+  status       String?
+  action       String
+  errorMessage String
+  createdAt    DateTime @default(now())
+}

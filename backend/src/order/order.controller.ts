@@ -59,16 +59,32 @@ export class OrderController {
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   async updateOrderStatus(@Param('orderId') orderId: string, @Body() updateOrderStatusDto: UpdateOrderStatusDto) {
-    const order = await this.orderService.updateOrderStatus(
-      parseInt(orderId),
-      updateOrderStatusDto.status,
-      updateOrderStatusDto.invoiceUrl,
-      updateOrderStatusDto.packageSlipUrl,
-      updateOrderStatusDto.courierName,
-      updateOrderStatusDto.trackingId,
-      updateOrderStatusDto.trackingLink
-    );
+    let order;
 
+    // 1. Database Level Status Change Attempt
+    try {
+      order = await this.orderService.updateOrderStatus(
+        parseInt(orderId),
+        updateOrderStatusDto.status,
+        updateOrderStatusDto.invoiceUrl,
+        updateOrderStatusDto.packageSlipUrl,
+        updateOrderStatusDto.courierName,
+        updateOrderStatusDto.trackingId,
+        updateOrderStatusDto.trackingLink
+      );
+    } catch (error) {
+      // Catch native order update crashes
+      await this.orderService.logSystemError(
+        null, // We don't necessarily have the user ID loaded if it crashed here natively
+        parseInt(orderId),
+        updateOrderStatusDto.status,
+        'GENERAL_STATUS_CHANGE',
+        error.message || 'Unknown database error updating status'
+      );
+      throw error; // Let external API know it failed
+    }
+
+    // 2. Shiprocket Order Creation Trigger
     // Automatically push to Shiprocket if status is 'Accepted' and not already pushed
     if (updateOrderStatusDto.status === 'Accepted' && !order.trackingId) {
       try {
@@ -76,7 +92,15 @@ export class OrderController {
         await this.shiprocketService.createShiprocketOrder(parseInt(orderId));
       } catch (error) {
         console.error(`Failed to auto-create Shiprocket order for Order #${orderId}:`, error.message);
-        // We don't throw here to avoid failing the whole status update request
+        
+        // Log explicitly why shiprocket failed without throwing to avoid halting the core system
+        await this.orderService.logSystemError(
+          order.userId,
+          parseInt(orderId),
+          updateOrderStatusDto.status,
+          'SHIPROCKET_ORDER_CREATION',
+          error.message || 'Shiprocket API Gateway Timeout/Error'
+        );
       }
     }
 
