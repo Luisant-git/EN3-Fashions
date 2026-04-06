@@ -50,12 +50,6 @@ const CouponList = () => {
         <div className="coupon-code">
           <Percent size={16} className="coupon-icon" />
           <span className="code">{value}</span>
-          {row.specificUsers && row.specificUsers.length > 0 && (
-            <span className="customer-badge" title={`For: ${row.specificUsers.map(u => u.name || u.phone).join(', ')}`}>👥</span>
-          )}
-          {row.isHiddenFromUser && (
-            <span className="customer-badge hidden-badge" title="Hidden from User Panel" style={{marginLeft: '4px'}}>👁️‍🗨️</span>
-          )}
         </div>
       )
     },
