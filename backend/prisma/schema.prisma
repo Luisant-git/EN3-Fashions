@@ -274,7 +274,6 @@ model Coupon {
   expiryDate      DateTime?
   isHiddenFromUser Boolean @default(false)
   applyTo         String[] @default(["subtotal"])
-  specificUserId  Int?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
