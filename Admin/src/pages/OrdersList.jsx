@@ -564,7 +564,10 @@ const OrdersList = () => {
         statusFilter === "all" ||
         order.status.toLowerCase() === statusFilter.toLowerCase();
 
-      const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+      const matchesCoupon = 
+        !couponFilter ? true : 
+        couponFilter === "any_coupon" ? !!order.couponCode : 
+        order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
         
       let matchesDate = true;
       if (startDate || endDate) {
@@ -1428,7 +1431,10 @@ const OrdersList = () => {
       statusFilter === "all" ||
       order.status.toLowerCase() === statusFilter.toLowerCase();
       
-    const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+    const matchesCoupon = 
+      !couponFilter ? true : 
+      couponFilter === "any_coupon" ? !!order.couponCode : 
+      order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
 
     let matchesDate = true;
     if (startDate || endDate) {
@@ -1726,7 +1732,8 @@ const OrdersList = () => {
               onChange={(e) => setCouponFilter(e.target.value)}
               style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none', backgroundColor: 'white' }}
             >
-              <option value="">All Coupons</option>
+              <option value="">All Orders</option>
+              <option value="any_coupon">All Coupons</option>
               {availableCoupons.map(coupon => (
                 <option key={coupon.id} value={coupon.code}>{coupon.code}</option>
               ))}
