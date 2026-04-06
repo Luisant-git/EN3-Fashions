@@ -20,6 +20,7 @@ import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
+import { getCoupons } from "../api/couponApi";
 
 const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,12 +38,24 @@ const OrdersList = () => {
   const [signatureUrl, setSignatureUrl] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [couponFilter, setCouponFilter] = useState("");
+  const [availableCoupons, setAvailableCoupons] = useState([]);
   const modalRef = useRef(null);
 
   useEffect(() => {
     fetchOrders();
     fetchSignature();
+    fetchCoupons();
   }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const data = await getCoupons();
+      setAvailableCoupons(data);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+    }
+  };
 
   const fetchSignature = async () => {
     try {
@@ -540,22 +553,35 @@ const OrdersList = () => {
   const exportAllOrdersExcel = () => {
     let filteredOrders = orders;
     
-    if (startDate || endDate) {
-      filteredOrders = orders.filter(order => {
+    // Use the same filtering logic as the table
+    filteredOrders = orders.filter(order => {
+      const matchesSearch =
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus =
+        statusFilter === "all" ||
+        order.status.toLowerCase() === statusFilter.toLowerCase();
+
+      const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+        
+      let matchesDate = true;
+      if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
         
         if (start && end) {
-          return orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
         } else if (start) {
-          return orderDate >= start;
+          matchesDate = orderDate >= start;
         } else if (end) {
-          return orderDate <= new Date(end.setHours(23, 59, 59));
+          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
         }
-        return true;
-      });
-    }
+      }
+      return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
+    });
     
     if (filteredOrders.length === 0) {
       alert('No orders found for the selected date range');
@@ -598,6 +624,8 @@ const OrdersList = () => {
         'Item Qty': qtys.join(', \n') || '0',
         'Quantity': totalQty,
         'Total Amount': parseFloat(order.total || 0),
+        'Discount': parseFloat(order.discount || 0),
+        'Coupon Code': order.couponCode || 'N/A',
         'Status': order.status,
         'Payment': order.paymentMethod || 'N/A',
         'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
@@ -620,6 +648,8 @@ const OrdersList = () => {
       'Item Qty': '',
       'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
       'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+      'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
+      'Coupon Code': '',
       'Status': '',
       'Payment': '',
       'Order Date': '',
@@ -716,22 +746,32 @@ const OrdersList = () => {
   const exportAbandonedOrdersExcel = () => {
     let abandonedOrders = orders.filter(order => order.status === 'Abandoned');
     
-    if (startDate || endDate) {
-      abandonedOrders = abandonedOrders.filter(order => {
+    // Use consistent filtering logic
+    abandonedOrders = orders.filter(order => {
+      const matchesStatus = order.status === 'Abandoned';
+      const matchesSearch =
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+        
+      let matchesDate = true;
+      if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
         
         if (start && end) {
-          return orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
         } else if (start) {
-          return orderDate >= start;
+          matchesDate = orderDate >= start;
         } else if (end) {
-          return orderDate <= new Date(end.setHours(23, 59, 59));
+          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
         }
-        return true;
-      });
-    }
+      }
+      return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
+    });
     
     if (abandonedOrders.length === 0) {
       alert('No abandoned orders found for the selected date range');
@@ -776,6 +816,8 @@ const OrdersList = () => {
         'Item Qty': qtys.join(', \n') || '0',
         'Total Quantity': totalQty,
         'Total Amount': parseFloat(order.total || 0),
+        'Discount': parseFloat(order.discount || 0),
+        'Coupon Code': order.couponCode || 'N/A',
         'Date': new Date(order.createdAt).toLocaleString('en-GB'),
         'Payment Method': order.paymentMethod || 'N/A'
       };
@@ -797,6 +839,8 @@ const OrdersList = () => {
       'Item Qty': '',
       'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
       'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+      'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
+      'Coupon Code': '',
       'Date': '',
       'Payment Method': ''
     };
@@ -814,22 +858,32 @@ const OrdersList = () => {
   const exportShippedOrdersExcel = () => {
     let shippedOrders = orders.filter(order => order.status === 'Shipped');
     
-    if (startDate || endDate) {
-      shippedOrders = shippedOrders.filter(order => {
+    // Use consistent filtering logic
+    shippedOrders = orders.filter(order => {
+      const matchesStatus = order.status === 'Shipped';
+      const matchesSearch =
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+        
+      let matchesDate = true;
+      if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
         
         if (start && end) {
-          return orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
         } else if (start) {
-          return orderDate >= start;
+          matchesDate = orderDate >= start;
         } else if (end) {
-          return orderDate <= new Date(end.setHours(23, 59, 59));
+          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
         }
-        return true;
-      });
-    }
+      }
+      return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
+    });
     
     if (shippedOrders.length === 0) {
       alert('No shipped orders found for the selected date range');
@@ -878,6 +932,8 @@ const OrdersList = () => {
         'Tracking Link': order.trackingLink || 'N/A',
         'Shipped Date': new Date(order.updatedAt).toLocaleString('en-GB'),
         'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
+        'Coupon Code': order.couponCode || 'N/A',
+        'Discount': parseFloat(order.discount || 0),
         'Payment Method': order.paymentMethod || 'N/A',
         'Total Amount': parseFloat(order.total || 0)
       };
@@ -903,6 +959,8 @@ const OrdersList = () => {
       'Tracking Link': '',
       'Shipped Date': '',
       'Order Date': '',
+      'Coupon Code': '',
+      'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
       'Payment Method': '',
       'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2)
     };
@@ -1370,6 +1428,8 @@ const OrdersList = () => {
       statusFilter === "all" ||
       order.status.toLowerCase() === statusFilter.toLowerCase();
       
+    const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+
     let matchesDate = true;
     if (startDate || endDate) {
       const orderDate = new Date(order.createdAt);
@@ -1385,7 +1445,7 @@ const OrdersList = () => {
       }
     }
       
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
   });
 
   const getStatusCounts = () => {
@@ -1454,7 +1514,17 @@ const OrdersList = () => {
         return totalQty;
       },
     },
-    { key: "total", label: "Total", render: (value) => `₹${value}` },
+    {
+      key: "couponCode",
+      label: "Coupon",
+      render: (value, row) => value ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', width: 'fit-content' }}>{value}</span>
+          <span style={{ color: '#dc2626', fontSize: '10px', fontWeight: '500' }}>- ₹{row.discount}</span>
+        </div>
+      ) : '-'
+    },
+    { key: "total", label: "Final Total", render: (value) => `₹${value}` },
     {
       key: "status",
       label: "Status",
@@ -1649,6 +1719,19 @@ const OrdersList = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0', marginLeft: '12px' }}>
+            <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Coupon:</label>
+            <select
+              value={couponFilter}
+              onChange={(e) => setCouponFilter(e.target.value)}
+              style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none', backgroundColor: 'white' }}
+            >
+              <option value="">All Coupons</option>
+              {availableCoupons.map(coupon => (
+                <option key={coupon.id} value={coupon.code}>{coupon.code}</option>
+              ))}
+            </select>
+          </div>
           {statusFilter === "all" && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>

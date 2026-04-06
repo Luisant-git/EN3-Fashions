@@ -28,6 +28,12 @@ export class CreateCouponDto {
   @ApiPropertyOptional({ example: '2025-12-31', description: 'Expiry date' })
   expiryDate?: Date;
 
-  @ApiPropertyOptional({ example: 7, description: 'Specific user ID (for customer-specific coupons)' })
-  specificUserId?: number;
+  @ApiPropertyOptional({ example: false, description: 'Hide from user panel' })
+  isHiddenFromUser?: boolean;
+
+  @ApiPropertyOptional({ example: [7, 8], description: 'Specific user IDs (for customer-specific coupons)' })
+  specificUserIds?: number[];
+
+  @ApiPropertyOptional({ example: ['subtotal', 'delivery'], enum: ['subtotal', 'delivery', 'cod'], isArray: true, description: 'Target categories for discount' })
+  applyTo?: string[];
 }

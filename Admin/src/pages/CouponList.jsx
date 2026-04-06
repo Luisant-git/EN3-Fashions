@@ -50,8 +50,11 @@ const CouponList = () => {
         <div className="coupon-code">
           <Percent size={16} className="coupon-icon" />
           <span className="code">{value}</span>
-          {row.specificUser && (
-            <span className="customer-badge" title={`For: ${row.specificUser.name || row.specificUser.phone}`}>👤</span>
+          {row.specificUsers && row.specificUsers.length > 0 && (
+            <span className="customer-badge" title={`For: ${row.specificUsers.map(u => u.name || u.phone).join(', ')}`}>👥</span>
+          )}
+          {row.isHiddenFromUser && (
+            <span className="customer-badge hidden-badge" title="Hidden from User Panel" style={{marginLeft: '4px'}}>👁️‍🗨️</span>
           )}
         </div>
       )
@@ -77,9 +80,26 @@ const CouponList = () => {
       render: (value) => value ? `₹${value}` : 'No limit'
     },
     { 
-      key: 'specificUser', 
+      key: 'specificUsers', 
       label: 'Customer',
-      render: (value) => value ? `${value.name || 'N/A'} (${value.phone})` : 'All'
+      render: (value, row) => {
+        if (!row.specificUsers || row.specificUsers.length === 0) return 'All';
+        if (row.specificUsers.length === 1) return `${row.specificUsers[0].name || 'N/A'} (${row.specificUsers[0].phone})`;
+        return `${row.specificUsers.length} Customers`;
+      }
+    },
+    { 
+      key: 'applyTo', 
+      label: 'Applies To',
+      render: (value) => {
+        if (!value || value.length === 0) return 'Subtotal';
+        return value.map(t => {
+          if (t === 'subtotal') return 'Subtotal';
+          if (t === 'delivery') return 'Delivery';
+          if (t === 'cod') return 'COD';
+          return t;
+        }).join(', ');
+      }
     },
     { 
       key: 'usageCount', 

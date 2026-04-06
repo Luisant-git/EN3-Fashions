@@ -124,6 +124,28 @@ const CheckoutPage = () => {
         }
     }, [selectedState, shippingRules]);
 
+    useEffect(() => {
+        if (appliedCoupon) {
+            const revalidate = async () => {
+                try {
+                    const result = await validateCoupon(
+                        appliedCoupon.code, 
+                        subtotal, 
+                        baseDeliveryFee, 
+                        paymentMethod === 'cod' ? codShippingFee : 0, 
+                        token
+                    );
+                    setDiscount(result.discount);
+                } catch (e) {
+                    setAppliedCoupon(null);
+                    setDiscount(0);
+                    // Silent ignore during automatic re-validation
+                }
+            }
+            revalidate();
+        }
+    }, [paymentMethod, subtotal, baseDeliveryFee, codShippingFee]);
+
     const deliveryFee = paymentMethod === 'cod' ? (baseDeliveryFee + codShippingFee) : baseDeliveryFee;
     const subtotalAfterDiscount = subtotal - discount;
     
@@ -366,7 +388,13 @@ const CheckoutPage = () => {
                                             if (!couponCode.trim()) return;
                                             setIsValidatingCoupon(true);
                                             try {
-                                                const result = await validateCoupon(couponCode, subtotal, token);
+                                                const result = await validateCoupon(
+                                                    couponCode, 
+                                                    subtotal, 
+                                                    baseDeliveryFee, 
+                                                    paymentMethod === 'cod' ? codShippingFee : 0, 
+                                                    token
+                                                );
                                                 setAppliedCoupon(result.coupon);
                                                 setDiscount(result.discount);
                                                 toast.success(`Coupon applied! You saved ₹${result.discount}`);
@@ -431,7 +459,10 @@ const CheckoutPage = () => {
                                         </svg>
                                     </div>
                                     <div className="payment-method-info">
-                                        <span className="payment-method-name">Cash on Delivery</span>
+                                        <span className="payment-method-name">
+                                            Cash on Delivery 
+                                            {codShippingFee > 0 && <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>+ ₹{codShippingFee} Charge</span>}
+                                        </span>
                                         <span className="payment-method-desc">Pay in cash upon delivery at your doorstep</span>
                                     </div>
                                 </div>
@@ -455,12 +486,6 @@ const CheckoutPage = () => {
                         <span>Subtotal (incl. GST)</span>
                         <span>₹{subtotal.toFixed(2)}</span>
                     </div>
-                    {discount > 0 && (
-                        <div className="summary-row discount">
-                            <span>Discount</span>
-                            <span>-₹{discount.toFixed(2)}</span>
-                        </div>
-                    )}
                     {selectedState && (
                         <div className="summary-row">
                             <span>Taxable Amount</span>
@@ -502,6 +527,12 @@ const CheckoutPage = () => {
                     {selectedState && !deliveryAvailable && (
                         <div className="summary-row" style={{ color: '#ef4444' }}>
                             <span>Delivery not available for your state</span>
+                        </div>
+                    )}
+                    {discount > 0 && (
+                        <div className="summary-row discount" style={{ borderTop: '1px solid #eee', paddingTop: '8px', color: '#16a34a', fontWeight: '500' }}>
+                            <span>Discount Applied</span>
+                            <span>-₹{discount.toFixed(2)}</span>
                         </div>
                     )}
                     <div className="summary-row total">

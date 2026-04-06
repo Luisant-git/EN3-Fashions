@@ -24,11 +24,11 @@ export class CouponController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Validate coupon code' })
-  @ApiBody({ schema: { properties: { code: { type: 'string' }, orderAmount: { type: 'number' } } } })
+  @ApiBody({ schema: { properties: { code: { type: 'string' }, subtotal: { type: 'number' }, deliveryFee: { type: 'number' }, codFee: { type: 'number' } } } })
   @ApiResponse({ status: 200, description: 'Coupon validated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid coupon' })
-  validate(@Request() req, @Body() body: { code: string; orderAmount: number }) {
-    return this.couponService.validateCoupon(body.code, req.user.userId, body.orderAmount);
+  validate(@Request() req, @Body() body: { code: string; subtotal: number; deliveryFee?: number; codFee?: number }) {
+    return this.couponService.validateCoupon(body.code, req.user.userId, body.subtotal, body.deliveryFee || 0, body.codFee || 0);
   }
 
   @Post()

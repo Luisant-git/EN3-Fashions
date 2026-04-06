@@ -18,12 +18,14 @@ const EditCoupon = () => {
     perUserLimit: '1',
     expiryDate: '',
     isActive: true,
-    specificUserId: null
+    isHiddenFromUser: false,
+    applyTo: ['subtotal'],
+    specificUserIds: []
   })
   const [loading, setLoading] = useState(true)
   const [phoneSearch, setPhoneSearch] = useState('')
   const [customerResults, setCustomerResults] = useState([])
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [selectedCustomers, setSelectedCustomers] = useState([])
   const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
@@ -32,7 +34,7 @@ const EditCoupon = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (phoneSearch.length >= 3 && !selectedCustomer) {
+      if (phoneSearch.length >= 3) {
         searchCustomers()
       } else if (phoneSearch.length < 3) {
         setCustomerResults([])
@@ -54,11 +56,12 @@ const EditCoupon = () => {
         perUserLimit: data.perUserLimit.toString(),
         expiryDate: data.expiryDate ? new Date(data.expiryDate).toISOString().split('T')[0] : '',
         isActive: data.isActive,
-        specificUserId: data.specificUserId
+        isHiddenFromUser: data.isHiddenFromUser,
+        applyTo: data.applyTo || ['subtotal'],
+        specificUserIds: data.specificUsers ? data.specificUsers.map(u => u.id) : []
       })
-      if (data.specificUser) {
-        setSelectedCustomer(data.specificUser)
-        setPhoneSearch(data.specificUser.phone)
+      if (data.specificUsers && data.specificUsers.length > 0) {
+        setSelectedCustomers(data.specificUsers)
       }
     } catch (error) {
       toast.error('Failed to fetch coupon: ' + error.message)
@@ -78,17 +81,19 @@ const EditCoupon = () => {
   }
 
   const selectCustomer = (customer) => {
-    setSelectedCustomer(customer)
-    setPhoneSearch(customer.phone)
-    handleInputChange('specificUserId', customer.id)
+    if (!selectedCustomers.find(c => c.id === customer.id)) {
+      const newCustomers = [...selectedCustomers, customer]
+      setSelectedCustomers(newCustomers)
+      handleInputChange('specificUserIds', newCustomers.map(c => c.id))
+    }
+    setPhoneSearch('')
     setShowDropdown(false)
   }
 
-  const clearCustomer = () => {
-    setSelectedCustomer(null)
-    setPhoneSearch('')
-    handleInputChange('specificUserId', null)
-    setCustomerResults([])
+  const removeCustomer = (id) => {
+    const newCustomers = selectedCustomers.filter(c => c.id !== id)
+    setSelectedCustomers(newCustomers)
+    handleInputChange('specificUserIds', newCustomers.map(c => c.id))
   }
 
   const handleInputChange = (field, value) => {
@@ -111,7 +116,9 @@ const EditCoupon = () => {
         perUserLimit: parseInt(formData.perUserLimit) || 1,
         expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : null,
         isActive: formData.isActive,
-        specificUserId: formData.specificUserId
+        isHiddenFromUser: formData.isHiddenFromUser,
+        applyTo: formData.applyTo,
+        specificUserIds: formData.specificUserIds
       }
       await updateCoupon(id, data)
       toast.success('Coupon updated successfully!')
@@ -158,24 +165,24 @@ const EditCoupon = () => {
             <div className="form-group">
               <label className="form-label">Customer Specific (Optional)</label>
               <div className="customer-search-wrapper">
+                <div className="selected-customers-pills" style={{display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px'}}>
+                  {selectedCustomers.map(customer => (
+                    <div key={customer.id} className="selected-customer-info" style={{margin: 0, display: 'flex', alignItems: 'center', gap: '4px'}}>
+                      {customer.name || 'N/A'} ({customer.phone})
+                      <button type="button" className="clear-customer-btn" onClick={() => removeCustomer(customer.id)} style={{position: 'static', padding: '2px', background: 'none', border: 'none', cursor: 'pointer'}}>
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
                 <input
                   type="text"
                   className="form-input"
                   value={phoneSearch}
                   onChange={(e) => setPhoneSearch(e.target.value)}
                   onFocus={() => phoneSearch.length >= 3 && setShowDropdown(true)}
-                  placeholder="Search by phone number"
-                  disabled={selectedCustomer}
+                  placeholder="Search by phone number to add customers"
                 />
-                {selectedCustomer && (
-                  <button
-                    type="button"
-                    className="clear-customer-btn"
-                    onClick={clearCustomer}
-                  >
-                    <X size={16} />
-                  </button>
-                )}
                 {showDropdown && customerResults.length > 0 && (
                   <div className="customer-dropdown">
                     {customerResults.map((customer) => (
@@ -191,11 +198,6 @@ const EditCoupon = () => {
                   </div>
                 )}
               </div>
-              {selectedCustomer && (
-                <div className="selected-customer-info">
-                  Selected: {selectedCustomer.name || 'N/A'} ({selectedCustomer.phone})
-                </div>
-              )}
               <small className="form-hint">Leave empty for general coupon available to all users</small>
             </div>
 
@@ -230,6 +232,51 @@ const EditCoupon = () => {
                     required
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="form-group full-width">
+              <label className="form-label">Apply Discount To *</label>
+              <div className="checkbox-group" style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.applyTo.includes('subtotal')}
+                    onChange={(e) => {
+                      const newApplyTo = e.target.checked
+                        ? [...formData.applyTo, 'subtotal']
+                        : formData.applyTo.filter(t => t !== 'subtotal');
+                      handleInputChange('applyTo', newApplyTo);
+                    }}
+                  />
+                  Subtotal
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.applyTo.includes('delivery')}
+                    onChange={(e) => {
+                      const newApplyTo = e.target.checked
+                        ? [...formData.applyTo, 'delivery']
+                        : formData.applyTo.filter(t => t !== 'delivery');
+                      handleInputChange('applyTo', newApplyTo);
+                    }}
+                  />
+                  Delivery Fee
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.applyTo.includes('cod')}
+                    onChange={(e) => {
+                      const newApplyTo = e.target.checked
+                        ? [...formData.applyTo, 'cod']
+                        : formData.applyTo.filter(t => t !== 'cod');
+                      handleInputChange('applyTo', newApplyTo);
+                    }}
+                  />
+                  COD Fee
+                </label>
               </div>
             </div>
 
@@ -307,6 +354,19 @@ const EditCoupon = () => {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+            </div>
+
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+              <input
+                type="checkbox"
+                id="isHiddenFromUser"
+                checked={formData.isHiddenFromUser}
+                onChange={(e) => handleInputChange('isHiddenFromUser', e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <label htmlFor="isHiddenFromUser" className="form-label" style={{ marginBottom: 0, cursor: 'pointer' }}>
+                Hide from User Panel
+              </label>
             </div>
           </div>
         </div>

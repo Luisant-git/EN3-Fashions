@@ -7,11 +7,18 @@ export class CouponService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCouponDto: CreateCouponDto) {
+    const { specificUserIds, ...rest } = createCouponDto;
+    const data: any = {
+      ...rest,
+      code: rest.code.toUpperCase(),
+    };
+    if (specificUserIds && specificUserIds.length > 0) {
+      data.specificUsers = {
+        connect: specificUserIds.map((id) => ({ id })),
+      };
+    }
     return this.prisma.coupon.create({
-      data: {
-        ...createCouponDto,
-        code: createCouponDto.code.toUpperCase(),
-      },
+      data,
     });
   }
 
@@ -19,7 +26,7 @@ export class CouponService {
     return this.prisma.coupon.findMany({
       include: { 
         usages: true,
-        specificUser: {
+        specificUsers: {
           select: { id: true, name: true, phone: true, email: true }
         }
       },
@@ -30,17 +37,24 @@ export class CouponService {
   async findOne(id: number) {
     return this.prisma.coupon.findUnique({
       where: { id },
-      include: { usages: true },
+      include: { usages: true, specificUsers: { select: { id: true, name: true, phone: true, email: true } } },
     });
   }
 
   async update(id: number, updateData: Partial<CreateCouponDto>) {
-    if (updateData.code) {
-      updateData.code = updateData.code.toUpperCase();
+    const { specificUserIds, ...rest } = updateData;
+    const data: any = { ...rest };
+    if (data.code) {
+      data.code = data.code.toUpperCase();
+    }
+    if (specificUserIds !== undefined) {
+      data.specificUsers = {
+        set: specificUserIds.map((userId) => ({ id: userId })),
+      };
     }
     return this.prisma.coupon.update({
       where: { id },
-      data: updateData,
+      data,
     });
   }
 
@@ -48,18 +62,23 @@ export class CouponService {
     return this.prisma.coupon.delete({ where: { id } });
   }
 
-  async validateCoupon(code: string, userId: number, orderAmount: number) {
-    const coupon = await this.prisma.coupon.findUnique({
+  async validateCoupon(code: string, userId: number, subtotal: number, deliveryFee: number = 0, codFee: number = 0) {
+    const coupon = await (this.prisma.coupon as any).findUnique({
       where: { code: code.toUpperCase() },
-      include: { usages: { where: { userId } } },
+      include: { 
+        usages: { where: { userId } },
+        specificUsers: true 
+      },
     });
 
     if (!coupon) {
       throw new BadRequestException('Invalid coupon code');
     }
 
-    if (coupon.specificUserId && coupon.specificUserId !== userId) {
-      throw new BadRequestException('This coupon is not available for your account');
+    if (coupon.specificUsers && coupon.specificUsers.length > 0) {
+      if (!coupon.specificUsers.some(u => u.id === userId)) {
+        throw new BadRequestException('This coupon is not available for your account');
+      }
     }
 
     if (!coupon.isActive) {
@@ -78,19 +97,30 @@ export class CouponService {
       throw new BadRequestException('You have already used this coupon');
     }
 
-    if (orderAmount < coupon.minOrderAmount) {
+    if (subtotal < coupon.minOrderAmount) {
       throw new BadRequestException(`Minimum order amount is ₹${coupon.minOrderAmount}`);
     }
 
+    const targets = coupon.applyTo || ['subtotal'];
+    const totalTargetAmount = targets.reduce((sum, target) => {
+      if (target === 'subtotal') return sum + subtotal;
+      if (target === 'delivery') return sum + deliveryFee;
+      if (target === 'cod') return sum + codFee;
+      return sum;
+    }, 0);
+
     let discount = 0;
     if (coupon.type === 'percentage') {
-      discount = (orderAmount * coupon.value) / 100;
+      discount = (totalTargetAmount * coupon.value) / 100;
       if (coupon.maxDiscount && discount > coupon.maxDiscount) {
         discount = coupon.maxDiscount;
       }
     } else {
       discount = coupon.value;
     }
+
+    // Ensure the discount does not exceed the total targeted amount
+    discount = Math.min(discount, totalTargetAmount);
 
     return { coupon, discount };
   }
@@ -110,6 +140,7 @@ export class CouponService {
   async getActiveCoupons(userId?: number) {
     const whereCondition: any = {
       isActive: true,
+      isHiddenFromUser: false,
       OR: [
         { expiryDate: null },
         { expiryDate: { gte: new Date() } },
@@ -120,13 +151,13 @@ export class CouponService {
       whereCondition.AND = [
         {
           OR: [
-            { specificUserId: null },
-            { specificUserId: userId },
+            { specificUsers: { none: {} } },
+            { specificUsers: { some: { id: userId } } },
           ],
         },
       ];
     } else {
-      whereCondition.specificUserId = null;
+      whereCondition.specificUsers = { none: {} };
     }
 
     const coupons = await this.prisma.coupon.findMany({

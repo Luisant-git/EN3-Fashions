@@ -1,13 +1,13 @@
 import API_BASE_URL from '../config/api';
 
-export const validateCoupon = async (code, orderAmount, token) => {
+export const validateCoupon = async (code, subtotal, deliveryFee = 0, codFee = 0, token) => {
   const response = await fetch(`${API_BASE_URL}/coupons/validate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ code, orderAmount }),
+    body: JSON.stringify({ code, subtotal, deliveryFee, codFee }),
   });
   if (!response.ok) {
     const error = await response.json();

@@ -36,7 +36,9 @@ export class OrderService {
         const result = await this.couponService.validateCoupon(
           createOrderDto.couponCode,
           userId,
-          parseFloat(createOrderDto.subtotal)
+          parseFloat(createOrderDto.subtotal),
+          parseFloat(createOrderDto.deliveryFee || '0'),
+          parseFloat(createOrderDto.codFee || '0')
         );
         discount = result.discount.toString();
         couponCode = createOrderDto.couponCode;
