@@ -494,15 +494,30 @@ const OrdersList = () => {
     pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
     
     pdf.setFontSize(13);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Sales Order No :', 120, 35);
-    pdf.setFont(undefined, 'normal');
-    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, 35);
+    let startY = 35;
     
+    if (order.paymentMethod?.toLowerCase() === 'cod') {
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Cust ID :', 120, startY);
+      pdf.text(`${order.user?.id || order.userId || 'N/A'}`, 145, startY);
+      
+      startY += 7;
+      pdf.text('COD     :', 120, startY);
+      pdf.text(`Rs.${parseFloat(order.total || 0).toFixed(2)}/-`, 145, startY);
+      
+      startY += 8;
+    }
+
     pdf.setFont(undefined, 'bold');
-    pdf.text('Order Date :', 120, 42);
+    pdf.text('Sales Order No :', 120, startY);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, 42);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, startY);
+    
+    startY += 7;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Date :', 120, startY);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, startY);
     
     pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
@@ -694,15 +709,30 @@ const OrdersList = () => {
       pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
       
       pdf.setFontSize(13);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('Sales Order No :', 120, 35);
-      pdf.setFont(undefined, 'normal');
-      pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, 35);
+      let startY = 35;
       
+      if (order.paymentMethod?.toLowerCase() === 'cod') {
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Cust ID :', 120, startY);
+        pdf.text(`${order.user?.id || order.userId || 'N/A'}`, 145, startY);
+        
+        startY += 7;
+        pdf.text('COD     :', 120, startY);
+        pdf.text(`Rs.${parseFloat(order.total || 0).toFixed(2)}/-`, 145, startY);
+        
+        startY += 8;
+      }
+
       pdf.setFont(undefined, 'bold');
-      pdf.text('Order Date :', 120, 42);
+      pdf.text('Sales Order No :', 120, startY);
       pdf.setFont(undefined, 'normal');
-      pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, 42);
+      pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, startY);
+      
+      startY += 7;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Order Date :', 120, startY);
+      pdf.setFont(undefined, 'normal');
+      pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, startY);
       
       pdf.setFontSize(12);
       pdf.setFont(undefined, 'bold');
@@ -998,15 +1028,30 @@ const OrdersList = () => {
     pdf.text('PACKING SLIP', 55, 20, { align: 'center' });
     
     pdf.setFontSize(9);
-    pdf.setFont(undefined, 'bold');
-    pdf.text('Sales Order No :', 55, 35);
-    pdf.setFont(undefined, 'normal');
-    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 81, 35);
+    let startY = 35;
     
+    if (order.paymentMethod?.toLowerCase() === 'cod') {
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Cust ID :', 55, startY);
+      pdf.text(`${order.user?.id || order.userId || 'N/A'}`, 76, startY);
+      
+      startY += 5;
+      pdf.text('COD     :', 55, startY);
+      pdf.text(`Rs.${parseFloat(order.total || 0).toFixed(2)}/-`, 76, startY);
+      
+      startY += 6;
+    }
+
     pdf.setFont(undefined, 'bold');
-    pdf.text('Order Date :', 55, 40);
+    pdf.text('Sales Order No :', 55, startY);
     pdf.setFont(undefined, 'normal');
-    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 76, 40);
+    pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 81, startY);
+    
+    startY += 5;
+    pdf.setFont(undefined, 'bold');
+    pdf.text('Order Date :', 55, startY);
+    pdf.setFont(undefined, 'normal');
+    pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 76, startY);
     
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
