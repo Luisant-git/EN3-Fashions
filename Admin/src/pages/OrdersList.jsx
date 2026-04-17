@@ -532,6 +532,10 @@ const OrdersList = () => {
       shipY += 7;
       pdf.text(address.addressLine1 || '', 20, shipY);
       shipY += 7;
+      if (address.addressLine2) {
+        pdf.text(address.addressLine2, 20, shipY);
+        shipY += 7;
+      }
       pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
       shipY += 7;
       pdf.setFont(undefined, 'bold');
@@ -747,6 +751,10 @@ const OrdersList = () => {
         shipY += 7;
         pdf.text(address.addressLine1 || '', 20, shipY);
         shipY += 7;
+        if (address.addressLine2) {
+          pdf.text(address.addressLine2, 20, shipY);
+          shipY += 7;
+        }
         pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
         shipY += 7;
         pdf.setFont(undefined, 'bold');
@@ -1065,6 +1073,10 @@ const OrdersList = () => {
       shipY += 3.5;
       pdf.text(address.addressLine1 || '', 10, shipY);
       shipY += 3.5;
+      if (address.addressLine2) {
+        pdf.text(address.addressLine2, 10, shipY);
+        shipY += 3.5;
+      }
       pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 10, shipY);
       shipY += 3.5;
       pdf.text('Landmark:', 10, shipY);
