@@ -499,7 +499,7 @@ const OrdersList = () => {
     if (order.paymentMethod?.toLowerCase() === 'cod') {
       pdf.setFont(undefined, 'bold');
       pdf.text('Cust ID :', 120, startY);
-      pdf.text(`${order.user?.id || order.userId || 'N/A'}`, 145, startY);
+      pdf.text(`1857330518`, 145, startY);
       
       startY += 7;
       pdf.text('COD     :', 120, startY);
@@ -718,7 +718,7 @@ const OrdersList = () => {
       if (order.paymentMethod?.toLowerCase() === 'cod') {
         pdf.setFont(undefined, 'bold');
         pdf.text('Cust ID :', 120, startY);
-        pdf.text(`${order.user?.id || order.userId || 'N/A'}`, 145, startY);
+        pdf.text(`1857330518`, 145, startY);
         
         startY += 7;
         pdf.text('COD     :', 120, startY);
@@ -1041,7 +1041,7 @@ const OrdersList = () => {
     if (order.paymentMethod?.toLowerCase() === 'cod') {
       pdf.setFont(undefined, 'bold');
       pdf.text('Cust ID :', 55, startY);
-      pdf.text(`${order.user?.id || order.userId || 'N/A'}`, 76, startY);
+      pdf.text(`1857330518`, 76, startY);
       
       startY += 5;
       pdf.text('COD     :', 55, startY);
