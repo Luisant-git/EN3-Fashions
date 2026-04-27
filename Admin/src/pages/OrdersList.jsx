@@ -101,12 +101,12 @@ const OrdersList = () => {
   const generateInvoicePDF = (order, forDownload = false) => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
-    
+
     // Invoice Title (Centered)
     pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
     pdf.text('INVOICE', 105, 20, { align: 'center' });
-    
+
     // Sold By Section (Left)
     pdf.setFontSize(9);
     pdf.setFont(undefined, 'bold');
@@ -116,19 +116,19 @@ const OrdersList = () => {
     pdf.text('2/3, KPG Buliding, Jothi Theater Road, Valipalayam, Tiruppur,', 15, 45);
     pdf.text('TIRUPPUR, TAMIL NADU, 641601', 15, 50);
     pdf.text('IN', 15, 55);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('PAN No:', 15, 63);
     pdf.setFont(undefined, 'normal');
     pdf.text('AARFK8101F', 35, 63);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('GST No:', 15, 68);
     pdf.setFont(undefined, 'normal');
     pdf.text('33AARFK8101F1ZG', 35, 68);
-    
+
     pdf.line(15, 73, 190, 73);
-    
+
     // Billing Address (Right Top)
     pdf.setFont(undefined, 'bold');
     pdf.text('Billing Address :', 120, 35);
@@ -149,12 +149,12 @@ const OrdersList = () => {
       billingY += 5;
       pdf.text('IN', 120, billingY);
     }
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Number:', 15, 80);
     pdf.setFont(undefined, 'normal');
     pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 42, 80);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 120, 80);
     pdf.setFont(undefined, 'normal');
@@ -186,34 +186,34 @@ const OrdersList = () => {
       pdf.setFont(undefined, 'normal');
       pdf.text(address.state?.toUpperCase() || 'N/A', 152, shippingY);
     }
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date:', 15, 85);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 36, 85);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Invoice Number:', 15, 90);
     pdf.setFont(undefined, 'normal');
     pdf.text(`IN-${order.id}`, 44, 90);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Invoice Date:', 15, 95);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 40, 95);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Mode of Payment:', 15, 100);
     pdf.setFont(undefined, 'normal');
     pdf.text(order.paymentMethod || 'Online', 48, 100);
-    
+
     const tableTop = 128;
     pdf.setFillColor(220, 220, 220);
     pdf.rect(15, tableTop, 180, 8, 'F');
     pdf.setDrawColor(0);
     pdf.line(15, tableTop, 15, tableTop + 8);
     pdf.line(195, tableTop, 195, tableTop + 8);
-    
+
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('Sl.', 17, tableTop + 5);
@@ -222,19 +222,19 @@ const OrdersList = () => {
     pdf.text('Unit Price', 105, tableTop + 5);
     pdf.text('Qty', 130, tableTop + 5);
     pdf.text('Total', 160, tableTop + 5);
-    
+
     pdf.rect(15, tableTop, 180, 8);
     pdf.line(25, tableTop, 25, tableTop + 8);
     pdf.line(85, tableTop, 85, tableTop + 8);
     pdf.line(100, tableTop, 100, tableTop + 8);
     pdf.line(125, tableTop, 125, tableTop + 8);
     pdf.line(150, tableTop, 150, tableTop + 8);
-    
+
     pdf.setFont(undefined, 'normal');
     let yPos = tableTop + 13;
     const tableStartY = yPos;
     let prevRowEndY = tableTop + 8;
-    
+
     order.items?.forEach((item, index) => {
       if (item.type === 'bundle' && item.bundleItems) {
         // For bundles, show each bundle item separately
@@ -242,7 +242,7 @@ const OrdersList = () => {
           const itemPrice = parseFloat(bundleItem.originalPrice) || 0;
           const itemQty = 1;
           const itemTotal = itemPrice;
-          
+
           pdf.text((index + 1).toString() + String.fromCharCode(97 + bIdx), 17, yPos);
           const variantId = bundleItem.sizeVariantId ? ` (${bundleItem.sizeVariantId})` : '';
           const itemDesc = `${item.name.split(' Bundle')[0]} - ${bundleItem.size}, ${bundleItem.color}${variantId}`;
@@ -252,17 +252,17 @@ const OrdersList = () => {
           pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
           pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
           pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
-          
+
           const rowHeight = lines.length * 5 + 5;
           const rowEndY = yPos + rowHeight - 5;
-          
+
           pdf.line(15, rowEndY, 195, rowEndY);
           pdf.line(25, prevRowEndY, 25, rowEndY);
           pdf.line(85, prevRowEndY, 85, rowEndY);
           pdf.line(100, prevRowEndY, 100, rowEndY);
           pdf.line(125, prevRowEndY, 125, rowEndY);
           pdf.line(150, prevRowEndY, 150, rowEndY);
-          
+
           prevRowEndY = rowEndY;
           yPos += rowHeight;
         });
@@ -270,7 +270,7 @@ const OrdersList = () => {
         const itemPrice = parseFloat(item.price) || 0;
         const itemQty = item.quantity || 1;
         const itemTotal = itemPrice * itemQty;
-        
+
         pdf.text((index + 1).toString(), 17, yPos);
         const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
         const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
@@ -280,22 +280,22 @@ const OrdersList = () => {
         pdf.text(`Rs.${itemPrice.toFixed(2)}`, 122, yPos, { align: 'right' });
         pdf.text(itemQty.toString(), 137, yPos, { align: 'center' });
         pdf.text(`Rs.${itemTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
-        
+
         const rowHeight = lines.length * 5 + 5;
         const rowEndY = yPos + rowHeight - 5;
-        
+
         pdf.line(15, rowEndY, 195, rowEndY);
         pdf.line(25, prevRowEndY, 25, rowEndY);
         pdf.line(85, prevRowEndY, 85, rowEndY);
         pdf.line(100, prevRowEndY, 100, rowEndY);
         pdf.line(125, prevRowEndY, 125, rowEndY);
         pdf.line(150, prevRowEndY, 150, rowEndY);
-        
+
         prevRowEndY = rowEndY;
         yPos += rowHeight;
       }
     });
-    
+
     const subtotal = parseFloat(order.subtotal) || 0;
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
@@ -303,9 +303,9 @@ const OrdersList = () => {
     const total = parseFloat(order.total) || 0;
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
-    
+
     console.log('Generating PDF for order:', order.id, { subtotal, deliveryFee, codFee, total });
-    
+
     const gstRate = 5;
     const afterDiscount = subtotal - discount;
     const totalWithDelivery = afterDiscount + deliveryFee + codFee;
@@ -316,19 +316,19 @@ const OrdersList = () => {
     const igstAmount = !isSameState ? gstAmount : 0;
     const taxRate = (gstRate / 2).toFixed(2);
     const igstRate = gstRate.toFixed(2);
-    
+
     yPos += 5;
     pdf.setFont(undefined, 'normal');
     pdf.text('Subtotal (incl. GST):', 30, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
-    
+
     if (discount > 0) {
       pdf.text(`Discount (${order.couponCode || ''})`, 30, yPos);
       pdf.text(`- Rs.${discount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
     }
-    
+
     pdf.text('Delivery Fee (incl. GST):', 30, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
@@ -342,7 +342,7 @@ const OrdersList = () => {
     pdf.text('Taxable Amount:', 30, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
-    
+
     if (isSameState) {
       pdf.text(`CGST (${taxRate}%)`, 30, yPos);
       pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
@@ -355,21 +355,21 @@ const OrdersList = () => {
       pdf.text(`Rs.${igstAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 8;
     }
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('TOTAL:', 30, yPos);
     pdf.text(`Rs.${total.toFixed(2)}`, 190, yPos, { align: 'right' });
-    
+
     yPos += 8;
     pdf.setFont(undefined, 'bold');
     pdf.text('Amount in Words:', 30, yPos);
     pdf.setFont(undefined, 'normal');
     const amountInWords = convertToWords(total);
     pdf.text(amountInWords, 30, yPos + 5);
-    
+
     const finalTableHeight = (yPos + 10) - tableTop;
     pdf.rect(15, tableTop, 180, finalTableHeight);
-    
+
     let footerY = yPos + 50;
     if (footerY > 250) {
       pdf.addPage();
@@ -388,13 +388,13 @@ const OrdersList = () => {
     }
     pdf.setFont(undefined, 'normal');
     pdf.text('Authorized Signatory', 140, footerY - 5);
-    
+
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('Date & Time:', 20, footerY + 6);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date().toLocaleString('en-GB'), 45, footerY + 6);
-    
+
     if (forDownload) {
       pdf.save(`invoice-${order.id}.pdf`);
     }
@@ -411,23 +411,23 @@ const OrdersList = () => {
         // Fetch fresh order data directly from API
         const freshOrders = await fetchOrdersApi();
         const orderToUse = freshOrders.find(o => o.id === selectedOrder.id);
-        
+
         if (!orderToUse) {
           alert('Order not found');
           setUploading(false);
           return;
         }
-        
+
         console.log('Fresh order data:', orderToUse);
         console.log('Order created at:', orderToUse.createdAt);
         console.log('Current time:', new Date().toLocaleString('en-GB'));
-        
+
         // Delete ALL old invoice and package slip files for this order
         await deleteOrderFiles(orderToUse.id).catch(e => console.log('Error deleting old files:', e));
-        
+
         // Wait a moment to ensure deletion completes
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         // Always generate new PDFs
         try {
           console.log('Generating invoice at:', new Date().toLocaleString('en-GB'));
@@ -451,12 +451,12 @@ const OrdersList = () => {
       }
 
       await updateOrderStatus(
-        selectedOrder.id, 
-        newStatus, 
-        invoiceUrl, 
-        packageSlipUrl, 
-        courierName || "not provided", 
-        trackingId || "not provided", 
+        selectedOrder.id,
+        newStatus,
+        invoiceUrl,
+        packageSlipUrl,
+        courierName || "not provided",
+        trackingId || "not provided",
         trackingLink || "not provided"
       );
       await fetchOrders();
@@ -471,7 +471,7 @@ const OrdersList = () => {
 
   const handlePushToShiprocket = async (orderId) => {
     if (!window.confirm('Are you sure you want to push this order to Shiprocket?')) return;
-    
+
     try {
       setLoading(true);
       await pushToShiprocket(orderId);
@@ -488,23 +488,23 @@ const OrdersList = () => {
   const createPackageSlipPDF = (order, yOffset = 0) => {
     const pdf = new jsPDF();
     const address = order.shippingAddress;
-    
+
     pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
     pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
-    
+
     pdf.setFontSize(13);
     let startY = 35;
-    
+
     if (order.paymentMethod?.toLowerCase() === 'cod') {
       pdf.setFont(undefined, 'bold');
       pdf.text('Cust ID :', 120, startY);
       pdf.text(`1857330518`, 145, startY);
-      
+
       startY += 7;
       pdf.text('COD     :', 120, startY);
       pdf.text(`Rs.${parseFloat(order.total || 0).toFixed(2)}/-`, 145, startY);
-      
+
       startY += 8;
     }
 
@@ -512,18 +512,18 @@ const OrdersList = () => {
     pdf.text('Sales Order No :', 120, startY);
     pdf.setFont(undefined, 'normal');
     pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, startY);
-    
+
     startY += 7;
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date :', 120, startY);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, startY);
-    
+
     pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
     pdf.text('SHIP TO:', 20, 60);
     pdf.setFont(undefined, 'normal');
-    
+
     let shipY = 68;
     if (address) {
       pdf.setFont(undefined, 'bold');
@@ -543,12 +543,12 @@ const OrdersList = () => {
       pdf.setFont(undefined, 'normal');
       pdf.text(address.landmark || 'N/A', 50, shipY);
     }
-    
+
     pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
     pdf.text('SHIP FROM:', 120, 100);
     pdf.setFont(undefined, 'normal');
-    
+
     let fromY = 108;
     pdf.text('KPG APPARELS', 120, fromY);
     fromY += 7;
@@ -557,10 +557,10 @@ const OrdersList = () => {
     pdf.text('Valipalayam, Tiruppur,', 120, fromY);
     fromY += 7;
     pdf.text('TAMIL NADU, 641601,', 120, fromY);
-    
+
     pdf.setFont(undefined, 'italic');
     pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
-    
+
     return pdf;
   };
 
@@ -571,29 +571,30 @@ const OrdersList = () => {
 
   const exportAllOrdersExcel = () => {
     let filteredOrders = orders;
-    
+
     // Use the same filtering logic as the table
     filteredOrders = orders.filter(order => {
       const matchesSearch =
         order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesStatus =
         statusFilter === "all" ||
         order.status.toLowerCase() === statusFilter.toLowerCase();
 
-      const matchesCoupon = 
-        !couponFilter ? true : 
-        couponFilter === "any_coupon" ? !!order.couponCode : 
-        order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
-        
+    const matchesCoupon = 
+  !couponFilter ? true :
+  couponFilter === "any_coupon" ? !!order.couponCode :
+  couponFilter === "no_coupon" ? !order.couponCode :
+  order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+
       let matchesDate = true;
       if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
-        
+
         if (start && end) {
           matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
         } else if (start) {
@@ -604,7 +605,7 @@ const OrdersList = () => {
       }
       return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
     });
-    
+
     if (filteredOrders.length === 0) {
       alert('No orders found for the selected date range');
       return;
@@ -629,7 +630,7 @@ const OrdersList = () => {
           qtys.push(item.quantity || 1);
         }
       });
-      
+
       const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
 
       return {
@@ -684,14 +685,14 @@ const OrdersList = () => {
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'All Orders');
-    
+
     const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
     XLSX.writeFile(workbook, `all-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const generateAllPackageSlips = () => {
     const placedOrders = orders.filter(order => order.status === 'Placed');
-    
+
     if (placedOrders.length === 0) {
       alert('No placed orders found');
       return;
@@ -707,23 +708,23 @@ const OrdersList = () => {
       isFirstSlip = false;
 
       const address = order.shippingAddress;
-      
+
       pdf.setFontSize(20);
       pdf.setFont(undefined, 'bold');
       pdf.text('PACKING SLIP', 105, 20, { align: 'center' });
-      
+
       pdf.setFontSize(13);
       let startY = 35;
-      
+
       if (order.paymentMethod?.toLowerCase() === 'cod') {
         pdf.setFont(undefined, 'bold');
         pdf.text('Cust ID :', 120, startY);
         pdf.text(`1857330518`, 145, startY);
-        
+
         startY += 7;
         pdf.text('COD     :', 120, startY);
         pdf.text(`Rs.${parseFloat(order.total || 0).toFixed(2)}/-`, 145, startY);
-        
+
         startY += 8;
       }
 
@@ -731,18 +732,18 @@ const OrdersList = () => {
       pdf.text('Sales Order No :', 120, startY);
       pdf.setFont(undefined, 'normal');
       pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 165, startY);
-      
+
       startY += 7;
       pdf.setFont(undefined, 'bold');
       pdf.text('Order Date :', 120, startY);
       pdf.setFont(undefined, 'normal');
       pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 158, startY);
-      
+
       pdf.setFontSize(12);
       pdf.setFont(undefined, 'bold');
       pdf.text('SHIP TO:', 20, 60);
       pdf.setFont(undefined, 'normal');
-      
+
       let shipY = 68;
       if (address) {
         pdf.setFont(undefined, 'bold');
@@ -762,12 +763,12 @@ const OrdersList = () => {
         pdf.setFont(undefined, 'normal');
         pdf.text(address.landmark || 'N/A', 50, shipY);
       }
-      
+
       pdf.setFontSize(12);
       pdf.setFont(undefined, 'bold');
       pdf.text('SHIP FROM:', 120, 100);
       pdf.setFont(undefined, 'normal');
-      
+
       let fromY = 108;
       pdf.text('KPG APPARELS', 120, fromY);
       fromY += 7;
@@ -776,7 +777,7 @@ const OrdersList = () => {
       pdf.text('Valipalayam, Tiruppur,', 120, fromY);
       fromY += 7;
       pdf.text('TAMIL NADU, 641601,', 120, fromY);
-      
+
       pdf.setFont(undefined, 'italic');
       pdf.text('Thank you for shopping with us!', 105, 150, { align: 'center' });
     });
@@ -786,7 +787,7 @@ const OrdersList = () => {
 
   const exportAbandonedOrdersExcel = () => {
     let abandonedOrders = orders.filter(order => order.status === 'Abandoned');
-    
+
     // Use consistent filtering logic
     abandonedOrders = orders.filter(order => {
       const matchesStatus = order.status === 'Abandoned';
@@ -794,15 +795,19 @@ const OrdersList = () => {
         order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
-        
+
+      const matchesCoupon =
+        !couponFilter ? true :
+          couponFilter === "any_coupon" ? !!order.couponCode :
+            couponFilter === "no_coupon" ? !order.couponCode :
+              order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+
       let matchesDate = true;
       if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
-        
+
         if (start && end) {
           matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
         } else if (start) {
@@ -813,7 +818,7 @@ const OrdersList = () => {
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
     });
-    
+
     if (abandonedOrders.length === 0) {
       alert('No abandoned orders found for the selected date range');
       return;
@@ -838,7 +843,7 @@ const OrdersList = () => {
           qtys.push(item.quantity || 1);
         }
       });
-      
+
       const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
 
       return {
@@ -891,14 +896,14 @@ const OrdersList = () => {
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Abandoned Orders');
-    
+
     const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
     XLSX.writeFile(workbook, `abandoned-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const exportShippedOrdersExcel = () => {
     let shippedOrders = orders.filter(order => order.status === 'Shipped');
-    
+
     // Use consistent filtering logic
     shippedOrders = orders.filter(order => {
       const matchesStatus = order.status === 'Shipped';
@@ -906,15 +911,19 @@ const OrdersList = () => {
         order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCoupon = !couponFilter || order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
-        
+
+      const matchesCoupon =
+        !couponFilter ? true :
+          couponFilter === "any_coupon" ? !!order.couponCode :
+            couponFilter === "no_coupon" ? !order.couponCode :
+              order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+
       let matchesDate = true;
       if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
-        
+
         if (start && end) {
           matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
         } else if (start) {
@@ -925,7 +934,7 @@ const OrdersList = () => {
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
     });
-    
+
     if (shippedOrders.length === 0) {
       alert('No shipped orders found for the selected date range');
       return;
@@ -950,7 +959,7 @@ const OrdersList = () => {
           qtys.push(item.quantity || 1);
         }
       });
-      
+
       const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
 
       return {
@@ -1011,7 +1020,7 @@ const OrdersList = () => {
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipped Orders');
-    
+
     const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
     XLSX.writeFile(workbook, `shipped-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
@@ -1034,19 +1043,19 @@ const OrdersList = () => {
     pdf.setFontSize(12);
     pdf.setFont(undefined, 'bold');
     pdf.text('PACKING SLIP', 55, 20, { align: 'center' });
-    
+
     pdf.setFontSize(9);
     let startY = 35;
-    
+
     if (order.paymentMethod?.toLowerCase() === 'cod') {
       pdf.setFont(undefined, 'bold');
       pdf.text('Cust ID :', 55, startY);
       pdf.text(`1857330518`, 76, startY);
-      
+
       startY += 5;
       pdf.text('COD     :', 55, startY);
       pdf.text(`Rs.${parseFloat(order.total || 0).toFixed(2)}/-`, 76, startY);
-      
+
       startY += 6;
     }
 
@@ -1054,18 +1063,18 @@ const OrdersList = () => {
     pdf.text('Sales Order No :', 55, startY);
     pdf.setFont(undefined, 'normal');
     pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 81, startY);
-    
+
     startY += 5;
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date :', 55, startY);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 76, startY);
-    
+
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('SHIP TO:', 10, 58);
     pdf.setFont(undefined, 'normal');
-    
+
     let shipY = 62;
     if (address) {
       pdf.setFont(undefined, 'bold');
@@ -1083,11 +1092,11 @@ const OrdersList = () => {
       pdf.text(address.landmark || 'N/A', 26, shipY);
       pdf.setFont(undefined, 'normal');
     }
-    
+
     pdf.setFontSize(8);
     pdf.setFont(undefined, 'bold');
     pdf.text('SHIP FROM:', 50, 94);
-    
+
     let fromY = 98;
     pdf.text('KPG APPARELS', 50, fromY);
     fromY += 3.5;
@@ -1099,7 +1108,7 @@ const OrdersList = () => {
     pdf.text('TAMIL NADU,', 50, fromY);
     pdf.text(' 641601', 68, fromY);
     pdf.setFont(undefined, 'normal');
-    
+
     pdf.setFont(undefined, 'italic');
     pdf.text('Thank you for shopping with us!', 52, 130, { align: 'center' });
 
@@ -1107,7 +1116,7 @@ const OrdersList = () => {
     pdf.setFontSize(10);
     pdf.setFont(undefined, 'bold');
     pdf.text('INVOICE', 150, 10);
-    
+
     pdf.setFontSize(5);
     pdf.setFont(undefined, 'bold');
     pdf.text('Sold By :', 108, 16);
@@ -1117,7 +1126,7 @@ const OrdersList = () => {
     pdf.text('Tiruppur,', 108, 23);
     pdf.text('TIRUPPUR, TAMIL NADU, 641601', 108, 25);
     pdf.text('IN', 108, 27);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Billing Address :', 155, 16);
     pdf.setFont(undefined, 'normal');
@@ -1137,7 +1146,7 @@ const OrdersList = () => {
       billY += 2.5;
       pdf.text('IN', 155, billY);
     }
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('PAN No:', 108, 31);
     pdf.setFont(undefined, 'normal');
@@ -1146,14 +1155,14 @@ const OrdersList = () => {
     pdf.text('GST No:', 108, 34);
     pdf.setFont(undefined, 'normal');
     pdf.text('33AARFK8101F1ZG', 120, 34);
-    
+
     pdf.line(108, 37, 202, 37);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Number:', 108, 41);
     pdf.setFont(undefined, 'normal');
     pdf.text(`ORD-${new Date().getFullYear()}-${order.id}`, 122, 41);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Shipping Address :', 155, 41);
     pdf.setFont(undefined, 'normal');
@@ -1185,33 +1194,33 @@ const OrdersList = () => {
       pdf.setFont(undefined, 'normal');
       pdf.text(address.state?.toUpperCase() || 'N/A', 175, shipY);
     }
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Order Date:', 108, 44);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 120, 44);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Invoice Number:', 108, 47);
     pdf.setFont(undefined, 'normal');
     pdf.text(`IN-${order.id}`, 127, 47);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Invoice Date:', 108, 50);
     pdf.setFont(undefined, 'normal');
     pdf.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 123, 50);
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('Mode of Payment:', 108, 53);
     pdf.setFont(undefined, 'normal');
     pdf.text(order.paymentMethod || 'Online', 125, 53);
-    
+
     // Items table
     const tableTop = 68;
     pdf.setFillColor(220, 220, 220);
     pdf.rect(108, tableTop, 94, 6, 'F');
     pdf.rect(108, tableTop, 94, 6);
-    
+
     pdf.setFontSize(5);
     pdf.setFont(undefined, 'bold');
     pdf.text('Sl.', 109, tableTop + 4);
@@ -1220,7 +1229,7 @@ const OrdersList = () => {
     pdf.text('Unit Price', 168, tableTop + 4);
     pdf.text('Qty', 183, tableTop + 4);
     pdf.text('Total', 195, tableTop + 4);
-    
+
     pdf.line(108, tableTop, 108, tableTop + 6);
     pdf.line(115, tableTop, 115, tableTop + 6);
     pdf.line(156, tableTop, 156, tableTop + 6);
@@ -1228,11 +1237,11 @@ const OrdersList = () => {
     pdf.line(181, tableTop, 181, tableTop + 6);
     pdf.line(190, tableTop, 190, tableTop + 6);
     pdf.line(202, tableTop, 202, tableTop + 6);
-    
+
     pdf.setFont(undefined, 'normal');
     let yPos = tableTop + 10;
     const itemStartY = yPos;
-    
+
     order.items?.forEach((item, index) => {
       if (item.type === 'bundle' && item.bundleItems) {
         // For bundles, show each bundle item separately
@@ -1240,7 +1249,7 @@ const OrdersList = () => {
           const itemPrice = parseFloat(bundleItem.originalPrice) || 0;
           const itemQty = 1;
           const itemTotal = itemPrice;
-          
+
           pdf.text((index + 1).toString() + String.fromCharCode(97 + bIdx), 109, yPos);
           const variantId = bundleItem.sizeVariantId ? ` (${bundleItem.sizeVariantId})` : '';
           const itemDesc = `${item.name.split(' Bundle')[0]} - ${bundleItem.size}, ${bundleItem.color}${variantId}`;
@@ -1256,7 +1265,7 @@ const OrdersList = () => {
         const itemPrice = parseFloat(item.price) || 0;
         const itemQty = item.quantity || 1;
         const itemTotal = itemPrice * itemQty;
-        
+
         pdf.text((index + 1).toString(), 109, yPos);
         const variantId = item.sizeVariantId ? ` (${item.sizeVariantId})` : '';
         const itemDesc = item.size && item.color ? `${item.name} - ${item.size}, ${item.color}${variantId}` : item.name || 'N/A';
@@ -1269,7 +1278,7 @@ const OrdersList = () => {
         yPos += Math.max(lines.length * 2.5, 4);
       }
     });
-    
+
     const itemEndY = yPos;
     pdf.line(108, itemEndY, 202, itemEndY);
     pdf.line(108, tableTop + 6, 108, itemEndY);
@@ -1279,7 +1288,7 @@ const OrdersList = () => {
     pdf.line(181, tableTop + 6, 181, itemEndY);
     pdf.line(190, tableTop + 6, 190, itemEndY);
     pdf.line(202, tableTop + 6, 202, itemEndY);
-    
+
     yPos += 3;
     const pricingStartY = yPos;
     const subtotal = parseFloat(order.subtotal) || 0;
@@ -1297,18 +1306,18 @@ const OrdersList = () => {
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
     const sgstAmount = isSameState ? (gstAmount / 2) : 0;
     const igstAmount = !isSameState ? gstAmount : 0;
-    
+
     pdf.setFont(undefined, 'normal');
     pdf.text('Subtotal (incl. GST):', 118, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 200, yPos, { align: 'right' });
     yPos += 3;
-    
+
     if (discount > 0) {
       pdf.text(`Discount (${order.couponCode || ''})`, 118, yPos);
       pdf.text(`- Rs.${discount.toFixed(2)}`, 200, yPos, { align: 'right' });
       yPos += 3;
     }
-    
+
     pdf.text('Delivery Fee (incl. GST):', 118, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 200, yPos, { align: 'right' });
     yPos += 3;
@@ -1318,11 +1327,11 @@ const OrdersList = () => {
       pdf.text(`Rs.${codFee.toFixed(2)}`, 200, yPos, { align: 'right' });
       yPos += 3;
     }
-    
+
     pdf.text('Taxable Amount:', 118, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
     yPos += 3;
-    
+
     if (isSameState) {
       pdf.text(`CGST (2.50%)`, 118, yPos);
       pdf.text(`Rs.${cgstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
@@ -1335,21 +1344,21 @@ const OrdersList = () => {
       pdf.text(`Rs.${igstAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
       yPos += 3;
     }
-    
+
     pdf.setFont(undefined, 'bold');
     pdf.text('TOTAL:', 118, yPos);
     pdf.text(`Rs.${total.toFixed(2)}`, 200, yPos, { align: 'right' });
-    
+
     yPos += 4;
     pdf.text('Amount in Words:', 118, yPos);
     pdf.setFont(undefined, 'normal');
     const amountInWords = convertToWords(total);
     const wordLines = pdf.splitTextToSize(amountInWords, 80);
     pdf.text(wordLines, 118, yPos + 3);
-    
+
     const pricingEndY = yPos + 3 + (wordLines.length * 2.5);
     pdf.rect(108, itemEndY, 94, pricingEndY - itemEndY);
-    
+
     // Authorized Signatory
     let footerY = pricingEndY + 4;
     pdf.setFont(undefined, 'bold');
@@ -1359,11 +1368,11 @@ const OrdersList = () => {
       signatureImg.src = signatureUrl;
       try {
         pdf.addImage(signatureImg, 'PNG', 175, footerY + 2, 20, 6);
-      } catch (e) {}
+      } catch (e) { }
     }
     pdf.setFont(undefined, 'normal');
     pdf.text('Authorized Signatory', 175, footerY + 10);
-    
+
     // Date & Time
     pdf.setFont(undefined, 'bold');
     pdf.text('Date & Time:', 108, footerY + 10);
@@ -1371,25 +1380,25 @@ const OrdersList = () => {
     pdf.text(new Date().toLocaleString('en-GB'), 125, footerY + 10);
     pdf.save(`combined-${order.id}.pdf`);
   };
-  
+
   const convertToWords = (amount) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
     const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    
+
     const rupees = Math.floor(amount);
     const paise = Math.round((amount - rupees) * 100);
-    
+
     if (rupees === 0 && paise === 0) return 'Zero only';
-    
+
     let words = '';
     let num = rupees;
-    
+
     if (num >= 100000) {
       words += ones[Math.floor(num / 100000)] + ' Lakh ';
       num %= 100000;
     }
-    
+
     if (num >= 1000) {
       const thousands = Math.floor(num / 1000);
       if (thousands >= 10) {
@@ -1401,12 +1410,12 @@ const OrdersList = () => {
       words += 'Thousand ';
       num %= 1000;
     }
-    
+
     if (num >= 100) {
       words += ones[Math.floor(num / 100)] + ' Hundred ';
       num %= 100;
     }
-    
+
     if (num >= 20) {
       words += tens[Math.floor(num / 10)] + ' ';
       num %= 10;
@@ -1414,15 +1423,15 @@ const OrdersList = () => {
       words += teens[num - 10] + ' ';
       num = 0;
     }
-    
+
     if (num > 0) {
       words += ones[num] + ' ';
     }
-    
+
     if (rupees > 0) {
       words += 'Rupees ';
     }
-    
+
     if (paise > 0) {
       if (rupees > 0) words += 'and ';
       if (paise >= 20) {
@@ -1435,26 +1444,26 @@ const OrdersList = () => {
       }
       words += 'Paise ';
     }
-    
+
     return words.trim() + ' only';
   };
 
   const downloadModalAsImage = async () => {
     if (!modalRef.current) return;
-    
+
     try {
       // Store original styles
       const modalBody = modalRef.current.querySelector('.modal-body');
       const originalOverflow = modalBody.style.overflow;
       const originalMaxHeight = modalBody.style.maxHeight;
-      
+
       // Remove scroll and height restrictions temporarily
       modalBody.style.overflow = 'visible';
       modalBody.style.maxHeight = 'none';
-      
+
       // Wait for layout to update
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const canvas = await html2canvas(modalRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
@@ -1464,11 +1473,11 @@ const OrdersList = () => {
         scrollX: -window.scrollX,
         windowHeight: modalRef.current.scrollHeight,
       });
-      
+
       // Restore original styles
       modalBody.style.overflow = originalOverflow;
       modalBody.style.maxHeight = originalMaxHeight;
-      
+
       const link = document.createElement('a');
       link.download = `order-${selectedOrder.id}-details.png`;
       link.href = canvas.toDataURL('image/png');
@@ -1479,48 +1488,54 @@ const OrdersList = () => {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" ||
-      order.status.toLowerCase() === statusFilter.toLowerCase();
-      
-    const matchesCoupon = 
-      !couponFilter ? true : 
-      couponFilter === "any_coupon" ? !!order.couponCode : 
-      order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+ const filteredOrders = orders.filter((order) => {
+  const matchesSearch =
+    order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.shippingAddress?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.shippingAddress?.mobile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.shippingAddress?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase());
+  
+  const matchesStatus =
+    statusFilter === "all" ||
+    order.status.toLowerCase() === statusFilter.toLowerCase();
 
-    let matchesDate = true;
-    if (startDate || endDate) {
-      const orderDate = new Date(order.createdAt);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
-      
-      if (start && end) {
-        matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-      } else if (start) {
-        matchesDate = orderDate >= start;
-      } else if (end) {
-        matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
-      }
+  const matchesCoupon = 
+    !couponFilter ? true :
+    couponFilter === "any_coupon" ? !!order.couponCode :
+    couponFilter === "no_coupon" ? !order.couponCode :
+    order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+
+  let matchesDate = true;
+  if (startDate || endDate) {
+    const orderDate = new Date(order.createdAt);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start && end) {
+      matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+    } else if (start) {
+      matchesDate = orderDate >= start;
+    } else if (end) {
+      matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
     }
-      
-    return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
-  });
+  }
 
-  const getStatusCounts = () => {
-    return {
-      pending: orders.filter((o) => o.status === "pending").length,
-      placed: orders.filter((o) => o.status === "Placed").length,
-      accepted: orders.filter((o) => o.status === "Accepted").length,
-      shipped: orders.filter((o) => o.status === "Shipped").length,
-      delivered: orders.filter((o) => o.status === "Delivered").length,
-      abandoned: orders.filter((o) => o.status === "Abandoned").length,
-    };
+  return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
+});
+
+ const getStatusCounts = () => {
+  return {
+    pending: filteredOrders.filter((o) => o.status === "pending").length,
+    placed: filteredOrders.filter((o) => o.status === "Placed").length,
+    accepted: filteredOrders.filter((o) => o.status === "Accepted").length,
+    shipped: filteredOrders.filter((o) => o.status === "Shipped").length,
+    delivered: filteredOrders.filter((o) => o.status === "Delivered").length,
+    abandoned: filteredOrders.filter((o) => o.status === "Abandoned").length,
   };
+};
 
   const statusCounts = getStatusCounts();
 
@@ -1791,6 +1806,7 @@ const OrdersList = () => {
             >
               <option value="">All Orders</option>
               <option value="any_coupon">All Coupons</option>
+              <option value="no_coupon">Orders Without Coupon</option>
               {availableCoupons.map(coupon => (
                 <option key={coupon.id} value={coupon.code}>{coupon.code}</option>
               ))}
@@ -1879,8 +1895,7 @@ const OrdersList = () => {
           )}
         </div>
       </div>
-
-      <div className="table-container">
+ <div className="table-container">
         <DataTable
           data={filteredOrders}
           columns={columns}
@@ -1924,18 +1939,18 @@ const OrdersList = () => {
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
                 </div>
-                <div className="shipping-address" style={{maxWidth: '100%', overflow: 'hidden'}}>
+                <div className="shipping-address" style={{ maxWidth: '100%', overflow: 'hidden' }}>
                   <h4>Shipping Address</h4>
                   {selectedOrder.shippingAddress ? (
-                    <div style={{maxWidth: '100%', overflow: 'hidden'}}>
-                      <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
+                    <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                      <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap' }}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
                       {selectedOrder.shippingAddress.addressLine2 && (
-                        <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
+                        <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap' }}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
                       )}
                       <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
                       <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
                       <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
-                      <p style={{wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap'}}><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
+                      <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap' }}><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
                     </div>
                   ) : (
                     <p>No shipping address provided</p>
@@ -1948,17 +1963,17 @@ const OrdersList = () => {
                   {selectedOrder.items?.map((item, idx) => (
                     <div key={idx} className="order-item">
                       {item.type === 'bundle' ? (
-                        <div style={{width: '100%'}}>
+                        <div style={{ width: '100%' }}>
                           <p><strong>{item.name}</strong></p>
                           <p>Bundle | Qty: {item.quantity} × ₹{item.price}</p>
-                          <div style={{display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap'}}>
+                          <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                             {item.bundleItems?.map((bundle, bIdx) => (
-                              <div key={bIdx} style={{textAlign: 'center'}}>
-                                <img src={bundle.colorImage} alt={bundle.color} style={{width: '60px', height: '60px', objectFit: 'cover'}}/>
-                                <p style={{fontSize: '0.85em', margin: '5px 0 0'}}>{bundle.color} ({bundle.size})</p>
+                              <div key={bIdx} style={{ textAlign: 'center' }}>
+                                <img src={bundle.colorImage} alt={bundle.color} style={{ width: '60px', height: '60px', objectFit: 'cover' }} />
+                                <p style={{ fontSize: '0.85em', margin: '5px 0 0' }}>{bundle.color} ({bundle.size})</p>
                                 {bundle.sizeVariantId && (
-                                  <p style={{fontSize: '0.8em', fontFamily: 'monospace', background: '#fef3c7', padding: '3px 5px', borderRadius: '3px', margin: '3px 0 0'}}>
-                                    Variant ID: <strong style={{fontWeight: '900', fontSize: '1.8em'}}>{bundle.sizeVariantId}</strong>
+                                  <p style={{ fontSize: '0.8em', fontFamily: 'monospace', background: '#fef3c7', padding: '3px 5px', borderRadius: '3px', margin: '3px 0 0' }}>
+                                    Variant ID: <strong style={{ fontWeight: '900', fontSize: '1.8em' }}>{bundle.sizeVariantId}</strong>
                                   </p>
                                 )}
                               </div>
@@ -2070,8 +2085,8 @@ const OrdersList = () => {
                   </div>
                 )}
                 <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <button 
-                    className="btn btn-primary" 
+                  <button
+                    className="btn btn-primary"
                     onClick={handleUpdateStatus}
                     disabled={uploading}
                     style={{ width: '100%', padding: '15px 20px', marginTop: '20px', fontSize: '14px', fontWeight: '600', borderRadius: '6px', border: 'none', backgroundColor: '#4169E1', color: 'white', cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}
