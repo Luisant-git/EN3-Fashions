@@ -12,16 +12,25 @@ export class CustomerController {
     return this.customerService.create(createCustomerDto);
   }
 
-  @Get()
-  findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('search') search: string = '',
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
-    return this.customerService.findAll(+page, +limit, search, startDate, endDate);
-  }
+@Get()
+findAll(
+  @Query('page') page: string = '1',
+  @Query('limit') limit: string = '10',
+  @Query('search') search: string = '',
+  @Query('startDate') startDate?: string,
+  @Query('endDate') endDate?: string,
+  @Query('statusFilter') statusFilter?: string,
+) {
+  return this.customerService.findAll(+page, +limit, search, startDate, endDate, statusFilter);
+}
+
+@Get('stats')
+async getStats(
+  @Query('startDate') startDate?: string,
+  @Query('endDate') endDate?: string,
+) {
+  return this.customerService.getCustomerStats(startDate, endDate);
+}
 
   @Get('search/phone')
   searchByPhone(@Query('phone') phone: string) {

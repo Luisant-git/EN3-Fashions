@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Search, Filter, Eye, Edit, Mail, Phone, MapPin, UserPlus, Download } from 'lucide-react'
-import { getAllCustomers, getAllCustomersForExport } from '../api/customerApi'
+import { Search, UserPlus, Download, Package, X, CreditCard, Users, UserCheck, ShoppingBag, AlertCircle, Phone } from 'lucide-react'
+import { getAllCustomers, getAllCustomersForExport, getCustomerStats } from '../api/customerApi'
 import * as XLSX from 'xlsx'
 
 const CustomerList = () => {
@@ -13,19 +13,56 @@ const CustomerList = () => {
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [endDate, setEndDate] = useState('');
+  const [customerTypeFilter, setCustomerTypeFilter] = useState('all')
+  const [customerStats, setCustomerStats] = useState({
+  totalCustomers: 0,
+  loginCustomers: 0,
+  onlineOrderedCustomers: 0,
+  abandonedCustomers: 0
+});
+
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCustomers()
     }, 500)
     return () => clearTimeout(timer)
-  }, [page, searchTerm])
+  },  [page, searchTerm, customerTypeFilter, startDate, endDate])
+
+  // Debounced date filter for stats (only one useEffect)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchCustomerStats()
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [startDate, endDate])
+
+const fetchCustomerStats = async () => {
+  try {
+    // Pass null/undefined if dates are empty
+    const stats = await getCustomerStats(
+      startDate || undefined, 
+      endDate || undefined
+    );
+    setCustomerStats(stats);
+  } catch (error) {
+    console.error('Error fetching customer stats:', error);
+    setCustomerStats({
+      totalCustomers: 0,
+      loginCustomers: 0,
+      onlineOrderedCustomers: 0,
+      abandonedCustomers: 0
+    });
+  }
+};
+
 
   const fetchCustomers = async () => {
     setLoading(true)
     try {
-      const response = await getAllCustomers(page, limit, searchTerm)
+      const response = await getAllCustomers(page, limit, searchTerm, customerTypeFilter, startDate, endDate)
       setCustomers(response.data)
       setTotal(response.total)
       setTotalPages(response.totalPages)
@@ -34,6 +71,11 @@ const CustomerList = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCardClick = (filter) => {
+    setCustomerTypeFilter(filter)
+    setPage(1)
   }
 
   const exportCustomersExcel = async () => {
@@ -140,7 +182,75 @@ const CustomerList = () => {
           <p>Manage your customer database</p>
         </div>
       </div>
+{/* Customer Statistics Cards */}
+<div className="orders-stats">
+  <div className="stat-card" onClick={() => handleCardClick('all')} style={{ cursor: 'pointer' }}>
+    <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
+      <Users size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{customerStats.totalCustomers}</h3>
+      <p>Total Customers</p>
+    </div>
+  </div>
 
+  <div className="stat-card" onClick={() => handleCardClick('login')} style={{ cursor: 'pointer' }}>
+    <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+      <UserCheck size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{customerStats.loginCustomers}</h3>
+      <p>Login Customers</p>
+    </div>
+  </div>
+
+  <div className="stat-card" onClick={() => handleCardClick('online_paid')} style={{ cursor: 'pointer' }}>
+    <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
+      <ShoppingBag size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{customerStats.onlineOrderedCustomers}</h3>
+      <p>Ordered Customers</p>
+    </div>
+  </div>
+
+  <div className="stat-card" onClick={() => handleCardClick('abandoned')} style={{ cursor: 'pointer' }}>
+    <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+      <AlertCircle size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{customerStats.abandonedCustomers}</h3>
+      <p>Abandoned Customers</p>
+    </div>
+  </div>
+</div>
+
+<div className="status-tabs">
+  <button
+    className={customerTypeFilter === "all" ? "tab active" : "tab"}
+    onClick={() => handleCardClick("all")}
+  >
+    All
+  </button>
+  <button
+    className={customerTypeFilter === "login" ? "tab active" : "tab"}
+    onClick={() => handleCardClick("login")}
+  >
+    Login Customers ({customerStats.loginCustomers})
+  </button>
+  <button
+    className={customerTypeFilter === "online_paid" ? "tab active" : "tab"}
+    onClick={() => handleCardClick("online_paid")}
+  >
+    Ordered Customers ({customerStats.onlineOrderedCustomers})
+  </button>
+  <button
+    className={customerTypeFilter === "abandoned" ? "tab active" : "tab"}
+    onClick={() => handleCardClick("abandoned")}
+  >
+    Abandoned Customers ({customerStats.abandonedCustomers})
+  </button>
+</div>
       <div className="filters-section">
         <div className="search-container">
           <Search size={20} className="search-icon" />
