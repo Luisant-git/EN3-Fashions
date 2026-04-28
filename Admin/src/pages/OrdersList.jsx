@@ -21,6 +21,7 @@ import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import { getCoupons } from "../api/couponApi";
+import { toast } from 'react-toastify';
 
 const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,6 +41,7 @@ const OrdersList = () => {
   const [endDate, setEndDate] = useState("");
   const [couponFilter, setCouponFilter] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [cancelRemarks, setCancelRemarks] = useState("");  
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -91,6 +93,7 @@ const OrdersList = () => {
     setCourierName(order.courierName === "not provided" ? "" : (order.courierName || ""));
     setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
     setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
+     setCancelRemarks(order.cancelRemarks || "");
     setShowEditModal(true);
   };
 
@@ -404,6 +407,14 @@ const OrdersList = () => {
   const handleUpdateStatus = async () => {
     try {
       setUploading(true);
+
+      
+    if (newStatus === 'Cancelled' && !cancelRemarks.trim()) {
+      toast.error('Please enter cancellation remarks');
+      setUploading(false);
+      return;
+    }
+
       let invoiceUrl = null;
       let packageSlipUrl = null;
 
@@ -457,7 +468,8 @@ const OrdersList = () => {
         packageSlipUrl,
         courierName || "not provided",
         trackingId || "not provided",
-        trackingLink || "not provided"
+        trackingLink || "not provided",
+         newStatus === 'Cancelled' ? cancelRemarks : null
       );
       await fetchOrders();
       setShowEditModal(false);
@@ -1907,18 +1919,53 @@ const OrdersList = () => {
       {showViewModal && selectedOrder && (
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef}>
-            <div className="modal-header">
-              <h2>Order Details - #ORD-{selectedOrder.id}</h2>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={downloadModalAsImage} style={{ padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="Download as Image">
-                  <ImageIcon size={16} />
-                </button>
-                <button onClick={() => setShowViewModal(false)}>
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
+     <div className="modal-header">
+  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+    <h2 style={{ margin: 0 }}>Order Details - #ORD-{selectedOrder.id}</h2>
+  </div>
+  <div style={{ display: 'flex', gap: '8px' }}>
+    <button onClick={downloadModalAsImage} style={{ padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="Download as Image">
+      <ImageIcon size={16} />
+    </button>
+    <button onClick={() => setShowViewModal(false)}>
+      <X size={20} />
+    </button>
+  </div>
+</div>
+
+{/* Cancellation Reason - Full width below header */}
+{selectedOrder.status === 'Cancelled' && selectedOrder.cancelRemarks && (
+
+  <div style={{
+    margin: '0 0 20px 0',
+    padding: '12px 16px',
+    backgroundColor: '#fef2f2',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    border: '1px solid #fecaca',
+  }}>
+    <span style={{
+      backgroundColor: '#dc2626',
+      color: 'white',
+      padding: '4px 12px',
+      borderRadius: '20px',
+      fontSize: '11px',
+      fontWeight: '600',
+      whiteSpace: 'nowrap',
+    }}>CANCELLED</span>
+    <span style={{ fontSize: '12px', color: '#991b1b', fontWeight: '500', whiteSpace: 'nowrap' }}>Reason:</span>
+    <span style={{ fontSize: '13px', color: '#7f1d1d', flex: 1, wordBreak: 'break-word' }}>
+      {selectedOrder.cancelRemarks}
+    </span>
+  </div>
+)}
+
             <div className="modal-body">
+   
+
+ 
               <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="order-info">
                   <h4>Order Information</h4>
@@ -1939,6 +1986,8 @@ const OrdersList = () => {
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
                 </div>
+
+               
                 <div className="shipping-address" style={{ maxWidth: '100%', overflow: 'hidden' }}>
                   <h4>Shipping Address</h4>
                   {selectedOrder.shippingAddress ? (
@@ -2020,81 +2069,139 @@ const OrdersList = () => {
               </button>
             </div>
             <div className="modal-body" style={{ padding: '30px' }}>
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                <div style={{ flex: '0 0 200px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Status</label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                  >
-                    <option value="Placed">Placed</option>
-                    <option value="Accepted">Accepted</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-                {newStatus === 'Shipped' && (
-                  <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
-                      📄 Invoice and package slip will be automatically generated and uploaded.
-                    </p>
-                    {selectedOrder?.trackingId ? (
-                      <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#e6f4ea', borderRadius: '6px', border: '1px solid #ceead6' }}>
-                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#137333' }}><strong>✓ Automatically Synced via Shiprocket</strong></p>
-                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Courier:</strong> {selectedOrder.courierName || 'Shiprocket'}</p>
-                        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Tracking ID:</strong> {selectedOrder.trackingId}</p>
-                        {selectedOrder.trackingLink && (
-                          <p style={{ margin: '0', fontSize: '14px', color: '#333' }}>
-                            <strong>Tracking Link:</strong> <a href={selectedOrder.trackingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>Click here to track</a>
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ marginBottom: '15px' }}>
-                          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name (Manual Fallback)</label>
-                          <input
-                            type="text"
-                            value={courierName}
-                            onChange={(e) => setCourierName(e.target.value)}
-                            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                          />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID (Manual Fallback)</label>
-                          <input
-                            type="text"
-                            value={trackingId}
-                            onChange={(e) => setTrackingId(e.target.value)}
-                            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link (Manual Fallback)</label>
-                          <input
-                            type="text"
-                            value={trackingLink}
-                            onChange={(e) => setTrackingLink(e.target.value)}
-                            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-                <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleUpdateStatus}
-                    disabled={uploading}
-                    style={{ width: '100%', padding: '15px 20px', marginTop: '20px', fontSize: '14px', fontWeight: '600', borderRadius: '6px', border: 'none', backgroundColor: '#4169E1', color: 'white', cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}
-                  >
-                    {uploading ? 'Uploading...' : 'Update Status'}
-                  </button>
-                </div>
-              </div>
+             <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+  {/* Status dropdown */}
+  <div style={{ flex: '0 0 200px' }}>
+    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Status</label>
+    <select
+      value={newStatus}
+      onChange={(e) => setNewStatus(e.target.value)}
+      style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+    >
+      <option value="Placed">Placed</option>
+      <option value="Accepted">Accepted</option>
+      <option value="Shipped">Shipped</option>
+      <option value="Delivered">Delivered</option>
+      <option value="Cancelled">Cancelled</option>
+    </select>
+  </div>
+
+  {/* Shipped block */}
+  {newStatus === 'Shipped' && (
+    <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+      <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
+        📄 Invoice and package slip will be automatically generated and uploaded.
+      </p>
+      {selectedOrder?.trackingId ? (
+        <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#e6f4ea', borderRadius: '6px', border: '1px solid #ceead6' }}>
+          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#137333' }}><strong>✓ Automatically Synced via Shiprocket</strong></p>
+          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Courier:</strong> {selectedOrder.courierName || 'Shiprocket'}</p>
+          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Tracking ID:</strong> {selectedOrder.trackingId}</p>
+          {selectedOrder.trackingLink && (
+            <p style={{ margin: '0', fontSize: '14px', color: '#333' }}>
+              <strong>Tracking Link:</strong> <a href={selectedOrder.trackingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>Click here to track</a>
+            </p>
+          )}
+        </div>
+      ) : (
+        <>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name (Manual Fallback)</label>
+            <input
+              type="text"
+              value={courierName}
+              onChange={(e) => setCourierName(e.target.value)}
+              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+            />
+          </div>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID (Manual Fallback)</label>
+            <input
+              type="text"
+              value={trackingId}
+              onChange={(e) => setTrackingId(e.target.value)}
+              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link (Manual Fallback)</label>
+            <input
+              type="text"
+              value={trackingLink}
+              onChange={(e) => setTrackingLink(e.target.value)}
+              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  )}
+
+  {/* Cancelled block */}
+  {/* Cancelled block */}
+{newStatus === 'Cancelled' && (
+  <div
+    style={{
+      flex: '1',
+      padding: '20px',
+      backgroundColor: '#fef2f2',
+      borderRadius: '8px',
+      border: '1px solid #fecaca',
+    }}
+  >
+    <p
+      style={{
+        margin: '0 0 12px 0',
+        fontSize: '13px',
+        color: '#7f1d1d',
+        fontStyle: 'italic',
+      }}
+    >
+      This order will be marked as <strong>Cancelled</strong>. Please enter a clear reason for reference.
+    </p>
+
+    <label
+      style={{
+        display: 'block',
+        marginBottom: '8px',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#991b1b',
+      }}
+    >
+      Cancellation Remarks
+    </label>
+    <textarea
+      value={cancelRemarks}
+      onChange={(e) => setCancelRemarks(e.target.value)}
+     
+      style={{
+        width: '100%',
+        minHeight: '110px',
+        padding: '10px',
+        border: '1px solid #fca5a5',
+        borderRadius: '6px',
+        fontSize: '14px',
+        resize: 'vertical',
+        backgroundColor: '#fff7f7',
+        color: '#111827',
+      }}
+    />
+  </div>
+)}
+
+  {/* Update button */}
+  <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <button
+      className="btn btn-primary"
+      onClick={handleUpdateStatus}
+      disabled={uploading}
+      style={{ width: '100%', padding: '15px 20px', marginTop: '20px', fontSize: '14px', fontWeight: '600', borderRadius: '6px', border: 'none', backgroundColor: '#4169E1', color: 'white', cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}
+    >
+      {uploading ? 'Uploading...' : 'Update Status'}
+    </button>
+  </div>
+</div>
             </div>
           </div>
         </div>

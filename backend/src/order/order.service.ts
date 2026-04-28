@@ -165,7 +165,7 @@ export class OrderService {
     });
   }
  
-  async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string) {
+  async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string, cancelRemarks?: string, ) {
     const updateData: any = {};
     if (status) updateData.status = status;
     if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
@@ -174,6 +174,14 @@ export class OrderService {
     if (trackingId && trackingId !== "not provided") updateData.trackingId = trackingId;
     if (trackingLink && trackingLink !== "not provided") updateData.trackingLink = trackingLink;
    
+
+    
+if (status === 'Cancelled') {
+  updateData.cancelRemarks = cancelRemarks || null;
+} else if (status) {
+  // if we are changing away from Cancelled, clear remarks
+  updateData.cancelRemarks = null;
+}
     const existingOrder = await this.prisma.order.findUnique({
       where: { id: orderId }
     });
@@ -354,4 +362,4 @@ export class OrderService {
       console.error('CRITICAL: Failed to write to SystemErrorLog database table:', e.message);
     }
   }
-}
+}

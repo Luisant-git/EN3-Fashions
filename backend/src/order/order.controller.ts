@@ -70,7 +70,8 @@ export class OrderController {
         updateOrderStatusDto.packageSlipUrl,
         updateOrderStatusDto.courierName,
         updateOrderStatusDto.trackingId,
-        updateOrderStatusDto.trackingLink
+        updateOrderStatusDto.trackingLink,
+          updateOrderStatusDto.cancelRemarks,  
       );
     } catch (error) {
       // Catch native order update crashes

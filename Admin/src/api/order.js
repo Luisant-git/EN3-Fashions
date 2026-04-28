@@ -17,7 +17,7 @@ export const fetchOrders = async () => {
   }
 };
 
-export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink) => {
+export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink, cancelRemarks,   ) => {
   try {
     const body = { status };
     if (invoiceUrl) body.invoiceUrl = invoiceUrl;
@@ -25,6 +25,9 @@ export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlip
     if (courierName) body.courierName = courierName;
     if (trackingId) body.trackingId = trackingId;
     if (trackingLink) body.trackingLink = trackingLink;
+     if (cancelRemarks !== undefined) {
+      body.cancelRemarks = cancelRemarks;
+    }
 
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
       method: 'PATCH',

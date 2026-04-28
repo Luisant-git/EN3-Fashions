@@ -30,4 +30,10 @@ export class UpdateOrderStatusDto {
   @IsOptional()
   @IsString()
   trackingLink?: string;
+
+   
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  cancelRemarks?: string;
 }

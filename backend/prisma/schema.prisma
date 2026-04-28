@@ -222,6 +222,7 @@ model Order {
   trackingId      String?
   trackingLink    String?
   items           OrderItem[]
+  cancelRemarks   String?   
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
