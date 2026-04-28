@@ -164,7 +164,76 @@ export class OrderService {
       orderBy: { createdAt: 'desc' }
     });
   }
- 
+async getOrderStats(startDate?: string, endDate?: string) {
+  try {
+    // Build date filter
+    const dateFilter: any = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) {
+        dateFilter.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.lte = endDateTime;
+      }
+    }
+
+    // Get all orders with date filter
+    const orders = await this.prisma.order.findMany({
+      where: dateFilter,
+      include: {
+        items: true
+      }
+    });
+
+    let totalSales = 0;
+    const uniqueCustomers = new Set<number>();
+    let totalQuantity = 0;
+    let totalValue = 0;
+
+    // Statuses to include in calculations
+    const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
+
+    orders.forEach(order => {
+      // Only include Accepted, Shipped, Delivered orders
+      if (includeStatuses.includes(order.status)) {
+        // Total Sales (count of orders)
+        totalSales += 1;
+        
+        // Total Customers (unique users)
+        if (order.userId) {
+          uniqueCustomers.add(order.userId);
+        }
+        
+        // Total Quantity (sum of all items quantity)
+        order.items?.forEach(item => {
+          if (item.type === 'bundle' && item.bundleItems) {
+            const bundleItems = item.bundleItems as any[];
+            totalQuantity += bundleItems.length;
+          } else {
+            totalQuantity += item.quantity || 0;
+          }
+        });
+        
+        // Total Value (sum of all order totals)
+        totalValue += parseFloat(order.total) || 0;
+      }
+    });
+
+    return {
+      totalSales,
+      totalCustomers: uniqueCustomers.size,
+      totalQuantity,
+      totalValue
+    };
+  } catch (error) {
+    console.error('Error fetching order stats:', error);
+    throw new Error('Failed to fetch order statistics');
+  }
+}
+
   async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string, cancelRemarks?: string, ) {
     const updateData: any = {};
     if (status) updateData.status = status;

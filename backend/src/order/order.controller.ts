@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Patch } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request, Patch, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -54,6 +54,16 @@ export class OrderController {
     return this.orderService.getAllOrders();
   }
  
+  @Get('admin/stats')
+@ApiOperation({ summary: 'Get order statistics (Admin)' })
+@ApiResponse({ status: 200, description: 'Order statistics retrieved successfully' })
+async getOrderStats(
+  @Query('startDate') startDate?: string,
+  @Query('endDate') endDate?: string,
+) {
+  return this.orderService.getOrderStats(startDate, endDate);
+}
+
   @Patch(':orderId/status')
   @ApiOperation({ summary: 'Update order status (Admin)' })
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })

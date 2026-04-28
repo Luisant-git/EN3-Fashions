@@ -13,9 +13,10 @@ import {
   FileText,
   Receipt,
   Image as ImageIcon,
+  Users,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
-import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket } from "../api/order";
+import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats } from "../api/order";
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
@@ -43,12 +44,22 @@ const OrdersList = () => {
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [cancelRemarks, setCancelRemarks] = useState("");  
   const modalRef = useRef(null);
+  const [orderStats, setOrderStats] = useState({
+  totalSales: 0,
+  totalCustomers: 0,
+  totalQuantity: 0,
+  totalValue: 0
+});
 
   useEffect(() => {
     fetchOrders();
     fetchSignature();
     fetchCoupons();
   }, []);
+
+  useEffect(() => {
+  fetchOrderStats();
+}, [startDate, endDate]);
 
   const fetchCoupons = async () => {
     try {
@@ -70,6 +81,16 @@ const OrdersList = () => {
       console.error('Failed to fetch signature:', error);
     }
   };
+
+
+  const fetchOrderStats = async () => {
+  try {
+    const stats = await getOrderStats(startDate, endDate);
+    setOrderStats(stats);
+  } catch (error) {
+    console.error('Error fetching order stats:', error);
+  }
+};
 
   const fetchOrders = async () => {
     try {
@@ -582,125 +603,132 @@ const OrdersList = () => {
   };
 
   const exportAllOrdersExcel = () => {
-    let filteredOrders = orders;
+  // Use filteredOrders which already includes date filter from the existing filteredOrders logic
+  let filteredOrders = orders.filter(order => {
+    const matchesSearch =
+      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Use the same filtering logic as the table
-    filteredOrders = orders.filter(order => {
-      const matchesSearch =
-        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesStatus =
-        statusFilter === "all" ||
-        order.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus =
+      statusFilter === "all" ||
+      order.status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesCoupon = 
-  !couponFilter ? true :
-  couponFilter === "any_coupon" ? !!order.couponCode :
-  couponFilter === "no_coupon" ? !order.couponCode :
-  order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+      !couponFilter ? true :
+      couponFilter === "any_coupon" ? !!order.couponCode :
+      couponFilter === "no_coupon" ? !order.couponCode :
+      order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
 
-      let matchesDate = true;
-      if (startDate || endDate) {
-        const orderDate = new Date(order.createdAt);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
+    // Date filter
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const orderDate = new Date(order.createdAt);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
 
-        if (start && end) {
-          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-        } else if (start) {
-          matchesDate = orderDate >= start;
-        } else if (end) {
-          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
-        }
+      if (start && end) {
+        const endOfDay = new Date(end);
+        endOfDay.setHours(23, 59, 59, 999);
+        matchesDate = orderDate >= start && orderDate <= endOfDay;
+      } else if (start) {
+        matchesDate = orderDate >= start;
+      } else if (end) {
+        const endOfDay = new Date(end);
+        endOfDay.setHours(23, 59, 59, 999);
+        matchesDate = orderDate <= endOfDay;
       }
-      return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
-    });
-
-    if (filteredOrders.length === 0) {
-      alert('No orders found for the selected date range');
-      return;
     }
+    
+    return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
+  });
 
-    const excelData = filteredOrders.map((order, index) => {
-      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
-      order.items?.forEach(item => {
-        if (item.type === 'bundle' && item.bundleItems) {
-          item.bundleItems.forEach(b => {
-            names.push(`${item.name} (${b.color})`);
-            sizes.push(b.size || 'N/A');
-            colors.push(b.color || 'N/A');
-            variantIds.push(b.sizeVariantId || 'N/A');
-            qtys.push(1);
-          });
-        } else {
-          names.push(item.name || 'N/A');
-          sizes.push(item.size || 'N/A');
-          colors.push(item.color || 'N/A');
-          variantIds.push(item.sizeVariantId || 'N/A');
-          qtys.push(item.quantity || 1);
-        }
-      });
+  if (filteredOrders.length === 0) {
+    alert('No orders found for the selected filters');
+    return;
+  }
 
-      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
-
-      return {
-        'S.No': index + 1,
-        'Order ID': `ORD-${order.id}`,
-        'Customer': order.user?.name || order.shippingAddress?.fullName || 'N/A',
-        'City': order.shippingAddress?.city || 'N/A',
-        'Phone': order.user?.phone || 'N/A',
-        'Products': `${names.length || 0} items`,
-        'Product Name': names.join(', \n') || 'N/A',
-        'Size': sizes.join(', \n') || 'N/A',
-        'Color': colors.join(', \n') || 'N/A',
-        'Variant ID': variantIds.join(', \n') || 'N/A',
-        'Item Qty': qtys.join(', \n') || '0',
-        'Quantity': totalQty,
-        'Total Amount': parseFloat(order.total || 0),
-        'Discount': parseFloat(order.discount || 0),
-        'Coupon Code': order.couponCode || 'N/A',
-        'Status': order.status,
-        'Payment': order.paymentMethod || 'N/A',
-        'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
-        'Settlement Amount': (parseFloat(order.total || 0) - parseFloat(order.deliveryFee || 0)).toFixed(2),
-        'Courier Charges': parseFloat(order.deliveryFee || 0).toFixed(2)
-      };
+  const excelData = filteredOrders.map((order, index) => {
+    let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+    order.items?.forEach(item => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        item.bundleItems.forEach(b => {
+          names.push(`${item.name} (${b.color})`);
+          sizes.push(b.size || 'N/A');
+          colors.push(b.color || 'N/A');
+          variantIds.push(b.sizeVariantId || 'N/A');
+          qtys.push(1);
+        });
+      } else {
+        names.push(item.name || 'N/A');
+        sizes.push(item.size || 'N/A');
+        colors.push(item.color || 'N/A');
+        variantIds.push(item.sizeVariantId || 'N/A');
+        qtys.push(item.quantity || 1);
+      }
     });
 
-    const totals = {
-      'S.No': '',
-      'Order ID': '',
-      'Customer': '',
-      'City': '',
-      'Phone': 'TOTAL',
-      'Products': '',
-      'Product Name': '',
-      'Size': '',
-      'Color': '',
-      'Variant ID': '',
-      'Item Qty': '',
-      'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
-      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
-      'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
-      'Coupon Code': '',
-      'Status': '',
-      'Payment': '',
-      'Order Date': '',
-      'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount'] || 0), 0).toFixed(2),
-      'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges'] || 0), 0).toFixed(2)
+    const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+
+    return {
+      'S.No': index + 1,
+      'Order ID': `ORD-${order.id}`,
+      'Customer': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+      'City': order.shippingAddress?.city || 'N/A',
+      'Phone': order.user?.phone || 'N/A',
+      'Products': `${names.length || 0} items`,
+      'Product Name': names.join(', \n') || 'N/A',
+      'Size': sizes.join(', \n') || 'N/A',
+      'Color': colors.join(', \n') || 'N/A',
+      'Variant ID': variantIds.join(', \n') || 'N/A',
+      'Item Qty': qtys.join(', \n') || '0',
+      'Quantity': totalQty,
+      'Total Amount': parseFloat(order.total || 0),
+      'Discount': parseFloat(order.discount || 0),
+      'Coupon Code': order.couponCode || 'N/A',
+      'Status': order.status,
+      'Payment': order.paymentMethod || 'N/A',
+      'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
+      'Settlement Amount': (parseFloat(order.total || 0) - parseFloat(order.deliveryFee || 0)).toFixed(2),
+      'Courier Charges': parseFloat(order.deliveryFee || 0).toFixed(2)
     };
+  });
 
-    excelData.push(totals);
-
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'All Orders');
-
-    const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
-    XLSX.writeFile(workbook, `all-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  const totals = {
+    'S.No': '',
+    'Order ID': '',
+    'Customer': '',
+    'City': '',
+    'Phone': 'TOTAL',
+    'Products': '',
+    'Product Name': '',
+    'Size': '',
+    'Color': '',
+    'Variant ID': '',
+    'Item Qty': '',
+    'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
+    'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+    'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
+    'Coupon Code': '',
+    'Status': '',
+    'Payment': '',
+    'Order Date': '',
+    'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount'] || 0), 0).toFixed(2),
+    'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges'] || 0), 0).toFixed(2)
   };
+
+  excelData.push(totals);
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+
+  const filterText = statusFilter !== 'all' ? `_${statusFilter}` : '';
+  const couponText = couponFilter ? `_coupon_${couponFilter}` : '';
+  const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+  
+  XLSX.writeFile(workbook, `orders${filterText}${couponText}${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
 
   const generateAllPackageSlips = () => {
     const placedOrders = orders.filter(order => order.status === 'Placed');
@@ -1703,57 +1731,99 @@ const OrdersList = () => {
         </div>
       </div>
 
-      <div className="orders-stats">
-        <div
-          className="stat-card"
-          onClick={() => setStatusFilter("placed")}
-        >
-          <div className="stat-icon placed">
-            <Package size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>{statusCounts.placed}</h3>
-            <p>Placed</p>
-          </div>
-        </div>
-        <div className="stat-card" onClick={() => setStatusFilter("accepted")}>
-          <div className="stat-icon accepted" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>{statusCounts.accepted}</h3>
-            <p>Accepted</p>
-          </div>
-        </div>
-        <div className="stat-card" onClick={() => setStatusFilter("shipped")}>
-          <div className="stat-icon shipped">
-            <Truck size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>{statusCounts.shipped}</h3>
-            <p>Shipped</p>
-          </div>
-        </div>
-        <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
-          <div className="stat-icon delivered" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>{statusCounts.delivered}</h3>
-            <p>Delivered</p>
-          </div>
-        </div>
-        <div className="stat-card" onClick={() => setStatusFilter("abandoned")}>
-          <div className="stat-icon abandoned">
-            <X size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>{statusCounts.abandoned}</h3>
-            <p>Abandoned</p>
-          </div>
-        </div>
-      </div>
+    <div className="orders-stats">
+  {/* Status Filter Cards - First */}
+  <div className="stat-card" onClick={() => setStatusFilter("placed")}>
+    <div className="stat-icon placed">
+      <Package size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.placed}</h3>
+      <p>Placed</p>
+    </div>
+  </div>
 
+  <div className="stat-card" onClick={() => setStatusFilter("accepted")}>
+    <div className="stat-icon accepted" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+      <CheckCircle size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.accepted}</h3>
+      <p>Accepted</p>
+    </div>
+  </div>
+
+  <div className="stat-card" onClick={() => setStatusFilter("shipped")}>
+    <div className="stat-icon shipped">
+      <Truck size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.shipped}</h3>
+      <p>Shipped</p>
+    </div>
+  </div>
+
+  <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
+    <div className="stat-icon delivered" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+      <CheckCircle size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.delivered}</h3>
+      <p>Delivered</p>
+    </div>
+  </div>
+
+  <div className="stat-card" onClick={() => setStatusFilter("abandoned")}>
+    <div className="stat-icon abandoned">
+      <X size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.abandoned}</h3>
+      <p>Abandoned</p>
+    </div>
+  </div>
+
+  {/* Summary Statistics Cards - Second */}
+  <div className="stat-card">
+    <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
+      <Package size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{orderStats.totalSales}</h3>
+      <p>Total Sales</p>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+      <Users size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{orderStats.totalCustomers}</h3>
+      <p>Total Customers</p>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
+      <Package size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{orderStats.totalQuantity}</h3>
+      <p>Total Quantity</p>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
+      <Receipt size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>₹{orderStats.totalValue.toFixed(2)}</h3>
+      <p>Total Value</p>
+    </div>
+  </div>
+</div>
       <div className="status-tabs">
         <button
           className={statusFilter === "all" ? "tab active" : "tab"}

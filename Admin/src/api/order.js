@@ -17,6 +17,31 @@ export const fetchOrders = async () => {
   }
 };
 
+
+// Get order statistics for dashboard cards
+export const getOrderStats = async (startDate = '', endDate = '') => {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const url = `${API_BASE_URL}/orders/admin/stats${params.toString() ? `?${params.toString()}` : ''}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch order statistics');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink, cancelRemarks,   ) => {
   try {
     const body = { status };
