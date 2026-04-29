@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { Search, UserPlus, Download, Package, X, CreditCard, Users, UserCheck, ShoppingBag, AlertCircle, Phone } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Search, UserPlus, Download, Package,Image as ImageIcon, X, CreditCard, Users, UserCheck, ShoppingBag, AlertCircle, Phone } from 'lucide-react'
 import { getAllCustomers, getAllCustomersForExport, getCustomerStats } from '../api/customerApi'
 import * as XLSX from 'xlsx'
+import html2canvas from 'html2canvas'; 
 
 const CustomerList = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -22,7 +23,7 @@ const CustomerList = () => {
   abandonedCustomers: 0
 });
 
-
+const statsRef = useRef(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -59,6 +60,30 @@ const fetchCustomerStats = async () => {
 };
 
 
+const downloadCustomerStatsAsImage = async () => {
+  if (!statsRef.current) return;
+
+  try {
+    const canvas = await html2canvas(statsRef.current, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      scrollY: -window.scrollY,
+      scrollX: -window.scrollX,
+      windowHeight: statsRef.current.scrollHeight,
+    });
+
+    const link = document.createElement('a');
+    link.download = `customers-summary-stats-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (error) {
+    console.error('Error downloading stats image:', error);
+    alert('Failed to download stats image');
+  }
+};
+
   const fetchCustomers = async () => {
     setLoading(true)
     try {
@@ -78,6 +103,11 @@ const fetchCustomerStats = async () => {
     setPage(1)
   }
 
+
+  const resetDateRange = () => {
+  setStartDate('');
+  setEndDate('');
+};
   const exportCustomersExcel = async () => {
     try {
       // Get all customers for export
@@ -182,45 +212,147 @@ const fetchCustomerStats = async () => {
           <p>Manage your customer database</p>
         </div>
       </div>
-{/* Customer Statistics Cards */}
-<div className="orders-stats">
-  <div className="stat-card" onClick={() => handleCardClick('all')} style={{ cursor: 'pointer' }}>
-    <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
-      <Users size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{customerStats.totalCustomers}</h3>
-      <p>Total Customers</p>
-    </div>
-  </div>
+{/* Customers Summary + Stats (OrdersList image-download style) */}
+<div
+  className="orders-stats"
+  style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+>
+  <div
+    ref={statsRef}
+    style={{
+      marginTop: '4px',
+      padding: '12px 16px',
+      borderRadius: '12px',
+      backgroundColor: '#f9fafb',
+      border: '1px solid #e5e7eb',
+    }}
+  >
+    {/* Header row with title + subtitle + image-download button */}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '12px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3
+          style={{
+            margin: 0,
+            fontSize: '14px',
+            fontWeight: 600,
+            color: '#111827',
+          }}
+        >
+          Customers Summary
+        </h3>
+       
+      </div>
 
-  <div className="stat-card" onClick={() => handleCardClick('login')} style={{ cursor: 'pointer' }}>
-    <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
-      <UserCheck size={24} />
+      {/* SAME LOOK as OrdersList: green pill, image icon, "Download" */}
+      <button
+        type="button"
+        onClick={downloadCustomerStatsAsImage}
+        style={{
+          padding: '6px 10px',
+          borderRadius: '999px',
+          border: 'none',
+          backgroundColor: '#10b981',
+          color: 'white',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '12px',
+          fontWeight: 500,
+        }}
+        title="Download summary as image"
+      >
+        <ImageIcon size={14} />
+        <span>Download</span>
+      </button>
     </div>
-    <div className="stat-content">
-      <h3>{customerStats.loginCustomers}</h3>
-      <p>Login Customers</p>
-    </div>
-  </div>
 
-  <div className="stat-card" onClick={() => handleCardClick('online_paid')} style={{ cursor: 'pointer' }}>
-    <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
-      <ShoppingBag size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{customerStats.onlineOrderedCustomers}</h3>
-      <p>Ordered Customers</p>
-    </div>
-  </div>
+    {/* Stat cards row – same visual as OrdersList cards */}
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '16px',
+      }}
+    >
+      {/* Total Customers */}
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+        onClick={() => handleCardClick('all')}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
+        >
+          <Users size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{customerStats.totalCustomers}</h3>
+          <p>Total Customers</p>
+        </div>
+      </div>
 
-  <div className="stat-card" onClick={() => handleCardClick('abandoned')} style={{ cursor: 'pointer' }}>
-    <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
-      <AlertCircle size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{customerStats.abandonedCustomers}</h3>
-      <p>Abandoned Customers</p>
+      {/* Login Customers */}
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+        onClick={() => handleCardClick('login')}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}
+        >
+          <UserCheck size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{customerStats.loginCustomers}</h3>
+          <p>Login Customers</p>
+        </div>
+      </div>
+
+      {/* Ordered Customers */}
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+        onClick={() => handleCardClick('online_paid')}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}
+        >
+          <ShoppingBag size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{customerStats.onlineOrderedCustomers}</h3>
+          <p>Ordered Customers</p>
+        </div>
+      </div>
+
+      {/* Abandoned Customers */}
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+        onClick={() => handleCardClick('abandoned')}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}
+        >
+          <AlertCircle size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{customerStats.abandonedCustomers}</h3>
+          <p>Abandoned Customers</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -262,32 +394,104 @@ const fetchCustomerStats = async () => {
             className="search-input"
           />
         </div>
-        <div className="date-filter-container" style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>From Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="form-input"
-            />
-          </div>
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>To Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="form-input"
-            />
-          </div>
-          <button
-            className="btn btn-primary"
-            onClick={exportCustomersExcel}
-          >
-            <Download size={16} /> Download Report
-          </button>
-        </div>
+<div
+  className="date-filter-container"
+  style={{ display: 'flex', gap: '12px', alignItems: 'center' }}
+>
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 12px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '8px',
+      border: '1px solid #e0e0e0',
+    }}
+  >
+    <label
+      style={{
+        fontSize: '13px',
+        fontWeight: '500',
+        color: '#555',
+        margin: 0,
+      }}
+    >
+      From:
+    </label>
+    <input
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+      style={{
+        padding: '6px 10px',
+        border: '1px solid #ddd',
+        borderRadius: '6px',
+        fontSize: '13px',
+        outline: 'none',
+        backgroundColor: 'white',
+      }}
+    />
+
+    <label
+      style={{
+        fontSize: '13px',
+        fontWeight: '500',
+        color: '#555',
+        margin: 0,
+      }}
+    >
+      To:
+    </label>
+    <input
+      type="date"
+      value={endDate}
+      onChange={(e) => setEndDate(e.target.value)}
+      style={{
+        padding: '6px 10px',
+        border: '1px solid #ddd',
+        borderRadius: '6px',
+        fontSize: '13px',
+        outline: 'none',
+        backgroundColor: 'white',
+      }}
+    />
+
+    {/* RESET ICON */}
+   <button
+     type="button"
+     onClick={() => {
+       setStartDate("");
+       setEndDate("");
+     }}
+     className="reset-date-btn"
+     title="Reset dates"
+   >
+     <X size={16} />
+   </button>
+  </div>
+
+  <button
+    onClick={exportCustomersExcel}
+    title="Export Customers to Excel"
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '8px 14px',
+      borderRadius: '8px',
+      border: 'none',
+      backgroundColor: '#4169E1',
+      color: '#ffffff',
+      fontSize: '13px',
+      fontWeight: 500,
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    <Download size={16} /> Download Report
+  </button>
+</div>
       </div>
 
       <div className="table-container">

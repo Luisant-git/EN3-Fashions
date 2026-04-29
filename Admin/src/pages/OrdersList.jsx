@@ -44,6 +44,7 @@ const OrdersList = () => {
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [cancelRemarks, setCancelRemarks] = useState("");  
   const modalRef = useRef(null);
+  const statsRef = useRef(null);
   const [orderStats, setOrderStats] = useState({
   totalSales: 0,
   totalCustomers: 0,
@@ -1528,6 +1529,36 @@ const OrdersList = () => {
     }
   };
 
+  const downloadStatsAsImage = async () => {
+  if (!statsRef.current) return;
+
+  try {
+    const canvas = await html2canvas(statsRef.current, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      scrollY: -window.scrollY,
+      scrollX: -window.scrollX,
+      windowHeight: statsRef.current.scrollHeight,
+    });
+
+    const link = document.createElement('a');
+    link.download = `order-summary-stats-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (error) {
+    console.error('Error downloading stats image:', error);
+    alert('Failed to download stats image');
+  }
+};
+
+
+const resetDateRange = () => {
+  setStartDate("");
+  setEndDate("");
+};
+
  const filteredOrders = orders.filter((order) => {
   const matchesSearch =
     order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1731,96 +1762,224 @@ const OrdersList = () => {
         </div>
       </div>
 
-    <div className="orders-stats">
+    
+ <div
+  className="orders-stats"
+  style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+>
   {/* Status Filter Cards - First */}
-  <div className="stat-card" onClick={() => setStatusFilter("placed")}>
-    <div className="stat-icon placed">
-      <Package size={24} />
+  <div
+    style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '16px',
+    }}
+  >
+    <div
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      onClick={() => setStatusFilter("placed")}
+    >
+      <div className="stat-icon placed">
+        <Package size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.placed}</h3>
+        <p>Placed</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>{statusCounts.placed}</h3>
-      <p>Placed</p>
-    </div>
-  </div>
 
-  <div className="stat-card" onClick={() => setStatusFilter("accepted")}>
-    <div className="stat-icon accepted" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
-      <CheckCircle size={24} />
+    <div
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      onClick={() => setStatusFilter("accepted")}
+    >
+      <div
+        className="stat-icon accepted"
+        style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}
+      >
+        <CheckCircle size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.accepted}</h3>
+        <p>Accepted</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>{statusCounts.accepted}</h3>
-      <p>Accepted</p>
-    </div>
-  </div>
 
-  <div className="stat-card" onClick={() => setStatusFilter("shipped")}>
-    <div className="stat-icon shipped">
-      <Truck size={24} />
+    <div
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      onClick={() => setStatusFilter("shipped")}
+    >
+      <div className="stat-icon shipped">
+        <Truck size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.shipped}</h3>
+        <p>Shipped</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>{statusCounts.shipped}</h3>
-      <p>Shipped</p>
-    </div>
-  </div>
 
-  <div className="stat-card" onClick={() => setStatusFilter("delivered")}>
-    <div className="stat-icon delivered" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
-      <CheckCircle size={24} />
+    <div
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      onClick={() => setStatusFilter("delivered")}
+    >
+      <div
+        className="stat-icon delivered"
+        style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}
+      >
+        <CheckCircle size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.delivered}</h3>
+        <p>Delivered</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>{statusCounts.delivered}</h3>
-      <p>Delivered</p>
-    </div>
-  </div>
 
-  <div className="stat-card" onClick={() => setStatusFilter("abandoned")}>
-    <div className="stat-icon abandoned">
-      <X size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{statusCounts.abandoned}</h3>
-      <p>Abandoned</p>
+    <div
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      onClick={() => setStatusFilter("abandoned")}
+    >
+      <div className="stat-icon abandoned">
+        <X size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.abandoned}</h3>
+        <p>Abandoned</p>
+      </div>
     </div>
   </div>
 
   {/* Summary Statistics Cards - Second */}
-  <div className="stat-card">
-    <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
-      <Package size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{orderStats.totalSales}</h3>
-      <p>Total Sales</p>
-    </div>
-  </div>
+  <div
+    ref={statsRef}
+    style={{
+      marginTop: '4px',
+      padding: '12px 16px',
+      borderRadius: '12px',
+      backgroundColor: '#f9fafb',
+      border: '1px solid #e5e7eb',
+    }}
+  >
+    {/* Header row with title + icon */}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '12px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3
+          style={{
+            margin: 0,
+            fontSize: '14px',
+            fontWeight: 600,
+            color: '#111827',
+          }}
+        >
+         Sales Summary
+        </h3>
+       
+      </div>
 
-  <div className="stat-card">
-    <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
-      <Users size={24} />
+      <button
+        type="button"
+        onClick={downloadStatsAsImage}
+        style={{
+          padding: '6px 10px',
+          borderRadius: '999px',
+          border: 'none',
+          backgroundColor: '#10b981',
+          color: 'white',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '12px',
+          fontWeight: 500,
+        }}
+        title="Download summary as image"
+      >
+        <ImageIcon size={14} />
+        <span>Download</span>
+      </button>
     </div>
-    <div className="stat-content">
-      <h3>{orderStats.totalCustomers}</h3>
-      <p>Total Customers</p>
-    </div>
-  </div>
 
-  <div className="stat-card">
-    <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
-      <Package size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{orderStats.totalQuantity}</h3>
-      <p>Total Quantity</p>
-    </div>
-  </div>
+    {/* Summary cards row – equal width */}
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '16px',
+      }}
+    >
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px' }}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
+        >
+          <Package size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{orderStats.totalSales}</h3>
+          <p>Total Sales</p>
+        </div>
+      </div>
 
-  <div className="stat-card">
-    <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
-      <Receipt size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>₹{orderStats.totalValue.toFixed(2)}</h3>
-      <p>Total Value</p>
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px' }}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}
+        >
+          <Users size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{orderStats.totalCustomers}</h3>
+          <p>Total Customers</p>
+        </div>
+      </div>
+
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px' }}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}
+        >
+          <Package size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{orderStats.totalQuantity}</h3>
+          <p>Total Quantity</p>
+        </div>
+      </div>
+
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px' }}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}
+        >
+          <Receipt size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>₹{orderStats.totalValue.toFixed(2)}</h3>
+          <p>Total Value</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1894,51 +2053,161 @@ const OrdersList = () => {
               ))}
             </select>
           </div>
-          {statusFilter === "all" && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-                />
-                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-                />
-              </div>
-              <button
-                className="download-all-btn"
-                onClick={exportAllOrdersExcel}
-                title="Export All Orders to Excel"
-              >
-                <Download size={16} /> Download Report
-              </button>
-            </div>
-          )}
+         {statusFilter === "all" && (
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      marginLeft: '12px',
+    }}
+  >
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px 12px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        border: '1px solid #e0e0e0',
+      }}
+    >
+      <label
+        style={{
+          fontSize: '13px',
+          fontWeight: '500',
+          color: '#555',
+        }}
+      >
+        From:
+      </label>
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        style={{
+          padding: '6px 10px',
+          border: '1px solid #ddd',
+          borderRadius: '6px',
+          fontSize: '13px',
+          outline: 'none',
+        }}
+      />
+      <label
+        style={{
+          fontSize: '13px',
+          fontWeight: '500',
+          color: '#555',
+        }}
+      >
+        To:
+      </label>
+      <input
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        style={{
+          padding: '6px 10px',
+          border: '1px solid #ddd',
+          borderRadius: '6px',
+          fontSize: '13px',
+          outline: 'none',
+        }}
+      />
+
+<button
+  type="button"
+  onClick={() => {
+    setStartDate("");
+    setEndDate("");
+  }}
+  className="reset-date-btn"
+  title="Reset dates"
+>
+  <X size={16} />
+</button>
+    </div>
+
+    <button
+      className="download-all-btn"
+      onClick={exportAllOrdersExcel}
+      title="Export All Orders to Excel"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '8px 14px',
+        borderRadius: '8px',
+        border: 'none',
+        backgroundColor: '#4169E1',
+        color: '#ffffff',
+        fontSize: '13px',
+        fontWeight: 500,
+        cursor: 'pointer',
+      }}
+    >
+      <Download size={16} /> Download Report
+    </button>
+  </div>
+)}
           {statusFilter === "abandoned" && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-                />
-                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-                />
-              </div>
+             <div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 12px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '1px solid #e0e0e0',
+  }}
+>
+  <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
+    From:
+  </label>
+  <input
+    type="date"
+    value={startDate}
+    onChange={(e) => setStartDate(e.target.value)}
+    style={{
+      padding: '6px 10px',
+      border: '1px solid #ddd',
+      borderRadius: '6px',
+      fontSize: '13px',
+      outline: 'none',
+    }}
+  />
+  <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
+    To:
+  </label>
+  <input
+    type="date"
+    value={endDate}
+    onChange={(e) => setEndDate(e.target.value)}
+    style={{
+      padding: '6px 10px',
+      border: '1px solid #ddd',
+      borderRadius: '6px',
+      fontSize: '13px',
+      outline: 'none',
+    }}
+  />
+
+  {/* RESET ICON */}
+  <button
+    type="button"
+    onClick={() => {
+      setStartDate("");
+      setEndDate("");
+    }}
+    className="reset-date-btn"
+    title="Reset dates"
+  >
+    <X size={16} />
+  </button>
+</div>
               <button
                 className="download-all-btn"
                 onClick={exportAbandonedOrdersExcel}
@@ -1948,33 +2217,73 @@ const OrdersList = () => {
               </button>
             </div>
           )}
-          {statusFilter === "shipped" && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-                />
-                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }}
-                />
-              </div>
-              <button
-                className="download-all-btn"
-                onClick={exportShippedOrdersExcel}
-                title="Export Shipped Orders to Excel"
-              >
-                <Download size={16} /> Download Report
-              </button>
-            </div>
-          )}
+         {statusFilter === "shipped" && (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px 12px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        border: '1px solid #e0e0e0',
+      }}
+    >
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
+        From:
+      </label>
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        style={{
+          padding: '6px 10px',
+          border: '1px solid #ddd',
+          borderRadius: '6px',
+          fontSize: '13px',
+          outline: 'none',
+        }}
+      />
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
+        To:
+      </label>
+      <input
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        style={{
+          padding: '6px 10px',
+          border: '1px solid #ddd',
+          borderRadius: '6px',
+          fontSize: '13px',
+          outline: 'none',
+        }}
+      />
+
+      {/* RESET ICON */}
+      <button
+        type="button"
+        onClick={() => {
+          setStartDate("");
+          setEndDate("");
+        }}
+        className="reset-date-btn"
+        title="Reset dates"
+      >
+        <X size={16} />
+      </button>
+    </div>
+
+    <button
+      className="download-all-btn"
+      onClick={exportShippedOrdersExcel}
+      title="Export Shipped Orders to Excel"
+    >
+      <Download size={16} /> Download Report
+    </button>
+  </div>
+)}
         </div>
       </div>
  <div className="table-container">

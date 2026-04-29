@@ -421,7 +421,31 @@
           transform: translateY(0);
           box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
         }
+
+        
       }
     }
+  }
+}
+
+.reset-date-btn {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #bfd4ff;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &:hover {
+    background: #4169E1;
+    color: #ffffff;
+    border-color: #4169E1;
   }
 }
