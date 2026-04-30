@@ -3,91 +3,124 @@ import { PrismaClient } from '@prisma/client';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 
-
 @Injectable()
 export class CustomerService {
   private prisma = new PrismaClient();
+
+  private SUCCESS_STATUSES = ['Accepted', 'Shipped', 'Delivered'];
 
   create(createCustomerDto: CreateCustomerDto) {
     return 'This action adds a new customer';
   }
 
- async findAll(page: number = 1, limit: number = 10, search: string = '', startDate?: string, endDate?: string, statusFilter?: string) {
+
+async findAll(
+  page: number = 1,
+  limit: number = 10,
+  search: string = '',
+  startDate?: string,
+  endDate?: string,
+  statusFilter?: string
+) {
   const skip = (page - 1) * limit;
-  
+
   const where: any = {};
-  
-  // Search filter
+
+  // 🔍 SEARCH
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' as any } },
-      { email: { contains: search, mode: 'insensitive' as any } },
-      { phone: { contains: search, mode: 'insensitive' as any } },
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+      { phone: { contains: search, mode: 'insensitive' } },
     ];
   }
-  
-  // Date filter
+
+  // 📅 DATE FILTER (SAFE)
+  let orderDateFilter: any = undefined;
+
   if (startDate || endDate) {
-    where.createdAt = {};
-    if (startDate) {
-      where.createdAt.gte = new Date(startDate);
+    const createdAt: any = {};
+
+    if (startDate && !isNaN(Date.parse(startDate))) {
+      createdAt.gte = new Date(startDate);
     }
-    if (endDate) {
-      const endDateTime = new Date(endDate);
-      endDateTime.setHours(23, 59, 59, 999);
-      where.createdAt.lte = endDateTime;
+
+    if (endDate && !isNaN(Date.parse(endDate))) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      createdAt.lte = end;
+    }
+
+    if (Object.keys(createdAt).length > 0) {
+      orderDateFilter = { createdAt };
     }
   }
 
-  // Get all users first (without pagination for filtering by orders)
-  let allUsers = await this.prisma.user.findMany({
+  // 🎯 STATUS + DATE COMBINED FILTER
+  if (statusFilter === 'ordered') {
+    where.orders = {
+      some: {
+        ...(orderDateFilter || {}),
+        status: { in: this.SUCCESS_STATUSES },
+      },
+    };
+  } 
+  else if (statusFilter === 'abandoned') {
+    where.orders = {
+      some: {
+        ...(orderDateFilter || {}),
+        status: 'Abandoned',
+      },
+    };
+  } 
+  else if (orderDateFilter) {
+    where.orders = {
+      some: orderDateFilter,
+    };
+  }
+
+  // ✅ FETCH USERS
+  const users = await this.prisma.user.findMany({
     where,
     include: {
       orders: {
+        where: {
+          ...(orderDateFilter || {}),
+          status: { in: this.SUCCESS_STATUSES }, // ONLY valid orders
+        },
         select: {
           paymentMethod: true,
           status: true,
           total: true,
-          createdAt: true,  // Add this line
+          createdAt: true,
         },
       },
     },
+    skip,
+    take: limit,
+    orderBy: { createdAt: 'desc' },
   });
 
-  // Apply status filter for online_paid and abandoned
-  if (statusFilter === 'online_paid') {
-    allUsers = allUsers.filter(user => 
-      user.orders.some(order => 
-        order.paymentMethod?.toLowerCase() !== 'cod' && 
-        order.paymentMethod?.toLowerCase() !== 'cash on delivery'
-      )
-    );
-  } else if (statusFilter === 'abandoned') {
-    allUsers = allUsers.filter(user => 
-      user.orders.some(order => order.status === 'Abandoned')
-    );
-  } else if (statusFilter === 'login') {
-    // Login customers are all customers with accounts (already filtered)
-    // No additional filter needed
-  }
+  const total = await this.prisma.user.count({ where });
 
-  const total = allUsers.length;
-  
-  // Apply pagination after filtering
-  const users = allUsers.slice(skip, skip + limit);
-
-  const data = users.map(user => ({
+  const data = users.map((user) => ({
     id: user.id,
     name: user.name || 'N/A',
     email: user.email || 'N/A',
     phone: user.phone || 'N/A',
-    ordersCount: user.orders.length,
-    totalSpent: user.orders.reduce((sum, order) => sum + parseFloat(order.total || '0'), 0),
+    ordersCount: user.orders.length, // ✅ only valid orders
+    totalSpent: user.orders.reduce(
+      (sum, order) => sum + parseFloat(order.total || '0'),
+      0
+    ),
     status: user.isActive ? 'Active' : 'Inactive',
     joinDate: user.createdAt,
-    lastOrder: user.orders.length > 0 
-      ? user.orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0].createdAt 
-      : null,
+    lastOrder:
+      user.orders.length > 0
+        ? user.orders.sort(
+            (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+          )[0].createdAt
+        : null,
   }));
 
   return {
@@ -98,60 +131,123 @@ export class CustomerService {
     totalPages: Math.ceil(total / limit),
   };
 }
+async getCustomerStats(startDate?: string, endDate?: string) {
+  try {
+    // 📅 ORDER DATE FILTER (for orders)
+    const orderDateFilter: any = {};
 
+    if (startDate || endDate) {
+      orderDateFilter.createdAt = {};
+
+      if (startDate && !isNaN(Date.parse(startDate))) {
+        orderDateFilter.createdAt.gte = new Date(startDate);
+      }
+
+      if (endDate && !isNaN(Date.parse(endDate))) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        orderDateFilter.createdAt.lte = end;
+      }
+
+      if (Object.keys(orderDateFilter.createdAt).length === 0) {
+        delete orderDateFilter.createdAt;
+      }
+    }
+
+    // 📅 USER DATE FILTER (for total + login)
+    const userDateFilter: any = {};
+
+    if (startDate || endDate) {
+      userDateFilter.createdAt = {};
+
+      if (startDate && !isNaN(Date.parse(startDate))) {
+        userDateFilter.createdAt.gte = new Date(startDate);
+      }
+
+      if (endDate && !isNaN(Date.parse(endDate))) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        userDateFilter.createdAt.lte = end;
+      }
+
+      if (Object.keys(userDateFilter.createdAt).length === 0) {
+        delete userDateFilter.createdAt;
+      }
+    }
+
+    // ✅ Total customers (NOW FILTERED)
+    const totalCustomers = await this.prisma.user.count({
+      where: userDateFilter,
+    });
+
+    // ✅ Login customers (same as total for now)
+    const loginCustomers = totalCustomers;
+
+    // ✅ Ordered customers
+    const orderedCustomers = await this.prisma.order.groupBy({
+      by: ['userId'],
+      where: {
+        ...orderDateFilter,
+        status: { in: this.SUCCESS_STATUSES },
+      },
+    });
+
+    // ✅ Abandoned customers
+    const abandonedCustomers = await this.prisma.order.groupBy({
+      by: ['userId'],
+      where: {
+        ...orderDateFilter,
+        status: 'Abandoned',
+      },
+    });
+
+    return {
+      totalCustomers,
+      loginCustomers,
+      orderedCustomers: orderedCustomers.length,
+      abandonedCustomers: abandonedCustomers.length,
+    };
+
+  } catch (error) {
+    console.error('Error fetching customer stats:', error);
+    throw new Error('Failed to fetch customer stats');
+  }
+}
+ 
   findOne(id: number) {
-    try {
-      return this.prisma.user.findUnique({
-        where: { id },
-        include: {
-          orders: {
-            select: {
-              id: true,
-              total: true,
-              createdAt: true,
-            },
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        orders: {
+          select: {
+            id: true,
+            total: true,
+            createdAt: true,
           },
         },
-      });
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      throw new Error('Failed to fetch user');
-    }
+      },
+    });
   }
 
   update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    try {
-      return this.prisma.user.update({
-        where: { id },
-        data: updateCustomerDto,
-      });
-    } catch (error) {
-      console.error('Error updating user:', error);
-      throw new Error('Failed to update user');
-    }
+    return this.prisma.user.update({
+      where: { id },
+      data: updateCustomerDto,
+    });
   }
 
   remove(id: number) {
-    try {
-      return this.prisma.user.delete({
-        where: { id },
-      });
-    } catch (error) {
-      console.error('Error removing user:', error);
-      throw new Error('Failed to remove user');
-    }
+    return this.prisma.user.delete({
+      where: { id },
+    });
   }
 
   async searchByPhone(phone: string) {
-    if (!phone || phone.length < 3) {
-      return [];
-    }
+    if (!phone || phone.length < 3) return [];
 
-    const users = await this.prisma.user.findMany({
+    return this.prisma.user.findMany({
       where: {
-        phone: {
-          contains: phone,
-        },
+        phone: { contains: phone },
       },
       select: {
         id: true,
@@ -161,66 +257,5 @@ export class CustomerService {
       },
       take: 10,
     });
-
-    return users;
   }
-
-async getCustomerStats(startDate?: string, endDate?: string) {
-  try {
-    // Build date filter
-    const dateFilter: any = {};
-    if (startDate || endDate) {
-      dateFilter.createdAt = {};
-      if (startDate) {
-        dateFilter.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        const endDateTime = new Date(endDate);
-        endDateTime.setHours(23, 59, 59, 999);
-        dateFilter.createdAt.lte = endDateTime;
-      }
-    }
-
-    // Get all customers with date filter
-    const allCustomers = await this.prisma.user.findMany({
-      where: dateFilter,
-      select: { id: true }
-    });
-
-    // Get all orders with date filter
-    const allOrders = await this.prisma.order.findMany({
-      where: dateFilter,
-      select: {
-        userId: true,
-        paymentMethod: true,
-        status: true
-      }
-    });
-
-    // Get users who placed ONLINE orders (not COD)
-    const onlineOrders = allOrders.filter(order => 
-      order.paymentMethod?.toLowerCase() !== 'cod' && 
-      order.paymentMethod?.toLowerCase() !== 'cash on delivery'
-    );
-    const usersWithOnlineOrders = new Set(onlineOrders.map(order => order.userId).filter(id => id));
-    const onlineOrderedCount = usersWithOnlineOrders.size;
-
-    // Get abandoned orders count (unique users)
-    const abandonedOrders = allOrders.filter(order => order.status === 'Abandoned');
-    const abandonedUsers = new Set(abandonedOrders.map(order => order.userId).filter(id => id));
-    const abandonedCount = abandonedUsers.size;
-
-    return {
-      totalCustomers: allCustomers.length,
-      loginCustomers: allCustomers.length,
-      onlineOrderedCustomers: onlineOrderedCount,
-      abandonedCustomers: abandonedCount
-    };
-  } catch (error) {
-    console.error('Error fetching customer stats:', error);
-    throw new Error('Failed to fetch customer stats');
-  }
-}
-
-
 }

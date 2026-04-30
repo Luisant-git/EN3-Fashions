@@ -19,7 +19,7 @@ const CustomerList = () => {
   const [customerStats, setCustomerStats] = useState({
   totalCustomers: 0,
   loginCustomers: 0,
-  onlineOrderedCustomers: 0,
+ orderedCustomers: 0,
   abandonedCustomers: 0
 });
 
@@ -53,7 +53,7 @@ const fetchCustomerStats = async () => {
     setCustomerStats({
       totalCustomers: 0,
       loginCustomers: 0,
-      onlineOrderedCustomers: 0,
+     orderedCustomers: 0,
       abandonedCustomers: 0
     });
   }
@@ -87,7 +87,14 @@ const downloadCustomerStatsAsImage = async () => {
   const fetchCustomers = async () => {
     setLoading(true)
     try {
-      const response = await getAllCustomers(page, limit, searchTerm, customerTypeFilter, startDate, endDate)
+const response = await getAllCustomers(
+  page,
+  limit,
+  searchTerm,
+  customerTypeFilter, 
+  startDate,
+  endDate
+);
       setCustomers(response.data)
       setTotal(response.total)
       setTotalPages(response.totalPages)
@@ -109,57 +116,64 @@ const downloadCustomerStatsAsImage = async () => {
   setEndDate('');
 };
   const exportCustomersExcel = async () => {
-    try {
-      // Get all customers for export
-      const response = await getAllCustomersForExport();
-      let customersToExport = response.data;
-      
-      // Apply date filtering like in Orders page
-      if (startDate || endDate) {
-        customersToExport = customersToExport.filter(customer => {
-          const customerDate = new Date(customer.joinDate);
-          const start = startDate ? new Date(startDate) : null;
-          const end = endDate ? new Date(endDate) : null;
-          
-          if (start && end) {
-            return customerDate >= start && customerDate <= new Date(end.setHours(23, 59, 59));
-          } else if (start) {
-            return customerDate >= start;
-          } else if (end) {
-            return customerDate <= new Date(end.setHours(23, 59, 59));
-          }
-          return true;
-        });
-      }
+  try {
+    let allCustomers = [];
+    let currentPage = 1;
+    const limit = 100; // small batch size (safe)
+    let totalPages = 1;
 
-      if (customersToExport.length === 0) {
-        alert('No customers found for the selected date range');
-        return;
-      }
+    // 🔁 Fetch all pages
+    while (currentPage <= totalPages) {
+      const response = await getAllCustomers(
+        currentPage,
+        limit,
+        searchTerm,
+        customerTypeFilter, // statusFilter
+        startDate,
+        endDate
+      );
 
-      const excelData = customersToExport.map((customer, index) => ({
-        'S.No': index + 1,
-        'Customer Name': customer.name || 'N/A',
-        'Email': customer.email || 'N/A',
-        'Phone': customer.phone || 'N/A',
-        'Total Orders': customer.ordersCount || 0,
-        'Total Spent': `₹${(customer.totalSpent || 0).toFixed(2)}`,
-        'Status': customer.status || 'N/A',
-        'Join Date': customer.joinDate ? new Date(customer.joinDate).toLocaleDateString('en-GB') : 'N/A',
-        'Last Order': customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString('en-GB') : 'N/A'
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
-      
-      const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
-      XLSX.writeFile(workbook, `customers-report${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
-    } catch (error) {
-      console.error('Error exporting customers:', error);
-      alert('Failed to export customers. Please try again.');
+      allCustomers = [...allCustomers, ...response.data];
+      totalPages = response.totalPages;
+      currentPage++;
     }
-  };
+
+    if (allCustomers.length === 0) {
+      alert('No customers found');
+      return;
+    }
+
+    // 📄 Convert to Excel
+    const excelData = allCustomers.map((customer, index) => ({
+      'S.No': index + 1,
+      'Customer Name': customer.name || 'N/A',
+      'Email': customer.email || 'N/A',
+      'Phone': customer.phone || 'N/A',
+      'Total Orders': customer.ordersCount || 0,
+      'Total Spent': `₹${(customer.totalSpent || 0).toFixed(2)}`,
+      'Status': customer.status || 'N/A',
+      'Join Date': customer.joinDate
+        ? new Date(customer.joinDate).toLocaleDateString('en-GB')
+        : 'N/A',
+      'Last Order': customer.lastOrder
+        ? new Date(customer.lastOrder).toLocaleDateString('en-GB')
+        : 'N/A',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
+
+    XLSX.writeFile(
+      workbook,
+      `customers_${new Date().toISOString().split('T')[0]}.xlsx`
+    );
+
+  } catch (error) {
+    console.error('Export error:', error);
+    alert('Export failed');
+  }
+};
 
   const columns = [
     {
@@ -322,7 +336,7 @@ const downloadCustomerStatsAsImage = async () => {
       <div
         className="stat-card"
         style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
-        onClick={() => handleCardClick('online_paid')}
+       onClick={() => handleCardClick('ordered')}
       >
         <div
           className="stat-icon"
@@ -331,7 +345,7 @@ const downloadCustomerStatsAsImage = async () => {
           <ShoppingBag size={24} />
         </div>
         <div className="stat-content">
-          <h3>{customerStats.onlineOrderedCustomers}</h3>
+          <h3>{customerStats.orderedCustomers}</h3>
           <p>Ordered Customers</p>
         </div>
       </div>
@@ -371,10 +385,10 @@ const downloadCustomerStatsAsImage = async () => {
     Login Customers ({customerStats.loginCustomers})
   </button>
   <button
-    className={customerTypeFilter === "online_paid" ? "tab active" : "tab"}
-    onClick={() => handleCardClick("online_paid")}
+    className={customerTypeFilter === "ordered" ? "tab active" : "tab"}
+    onClick={() => handleCardClick("ordered")}
   >
-    Ordered Customers ({customerStats.onlineOrderedCustomers})
+    Ordered Customers ({customerStats.orderedCustomers})
   </button>
   <button
     className={customerTypeFilter === "abandoned" ? "tab active" : "tab"}
