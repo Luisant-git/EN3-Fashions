@@ -9,7 +9,7 @@ export class OverviewService {
     // Only include shipped and placed orders for revenue calculation
     const orders = await this.prisma.order.findMany({
       where: {
-        status: { in: ['Shipped', 'Placed'] }
+        status: { in: ['Shipped', 'Accepted', 'Delivered'] }
       }
     });
     const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total), 0);

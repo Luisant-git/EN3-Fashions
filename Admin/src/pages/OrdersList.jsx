@@ -1628,7 +1628,7 @@ const resetDateRange = () => {
   };
 
   const columns = [
-    { key: "id", label: "Order ID", render: (value) => `#ORD-${value}` },
+    { key: "id", label: "Order ID", render: (value) => <span style={{whiteSpace: 'nowrap'}}>#ORD-{value}</span> },
     {
       key: "user",
       label: "Customer",

@@ -15,7 +15,7 @@ export class DashboardService {
     const currentOrders = await this.prisma.order.findMany({
       where: { 
         createdAt: { gte: thirtyDaysAgo },
-        status: { in: ['Shipped', 'Placed'] }
+        status: { in: ['Shipped', 'Accepted','Delivered'] }
       }
     });
 
@@ -26,7 +26,7 @@ export class DashboardService {
           gte: sixtyDaysAgo,
           lt: thirtyDaysAgo 
         },
-        status: { in: ['Shipped', 'Placed'] }
+        status: { in: ['Shipped', 'Accepted','Delivered'] }
       }
     });
 
