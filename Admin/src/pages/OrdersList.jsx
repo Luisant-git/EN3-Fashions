@@ -1207,7 +1207,9 @@ const OrdersList = () => {
         'Coupon Code': order.couponCode || 'N/A',
         'Discount': parseFloat(order.discount || 0),
         'Payment Method': order.paymentMethod || 'N/A',
-        'Total Amount': parseFloat(order.total || 0)
+        'Total Amount': parseFloat(order.total || 0),
+        'COD Charge': parseFloat(order.codCharge || 0),
+        'Courier Charge': parseFloat(order.courierCharge || 0)
       };
     });
 
@@ -1234,7 +1236,9 @@ const OrdersList = () => {
       'Coupon Code': '',
       'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
       'Payment Method': '',
-      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2)
+      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+      'COD Charge': excelData.reduce((sum, row) => sum + parseFloat(row['COD Charge'] || 0), 0).toFixed(2),
+      'Courier Charge': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charge'] || 0), 0).toFixed(2)
     };
 
     excelData.push(totals);
