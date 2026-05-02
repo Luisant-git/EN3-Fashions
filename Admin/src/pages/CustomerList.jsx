@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Search, UserPlus, Download, Package,Image as ImageIcon, X, CreditCard, Users, UserCheck, ShoppingBag, AlertCircle, Phone } from 'lucide-react'
+import { Search, UserPlus, Download, Package, Image as ImageIcon, X, CreditCard, Users, UserCheck, ShoppingBag, AlertCircle, Phone } from 'lucide-react'
 import { getAllCustomers, getAllCustomersForExport, getCustomerStats } from '../api/customerApi'
 import * as XLSX from 'xlsx'
 import html2canvas from 'html2canvas'; 
@@ -19,7 +19,8 @@ const CustomerList = () => {
   const [customerStats, setCustomerStats] = useState({
   totalCustomers: 0,
   loginCustomers: 0,
- orderedCustomers: 0,
+  orderedCustomers: 0,
+  cancelledCustomers: 0,
   abandonedCustomers: 0
 });
 
@@ -53,7 +54,8 @@ const fetchCustomerStats = async () => {
     setCustomerStats({
       totalCustomers: 0,
       loginCustomers: 0,
-     orderedCustomers: 0,
+      orderedCustomers: 0,
+      cancelledCustomers: 0,
       abandonedCustomers: 0
     });
   }
@@ -310,7 +312,7 @@ const response = await getAllCustomers(
         </div>
         <div className="stat-content">
           <h3>{customerStats.totalCustomers}</h3>
-          <p>Total Customers</p>
+          <p>Total Logged Customers</p>
         </div>
       </div>
 
@@ -328,7 +330,7 @@ const response = await getAllCustomers(
         </div>
         <div className="stat-content">
           <h3>{customerStats.loginCustomers}</h3>
-          <p>Login Customers</p>
+          <p>Non Order Customers</p>
         </div>
       </div>
 
@@ -347,6 +349,24 @@ const response = await getAllCustomers(
         <div className="stat-content">
           <h3>{customerStats.orderedCustomers}</h3>
           <p>Ordered Customers</p>
+        </div>
+      </div>
+
+      {/* Cancelled Customers */}
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+        onClick={() => handleCardClick('cancelled')}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
+        >
+          <X size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{customerStats.cancelledCustomers}</h3>
+          <p>Cancelled Customers</p>
         </div>
       </div>
 
@@ -382,13 +402,19 @@ const response = await getAllCustomers(
     className={customerTypeFilter === "login" ? "tab active" : "tab"}
     onClick={() => handleCardClick("login")}
   >
-    Login Customers ({customerStats.loginCustomers})
+    Non Order Customers ({customerStats.loginCustomers})
   </button>
   <button
     className={customerTypeFilter === "ordered" ? "tab active" : "tab"}
     onClick={() => handleCardClick("ordered")}
   >
     Ordered Customers ({customerStats.orderedCustomers})
+  </button>
+  <button
+    className={customerTypeFilter === "cancelled" ? "tab active" : "tab"}
+    onClick={() => handleCardClick("cancelled")}
+  >
+    Cancelled Customers ({customerStats.cancelledCustomers})
   </button>
   <button
     className={customerTypeFilter === "abandoned" ? "tab active" : "tab"}

@@ -81,6 +81,23 @@
     }
   }
 
+  .filters-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+
+    @media (max-width: 576px) {
+      flex-direction: column;
+      align-items: stretch;
+
+      .search-container {
+        width: 100%;
+      }
+    }
+  }
+
   .customer-profile {
     display: flex;
     align-items: center;
@@ -288,7 +305,10 @@
   margin-bottom: 24px;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 0;
-  
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
+
   .tab {
     padding: 10px 20px;
     font-size: 14px;
@@ -300,16 +320,42 @@
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: -1px;
-    
+    white-space: nowrap;
+    flex-shrink: 0;
+
     &:hover {
       color: #374151;
       background: #f9fafb;
     }
-    
+
     &.active {
       color: #3b82f6;
       border-bottom: 2px solid #3b82f6;
       background: transparent;
+    }
+  }
+}
+
+.date-filter-container {
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: stretch !important;
+
+    > div {
+      flex-wrap: wrap;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input[type="date"] {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+    }
+
+    > button {
+      width: 100%;
+      justify-content: center;
     }
   }
 }

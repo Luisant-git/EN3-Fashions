@@ -57,7 +57,14 @@ async findAll(
   }
 
   // 🎯 STATUS + DATE COMBINED FILTER
-  if (statusFilter === 'ordered') {
+  if (statusFilter === 'login') {
+    where.orders = {
+      none: {
+        status: { in: [...this.SUCCESS_STATUSES, 'Abandoned', 'Cancelled', 'Placed', 'Accepted'] },
+      },
+    };
+  }
+  else if (statusFilter === 'ordered') {
     where.orders = {
       some: {
         ...(orderDateFilter || {}),
@@ -65,6 +72,14 @@ async findAll(
       },
     };
   } 
+  else if (statusFilter === 'cancelled') {
+    where.orders = {
+      some: {
+        ...(orderDateFilter || {}),
+        status: 'Cancelled',
+      },
+    };
+  }
   else if (statusFilter === 'abandoned') {
     where.orders = {
       some: {
@@ -180,8 +195,17 @@ async getCustomerStats(startDate?: string, endDate?: string) {
       where: userDateFilter,
     });
 
-    // ✅ Login customers (same as total for now)
-    const loginCustomers = totalCustomers;
+    // ✅ Login only customers (logged in but NO orders, abandoned, or cancelled)
+    const loginCustomers = await this.prisma.user.count({
+      where: {
+        ...userDateFilter,
+        orders: {
+          none: {
+            status: { in: [...this.SUCCESS_STATUSES, 'Abandoned', 'Cancelled', 'Placed', 'Accepted'] },
+          },
+        },
+      },
+    });
 
     // ✅ Ordered customers
     const orderedCustomers = await this.prisma.order.groupBy({
@@ -189,6 +213,15 @@ async getCustomerStats(startDate?: string, endDate?: string) {
       where: {
         ...orderDateFilter,
         status: { in: this.SUCCESS_STATUSES },
+      },
+    });
+
+    // ✅ Cancelled customers
+    const cancelledCustomers = await this.prisma.order.groupBy({
+      by: ['userId'],
+      where: {
+        ...orderDateFilter,
+        status: 'Cancelled',
       },
     });
 
@@ -205,6 +238,7 @@ async getCustomerStats(startDate?: string, endDate?: string) {
       totalCustomers,
       loginCustomers,
       orderedCustomers: orderedCustomers.length,
+      cancelledCustomers: cancelledCustomers.length,
       abandonedCustomers: abandonedCustomers.length,
     };
 
