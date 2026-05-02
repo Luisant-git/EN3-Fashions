@@ -64,6 +64,12 @@ async getOrderStats(
   return this.orderService.getOrderStats(startDate, endDate);
 }
 
+  @Patch(':orderId/items')
+  @ApiOperation({ summary: 'Update order items with stock adjustment (Admin)' })
+  async updateOrderItems(@Param('orderId') orderId: string, @Body() body: { items: any[] }) {
+    return this.orderService.updateOrderItems(parseInt(orderId), body.items);
+  }
+
   @Patch(':orderId/status')
   @ApiOperation({ summary: 'Update order status (Admin)' })
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })
@@ -81,7 +87,9 @@ async getOrderStats(
         updateOrderStatusDto.courierName,
         updateOrderStatusDto.trackingId,
         updateOrderStatusDto.trackingLink,
-          updateOrderStatusDto.cancelRemarks,  
+        updateOrderStatusDto.cancelRemarks,
+        updateOrderStatusDto.codCharge,
+        updateOrderStatusDto.courierCharge,
       );
     } catch (error) {
       // Catch native order update crashes

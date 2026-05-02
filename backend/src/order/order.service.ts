@@ -234,7 +234,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
   }
 }
 
-  async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string, cancelRemarks?: string, ) {
+  async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string, cancelRemarks?: string, codCharge?: number, courierCharge?: number) {
     const updateData: any = {};
     if (status) updateData.status = status;
     if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
@@ -242,7 +242,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
     if (courierName && courierName !== "not provided") updateData.courierName = courierName;
     if (trackingId && trackingId !== "not provided") updateData.trackingId = trackingId;
     if (trackingLink && trackingLink !== "not provided") updateData.trackingLink = trackingLink;
-   
+    if (codCharge != null) updateData.codCharge = codCharge;
+    if (courierCharge != null) updateData.courierCharge = courierCharge;
 
     
 if (status === 'Cancelled') {
@@ -310,6 +311,66 @@ if (status === 'Cancelled') {
     }
  
     return order;
+  }
+
+  async updateOrderItems(orderId: number, newItems: any[]) {
+    // Get existing order items to restore their stock
+    const existingOrder = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true }
+    });
+    if (!existingOrder) throw new Error('Order not found');
+
+    // Restore stock for old items
+    await this.restoreStock(existingOrder.items as any[]);
+
+    // Update order items in DB
+    await this.prisma.orderItem.deleteMany({ where: { orderId } });
+    await this.prisma.orderItem.createMany({
+      data: newItems.map(item => ({
+        orderId,
+        productId: item.productId || null,
+        name: item.name,
+        price: String(item.price),
+        imageUrl: item.imageUrl,
+        size: item.size || null,
+        color: item.color || null,
+        sizeVariantId: item.sizeVariantId || null,
+        quantity: parseInt(item.quantity) || 1,
+        type: item.type || 'single',
+        bundleItems: item.bundleItems || null,
+        hsnCode: item.hsnCode || null,
+      }))
+    });
+
+    // Deduct stock for new items
+    await this.deductStock(newItems);
+
+    return this.prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+  }
+
+  private async restoreStock(orderItems: any[]) {
+    for (const item of orderItems) {
+      if (!item.productId) continue;
+      const product = await this.prisma.product.findUnique({ where: { id: item.productId } });
+      if (!product || !product.colors) continue;
+      let colors = product.colors as any[];
+      colors = colors.map(color => {
+        if (color.name === item.color) {
+          return {
+            ...color,
+            sizes: color.sizes.map(size => {
+              if (size.size === item.size) {
+                return { ...size, quantity: (parseInt(size.quantity || '0') + (parseInt(item.quantity) || 1)).toString() };
+              }
+              return size;
+            })
+          };
+        }
+        return color;
+      });
+      await this.prisma.product.update({ where: { id: item.productId }, data: { colors } });
+    }
   }
 
   async cleanupOldPendingOrders() {

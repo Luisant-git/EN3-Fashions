@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateOrderStatusDto {
@@ -31,9 +31,18 @@ export class UpdateOrderStatusDto {
   @IsString()
   trackingLink?: string;
 
-   
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   cancelRemarks?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  codCharge?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  courierCharge?: number;
 }

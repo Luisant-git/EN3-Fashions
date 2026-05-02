@@ -223,6 +223,8 @@ model Order {
   trackingLink    String?
   items           OrderItem[]
   cancelRemarks   String?   
+  codCharge       Float?    @default(0)
+  courierCharge   Float?    @default(0)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
