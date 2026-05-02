@@ -28,7 +28,7 @@ const DataTable = ({ data, columns, searchTerm, searchKey }) => {
           <thead>
             <tr>
               {columns.map((column) => (
-                <th key={column.key}>{column.label}</th>
+                <th key={column.key} style={column.width ? { width: column.width, minWidth: column.width } : {}}>{column.label}</th>
               ))}
             </tr>
           </thead>
@@ -36,7 +36,7 @@ const DataTable = ({ data, columns, searchTerm, searchKey }) => {
             {currentData.map((row, index) => (
               <tr key={row.id || index}>
                 {columns.map((column) => (
-                  <td key={column.key}>
+                  <td key={column.key} style={column.width ? { width: column.width, minWidth: column.width } : {}}>
                     {column.render 
                       ? column.render(row[column.key], row)
                       : row[column.key]

@@ -1895,8 +1895,9 @@ const resetDateRange = () => {
     {
       key: "actions",
       label: "Actions",
+      width: '100px',
       render: (_, row) => (
-        <div className="action-buttons">
+        <div className="action-buttons" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 28px)', gap: '10px' }}>
           <button
             className="action-btn view"
             title="View Details"
