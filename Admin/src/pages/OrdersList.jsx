@@ -21,7 +21,7 @@ import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
-import { getCoupons } from "../api/couponApi";
+import { getProducts } from '../api/productApi';
 import { toast } from 'react-toastify';
 
 const OrdersList = () => {
@@ -42,7 +42,9 @@ const OrdersList = () => {
   const [endDate, setEndDate] = useState("");
   const [couponFilter, setCouponFilter] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
-  const [cancelRemarks, setCancelRemarks] = useState("");  
+  const [cancelRemarks, setCancelRemarks] = useState("");
+  const [codCharge, setCodCharge] = useState("");
+  const [courierCharge, setCourierCharge] = useState("");
   const modalRef = useRef(null);
   const statsRef = useRef(null);
   const [orderStats, setOrderStats] = useState({
@@ -104,6 +106,62 @@ const OrdersList = () => {
     }
   };
 
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [editAddress, setEditAddress] = useState({});
+  const [editingItems, setEditingItems] = useState(false);
+  const [editItems, setEditItems] = useState([]);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
+
+  const handleSaveAddress = async () => {
+    try {
+      setSavingOrder(true);
+      await fetch(`${API_BASE_URL}/orders/${selectedOrder.id}/address`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shippingAddress: editAddress }),
+      });
+      await fetchOrders();
+      const updated = orders.find(o => o.id === selectedOrder.id);
+      if (updated) setSelectedOrder({ ...updated, shippingAddress: editAddress });
+      setEditingAddress(false);
+      toast.success('Shipping address updated');
+    } catch (e) {
+      toast.error('Failed to update address');
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
+  const fetchAllProducts = async () => {
+    if (allProducts.length > 0) return;
+    try {
+      const data = await getProducts();
+      setAllProducts(data);
+    } catch (e) {
+      console.error('Failed to fetch products', e);
+    }
+  };
+
+  const handleSaveItems = async () => {
+    try {
+      setSavingOrder(true);
+      await fetch(`${API_BASE_URL}/orders/${selectedOrder.id}/items`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: editItems }),
+      });
+      await fetchOrders();
+      setSelectedOrder(prev => ({ ...prev, items: editItems }));
+      setEditingItems(false);
+      toast.success('Order items updated');
+    } catch (e) {
+      toast.error('Failed to update items');
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setShowViewModal(true);
@@ -116,6 +174,8 @@ const OrdersList = () => {
     setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
     setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
      setCancelRemarks(order.cancelRemarks || "");
+    setCodCharge(order.codCharge || "");
+    setCourierCharge(order.courierCharge || "");
     setShowEditModal(true);
   };
 
@@ -491,7 +551,9 @@ const OrdersList = () => {
         courierName || "not provided",
         trackingId || "not provided",
         trackingLink || "not provided",
-         newStatus === 'Cancelled' ? cancelRemarks : null
+        newStatus === 'Cancelled' ? cancelRemarks : null,
+        codCharge || null,
+        courierCharge || null
       );
       await fetchOrders();
       setShowEditModal(false);
@@ -824,6 +886,125 @@ const OrdersList = () => {
     });
 
     pdf.save(`all-package-slips-placed.pdf`);
+  };
+
+  const exportDeliveredOrdersExcel = () => {
+    const deliveredOrders = orders.filter(order => {
+      const matchesStatus = order.status === 'Delivered';
+      const matchesSearch =
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCoupon =
+        !couponFilter ? true :
+          couponFilter === "any_coupon" ? !!order.couponCode :
+            couponFilter === "no_coupon" ? !order.couponCode :
+              order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+      let matchesDate = true;
+      if (startDate || endDate) {
+        const orderDate = new Date(order.createdAt);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        if (start && end) matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        else if (start) matchesDate = orderDate >= start;
+        else if (end) matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+      }
+      return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
+    });
+    if (deliveredOrders.length === 0) { alert('No delivered orders found for the selected date range'); return; }
+    const excelData = deliveredOrders.map((order, index) => {
+      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+      order.items?.forEach(item => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          item.bundleItems.forEach(b => { names.push(`${item.name} (${b.color})`); sizes.push(b.size || 'N/A'); colors.push(b.color || 'N/A'); variantIds.push(b.sizeVariantId || 'N/A'); qtys.push(1); });
+        } else { names.push(item.name || 'N/A'); sizes.push(item.size || 'N/A'); colors.push(item.color || 'N/A'); variantIds.push(item.sizeVariantId || 'N/A'); qtys.push(item.quantity || 1); }
+      });
+      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+      return {
+        'S.No': index + 1, 'Order ID': `ORD-${order.id}`,
+        'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+        'Phone': order.user?.phone || 'N/A', 'Email': order.user?.email || 'N/A',
+        'City': order.shippingAddress?.city || 'N/A', 'State': order.shippingAddress?.state || 'N/A',
+        'Items Count': names.length || 0, 'Product Name': names.join(', \n') || 'N/A',
+        'Size': sizes.join(', \n') || 'N/A', 'Color': colors.join(', \n') || 'N/A',
+        'Variant ID': variantIds.join(', \n') || 'N/A', 'Item Qty': qtys.join(', \n') || '0',
+        'Total Quantity': totalQty, 'Coupon Code': order.couponCode || 'N/A',
+        'Discount': parseFloat(order.discount || 0), 'Payment Method': order.paymentMethod || 'N/A',
+        'Total Amount': parseFloat(order.total || 0), 'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
+      };
+    });
+    excelData.push({
+      'S.No': '', 'Order ID': '', 'Customer Name': '', 'Phone': '', 'Email': '', 'City': '', 'State': 'TOTAL',
+      'Items Count': excelData.reduce((sum, r) => sum + r['Items Count'], 0), 'Product Name': '', 'Size': '', 'Color': '', 'Variant ID': '', 'Item Qty': '',
+      'Total Quantity': excelData.reduce((sum, r) => sum + r['Total Quantity'], 0), 'Coupon Code': '',
+      'Discount': excelData.reduce((sum, r) => sum + parseFloat(r['Discount'] || 0), 0).toFixed(2), 'Payment Method': '',
+      'Total Amount': excelData.reduce((sum, r) => sum + parseFloat(r['Total Amount'] || 0), 0).toFixed(2), 'Order Date': ''
+    });
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Delivered Orders');
+    const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+    XLSX.writeFile(wb, `delivered-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const exportCancelledOrdersExcel = () => {
+    const cancelledOrders = orders.filter(order => {
+      const matchesStatus = order.status === 'Cancelled';
+      const matchesSearch =
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCoupon =
+        !couponFilter ? true :
+          couponFilter === "any_coupon" ? !!order.couponCode :
+            couponFilter === "no_coupon" ? !order.couponCode :
+              order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+      let matchesDate = true;
+      if (startDate || endDate) {
+        const orderDate = new Date(order.createdAt);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        if (start && end) matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        else if (start) matchesDate = orderDate >= start;
+        else if (end) matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+      }
+      return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
+    });
+    if (cancelledOrders.length === 0) { alert('No cancelled orders found for the selected date range'); return; }
+    const excelData = cancelledOrders.map((order, index) => {
+      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+      order.items?.forEach(item => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          item.bundleItems.forEach(b => { names.push(`${item.name} (${b.color})`); sizes.push(b.size || 'N/A'); colors.push(b.color || 'N/A'); variantIds.push(b.sizeVariantId || 'N/A'); qtys.push(1); });
+        } else { names.push(item.name || 'N/A'); sizes.push(item.size || 'N/A'); colors.push(item.color || 'N/A'); variantIds.push(item.sizeVariantId || 'N/A'); qtys.push(item.quantity || 1); }
+      });
+      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+      return {
+        'S.No': index + 1, 'Order ID': `ORD-${order.id}`,
+        'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+        'Phone': order.user?.phone || 'N/A', 'Email': order.user?.email || 'N/A',
+        'City': order.shippingAddress?.city || 'N/A', 'State': order.shippingAddress?.state || 'N/A',
+        'Items Count': names.length || 0, 'Product Name': names.join(', \n') || 'N/A',
+        'Size': sizes.join(', \n') || 'N/A', 'Color': colors.join(', \n') || 'N/A',
+        'Variant ID': variantIds.join(', \n') || 'N/A', 'Item Qty': qtys.join(', \n') || '0',
+        'Total Quantity': totalQty, 'Coupon Code': order.couponCode || 'N/A',
+        'Discount': parseFloat(order.discount || 0), 'Payment Method': order.paymentMethod || 'N/A',
+        'Total Amount': parseFloat(order.total || 0), 'Cancel Reason': order.cancelRemarks || 'N/A',
+        'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
+      };
+    });
+    excelData.push({
+      'S.No': '', 'Order ID': '', 'Customer Name': '', 'Phone': '', 'Email': '', 'City': '', 'State': 'TOTAL',
+      'Items Count': excelData.reduce((sum, r) => sum + r['Items Count'], 0), 'Product Name': '', 'Size': '', 'Color': '', 'Variant ID': '', 'Item Qty': '',
+      'Total Quantity': excelData.reduce((sum, r) => sum + r['Total Quantity'], 0), 'Coupon Code': '',
+      'Discount': excelData.reduce((sum, r) => sum + parseFloat(r['Discount'] || 0), 0).toFixed(2), 'Payment Method': '',
+      'Total Amount': excelData.reduce((sum, r) => sum + parseFloat(r['Total Amount'] || 0), 0).toFixed(2), 'Cancel Reason': '', 'Order Date': ''
+    });
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Cancelled Orders');
+    const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+    XLSX.writeFile(wb, `cancelled-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const exportAbandonedOrdersExcel = () => {
@@ -1604,6 +1785,7 @@ const resetDateRange = () => {
     accepted: filteredOrders.filter((o) => o.status === "Accepted").length,
     shipped: filteredOrders.filter((o) => o.status === "Shipped").length,
     delivered: filteredOrders.filter((o) => o.status === "Delivered").length,
+    cancelled: filteredOrders.filter((o) => o.status === "Cancelled").length,
     abandoned: filteredOrders.filter((o) => o.status === "Abandoned").length,
   };
 };
@@ -1929,7 +2111,7 @@ const resetDateRange = () => {
         </div>
         <div className="stat-content">
           <h3>{orderStats.totalSales}</h3>
-          <p>Total Sales</p>
+          <p>Total Bills</p>
         </div>
       </div>
 
@@ -1978,6 +2160,38 @@ const resetDateRange = () => {
         <div className="stat-content">
           <h3>₹{orderStats.totalValue.toFixed(2)}</h3>
           <p>Total Value</p>
+        </div>
+      </div>
+
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px' }}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
+        >
+          <X size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{statusCounts.cancelled}</h3>
+          <p>Total Cancelled</p>
+        </div>
+      </div>
+
+      <div
+        className="stat-card"
+        style={{ flex: '1 1 0', minWidth: '180px', maxWidth: '220px' }}
+      >
+        <div
+          className="stat-icon"
+          style={{ backgroundColor: '#fff7ed', color: '#f97316' }}
+        >
+          <Clock size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>{statusCounts.abandoned}</h3>
+          <p>Total Abandoned</p>
         </div>
       </div>
     </div>
@@ -2030,15 +2244,17 @@ const resetDateRange = () => {
 
       <div className="filters-section">
         <div className="search-container">
-          <Search size={20} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search orders..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e0e0e0', marginLeft: '12px' }}>
+          <div className="search-input-wrapper">
+            <Search size={16} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search orders..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="coupon-filter-wrapper">
             <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Coupon:</label>
             <select
               value={couponFilter}
@@ -2054,232 +2270,71 @@ const resetDateRange = () => {
             </select>
           </div>
          {statusFilter === "all" && (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      marginLeft: '12px',
-    }}
-  >
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '8px 12px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0',
-      }}
-    >
-      <label
-        style={{
-          fontSize: '13px',
-          fontWeight: '500',
-          color: '#555',
-        }}
-      >
-        From:
-      </label>
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        style={{
-          padding: '6px 10px',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          fontSize: '13px',
-          outline: 'none',
-        }}
-      />
-      <label
-        style={{
-          fontSize: '13px',
-          fontWeight: '500',
-          color: '#555',
-        }}
-      >
-        To:
-      </label>
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        style={{
-          padding: '6px 10px',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          fontSize: '13px',
-          outline: 'none',
-        }}
-      />
-
-<button
-  type="button"
-  onClick={() => {
-    setStartDate("");
-    setEndDate("");
-  }}
-  className="reset-date-btn"
-  title="Reset dates"
->
-  <X size={16} />
-</button>
+  <div className="date-filter-wrapper">
+    <div className="date-inputs-group">
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }} className="reset-date-btn" title="Reset dates"><X size={16} /></button>
     </div>
-
-    <button
-      className="download-all-btn"
-      onClick={exportAllOrdersExcel}
-      title="Export All Orders to Excel"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '8px 14px',
-        borderRadius: '8px',
-        border: 'none',
-        backgroundColor: '#4169E1',
-        color: '#ffffff',
-        fontSize: '13px',
-        fontWeight: 500,
-        cursor: 'pointer',
-      }}
-    >
+    <button className="download-all-btn" onClick={exportAllOrdersExcel} title="Export All Orders to Excel">
       <Download size={16} /> Download Report
     </button>
   </div>
 )}
           {statusFilter === "abandoned" && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
-             <div
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 12px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-  }}
->
-  <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
-    From:
-  </label>
-  <input
-    type="date"
-    value={startDate}
-    onChange={(e) => setStartDate(e.target.value)}
-    style={{
-      padding: '6px 10px',
-      border: '1px solid #ddd',
-      borderRadius: '6px',
-      fontSize: '13px',
-      outline: 'none',
-    }}
-  />
-  <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
-    To:
-  </label>
-  <input
-    type="date"
-    value={endDate}
-    onChange={(e) => setEndDate(e.target.value)}
-    style={{
-      padding: '6px 10px',
-      border: '1px solid #ddd',
-      borderRadius: '6px',
-      fontSize: '13px',
-      outline: 'none',
-    }}
-  />
-
-  {/* RESET ICON */}
-  <button
-    type="button"
-    onClick={() => {
-      setStartDate("");
-      setEndDate("");
-    }}
-    className="reset-date-btn"
-    title="Reset dates"
-  >
-    <X size={16} />
-  </button>
-</div>
-              <button
-                className="download-all-btn"
-                onClick={exportAbandonedOrdersExcel}
-                title="Export Abandoned Orders to Excel"
-              >
+            <div className="date-filter-wrapper">
+              <div className="date-inputs-group">
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+                <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+                <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }} className="reset-date-btn" title="Reset dates"><X size={16} /></button>
+              </div>
+              <button className="download-all-btn" onClick={exportAbandonedOrdersExcel} title="Export Abandoned Orders to Excel">
                 <Download size={16} /> Download Report
               </button>
             </div>
           )}
-         {statusFilter === "shipped" && (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '8px 12px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0',
-      }}
-    >
-      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
-        From:
-      </label>
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        style={{
-          padding: '6px 10px',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          fontSize: '13px',
-          outline: 'none',
-        }}
-      />
-      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>
-        To:
-      </label>
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        style={{
-          padding: '6px 10px',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          fontSize: '13px',
-          outline: 'none',
-        }}
-      />
-
-      {/* RESET ICON */}
-      <button
-        type="button"
-        onClick={() => {
-          setStartDate("");
-          setEndDate("");
-        }}
-        className="reset-date-btn"
-        title="Reset dates"
-      >
-        <X size={16} />
-      </button>
+         {statusFilter === "delivered" && (
+  <div className="date-filter-wrapper">
+    <div className="date-inputs-group">
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }} className="reset-date-btn" title="Reset dates"><X size={16} /></button>
     </div>
-
-    <button
-      className="download-all-btn"
-      onClick={exportShippedOrdersExcel}
-      title="Export Shipped Orders to Excel"
-    >
+    <button className="download-all-btn" onClick={exportDeliveredOrdersExcel} title="Export Delivered Orders to Excel">
+      <Download size={16} /> Download Report
+    </button>
+  </div>
+)}
+         {statusFilter === "cancelled" && (
+  <div className="date-filter-wrapper">
+    <div className="date-inputs-group">
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }} className="reset-date-btn" title="Reset dates"><X size={16} /></button>
+    </div>
+    <button className="download-all-btn" onClick={exportCancelledOrdersExcel} title="Export Cancelled Orders to Excel">
+      <Download size={16} /> Download Report
+    </button>
+  </div>
+)}
+         {statusFilter === "shipped" && (
+  <div className="date-filter-wrapper">
+    <div className="date-inputs-group">
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>From:</label>
+      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <label style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>To:</label>
+      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', outline: 'none' }} />
+      <button type="button" onClick={() => { setStartDate(""); setEndDate(""); }} className="reset-date-btn" title="Reset dates"><X size={16} /></button>
+    </div>
+    <button className="download-all-btn" onClick={exportShippedOrdersExcel} title="Export Shipped Orders to Excel">
       <Download size={16} /> Download Report
     </button>
   </div>
@@ -2306,7 +2361,7 @@ const resetDateRange = () => {
     <button onClick={downloadModalAsImage} style={{ padding: '8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} title="Download as Image">
       <ImageIcon size={16} />
     </button>
-    <button onClick={() => setShowViewModal(false)}>
+    <button onClick={() => { setShowViewModal(false); setEditingAddress(false); setEditingItems(false); }}>
       <X size={20} />
     </button>
   </div>
@@ -2364,31 +2419,91 @@ const resetDateRange = () => {
                     <p><strong>Discount:</strong> -₹{selectedOrder.discount}</p>
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
+                  {selectedOrder.codCharge > 0 && (
+                    <p><strong>COD Charge (Admin):</strong> ₹{selectedOrder.codCharge}</p>
+                  )}
+                  {selectedOrder.courierCharge > 0 && (
+                    <p><strong>Courier Charge (Admin):</strong> ₹{selectedOrder.courierCharge}</p>
+                  )}
                 </div>
 
                
                 <div className="shipping-address" style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                  <h4>Shipping Address</h4>
-                  {selectedOrder.shippingAddress ? (
-                    <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                      <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap' }}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
-                      {selectedOrder.shippingAddress.addressLine2 && (
-                        <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap' }}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
-                      )}
-                      <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
-                      <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
-                      <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
-                      <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', maxWidth: '100%', whiteSpace: 'pre-wrap' }}><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
-                    </div>
+                  <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                    Shipping Address
+                    {!editingAddress ? (
+                      <button onClick={() => { setEditAddress({ ...selectedOrder.shippingAddress }); setEditingAddress(true); }}
+                        style={{ fontSize: '12px', padding: '4px 10px', background: '#4169E1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                        <Edit size={12} style={{ marginRight: 4 }} />Edit
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button onClick={handleSaveAddress} disabled={savingOrder}
+                          style={{ fontSize: '12px', padding: '4px 10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                          {savingOrder ? 'Saving...' : 'Save'}
+                        </button>
+                        <button onClick={() => setEditingAddress(false)}
+                          style={{ fontSize: '12px', padding: '4px 10px', background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </h4>
+                  {!editingAddress ? (
+                    selectedOrder.shippingAddress ? (
+                      <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                        <p><strong>Name:</strong> {selectedOrder.shippingAddress.fullName || 'N/A'}</p>
+                        <p><strong>Mobile:</strong> {selectedOrder.shippingAddress.mobile || 'N/A'}</p>
+                        <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
+                        {selectedOrder.shippingAddress.addressLine2 && (
+                          <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
+                        )}
+                        <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
+                        <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
+                        <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
+                        <p><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
+                      </div>
+                    ) : <p>No shipping address provided</p>
                   ) : (
-                    <p>No shipping address provided</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[['fullName','Full Name'],['mobile','Mobile'],['addressLine1','Address Line 1'],['addressLine2','Address Line 2'],['city','City'],['state','State'],['pincode','Pincode'],['landmark','Landmark']].map(([field, label]) => (
+                        <div key={field}>
+                          <label style={{ fontSize: '12px', fontWeight: '500', color: '#555', display: 'block', marginBottom: '2px' }}>{label}</label>
+                          <input
+                            type="text"
+                            value={editAddress[field] || ''}
+                            onChange={e => setEditAddress(prev => ({ ...prev, [field]: e.target.value }))}
+                            style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
               <div className="order-items-section">
-                <h4>Order Items</h4>
+                <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  Order Items
+                  {!editingItems ? (
+                    <button onClick={() => { setEditItems(selectedOrder.items?.map(i => ({ ...i })) || []); setEditingItems(true); fetchAllProducts(); }}
+                      style={{ fontSize: '12px', padding: '4px 10px', background: '#4169E1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                      <Edit size={12} style={{ marginRight: 4 }} />Edit
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={handleSaveItems} disabled={savingOrder}
+                        style={{ fontSize: '12px', padding: '4px 10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                        {savingOrder ? 'Saving...' : 'Save'}
+                      </button>
+                      <button onClick={() => setEditingItems(false)}
+                        style={{ fontSize: '12px', padding: '4px 10px', background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </h4>
                 <div className="order-items">
-                  {selectedOrder.items?.map((item, idx) => (
+                  {(!editingItems ? selectedOrder.items : editItems)?.map((item, idx) => (
                     <div key={idx} className="order-item">
                       {item.type === 'bundle' ? (
                         <div style={{ width: '100%' }}>
@@ -2411,21 +2526,96 @@ const resetDateRange = () => {
                       ) : (
                         <>
                           <img src={item.imageUrl} alt={item.name} />
-                          <div>
-                            <p>
-                              <strong>{item.name}</strong>
-                            </p>
-                            <p>
-                              Size: {item.size}, Color: {item.color}
-                            </p>
-                            {item.sizeVariantId && (
-                              <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
-                                Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
-                              </p>
+                          <div style={{ flex: 1 }}>
+                            <p><strong>{item.name}</strong></p>
+                            {editingItems ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  {/* Color dropdown */}
+                                  <div style={{ flex: 1, minWidth: '100px' }}>
+                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Color</label>
+                                    <select
+                                      value={editItems[idx]?.color || ''}
+                                      onChange={e => {
+                                        const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
+                                        const colorObj = prod?.colors?.find(c => c.name === e.target.value);
+                                        const updated = [...editItems];
+                                        updated[idx] = {
+                                          ...updated[idx],
+                                          color: e.target.value,
+                                          size: '',
+                                          imageUrl: colorObj?.image || updated[idx].imageUrl,
+                                          price: colorObj?.sizes?.[0]?.price || prod?.basePrice || updated[idx].price,
+                                        };
+                                        setEditItems(updated);
+                                      }}
+                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                    >
+                                      <option value="">-- Color --</option>
+                                      {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors || []).map(c => (
+                                        <option key={c.name} value={c.name}>{c.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {/* Size dropdown */}
+                                  <div style={{ flex: 1, minWidth: '80px' }}>
+                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Size</label>
+                                    <select
+                                      value={editItems[idx]?.size || ''}
+                                      onChange={e => {
+                                        const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
+                                        const colorObj = prod?.colors?.find(c => c.name === editItems[idx]?.color);
+                                        const sizeObj = colorObj?.sizes?.find(s => s.size === e.target.value);
+                                        const updated = [...editItems];
+                                        updated[idx] = {
+                                          ...updated[idx],
+                                          size: e.target.value,
+                                          sizeVariantId: sizeObj?.sizeVariantId || '',
+                                          price: sizeObj?.price || prod?.basePrice || updated[idx].price,
+                                        };
+                                        setEditItems(updated);
+                                      }}
+                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                    >
+                                      <option value="">-- Size --</option>
+                                      {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors?.find(c => c.name === editItems[idx]?.color)?.sizes || []).map(s => (
+                                        <option key={s.size} value={s.size}>{s.size}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {/* Qty */}
+                                  <div style={{ flex: '0 0 60px' }}>
+                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Qty</label>
+                                    <input
+                                      type="number"
+                                      value={editItems[idx]?.quantity || ''}
+                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], quantity: e.target.value }; setEditItems(updated); }}
+                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                    />
+                                  </div>
+                                  {/* Price */}
+                                  <div style={{ flex: '0 0 80px' }}>
+                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Price</label>
+                                    <input
+                                      type="number"
+                                      value={editItems[idx]?.price || ''}
+                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], price: e.target.value }; setEditItems(updated); }}
+                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <p>Size: {item.size}, Color: {item.color}</p>
+                                {item.sizeVariantId && (
+                                  <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                                    Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
+                                  </p>
+                                )}
+                                <p>Qty: {item.quantity} × ₹{item.price}</p>
+                              </>
                             )}
-                            <p>
-                              Qty: {item.quantity} × ₹{item.price}
-                            </p>
                           </div>
                         </>
                       )}
@@ -2513,6 +2703,28 @@ const resetDateRange = () => {
           </div>
         </>
       )}
+      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>COD Charge (Optional)</label>
+          <input
+            type="number"
+            value={codCharge}
+            onChange={(e) => setCodCharge(e.target.value)}
+            placeholder="₹0.00"
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Courier Charge (Optional)</label>
+          <input
+            type="number"
+            value={courierCharge}
+            onChange={(e) => setCourierCharge(e.target.value)}
+            placeholder="₹0.00"
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+      </div>
     </div>
   )}
 
