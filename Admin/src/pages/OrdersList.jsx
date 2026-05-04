@@ -122,8 +122,7 @@ const OrdersList = () => {
         body: JSON.stringify({ shippingAddress: editAddress }),
       });
       await fetchOrders();
-      const updated = orders.find(o => o.id === selectedOrder.id);
-      if (updated) setSelectedOrder({ ...updated, shippingAddress: editAddress });
+      setSelectedOrder(prev => ({ ...prev, shippingAddress: editAddress }));
       setEditingAddress(false);
       toast.success('Shipping address updated');
     } catch (e) {

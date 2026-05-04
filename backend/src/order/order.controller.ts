@@ -64,6 +64,12 @@ async getOrderStats(
   return this.orderService.getOrderStats(startDate, endDate);
 }
 
+  @Patch(':orderId/address')
+  @ApiOperation({ summary: 'Update order shipping address (Admin)' })
+  async updateOrderAddress(@Param('orderId') orderId: string, @Body() body: { shippingAddress: any }) {
+    return this.orderService.updateOrderAddress(parseInt(orderId), body.shippingAddress);
+  }
+
   @Patch(':orderId/items')
   @ApiOperation({ summary: 'Update order items with stock adjustment (Admin)' })
   async updateOrderItems(@Param('orderId') orderId: string, @Body() body: { items: any[] }) {

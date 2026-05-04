@@ -313,6 +313,14 @@ if (status === 'Cancelled') {
     return order;
   }
 
+  async updateOrderAddress(orderId: number, shippingAddress: any) {
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { shippingAddress },
+      include: { items: true },
+    });
+  }
+
   async removeOrderItem(orderId: number, itemId: number) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
