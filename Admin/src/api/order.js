@@ -1,5 +1,15 @@
 import API_BASE_URL from "./config";
 
+export const removeOrderItem = async (orderId, itemId) => {
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/remove-item`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ itemId }),
+  });
+  if (!response.ok) throw new Error('Failed to remove item');
+  return await response.json();
+};
+
 export const fetchOrders = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/orders/admin/all`, {

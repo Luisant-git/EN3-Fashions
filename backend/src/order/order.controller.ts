@@ -70,6 +70,12 @@ async getOrderStats(
     return this.orderService.updateOrderItems(parseInt(orderId), body.items);
   }
 
+  @Patch(':orderId/remove-item')
+  @ApiOperation({ summary: 'Remove a single item from order and update subtotal (Admin)' })
+  async removeOrderItem(@Param('orderId') orderId: string, @Body() body: { itemId: number }) {
+    return this.orderService.removeOrderItem(parseInt(orderId), body.itemId);
+  }
+
   @Patch(':orderId/status')
   @ApiOperation({ summary: 'Update order status (Admin)' })
   @ApiResponse({ status: 200, description: 'Order status updated successfully' })

@@ -34,6 +34,7 @@ const OrdersPage = () => {
                         </div>
                         <div className="order-details">
                              <p><strong>Status:</strong> {order.status}</p>
+                             <p><strong>Subtotal:</strong> ₹{parseFloat(order.subtotal).toFixed(2)}</p>
                              <p><strong>Shipping Address:</strong> {order.shippingAddress.fullName}, {order.shippingAddress.addressLine1}, {order.shippingAddress.addressLine2 && `${order.shippingAddress.addressLine2}, `}{order.shippingAddress.landmark && `${order.shippingAddress.landmark}, `}{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}</p>
                              <p><strong>Delivery:</strong> {order.deliveryOption.name} (+₹{order.deliveryOption.fee})</p>
                              {(order.status === 'Shipped' || order.status === 'Delivered') && (

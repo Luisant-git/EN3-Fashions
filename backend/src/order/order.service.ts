@@ -313,6 +313,46 @@ if (status === 'Cancelled') {
     return order;
   }
 
+  async removeOrderItem(orderId: number, itemId: number) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!order) throw new Error('Order not found');
+
+    const item = (order.items as any[]).find(i => i.id === itemId);
+    if (!item) throw new Error('Item not found');
+
+    // Restore stock for removed item
+    await this.restoreStock([item]);
+
+    // Delete the item
+    await this.prisma.orderItem.delete({ where: { id: itemId } });
+
+    // Recalculate subtotal from remaining items
+    const remaining = (order.items as any[]).filter(i => i.id !== itemId);
+    const newSubtotal = remaining.reduce((sum, i) => {
+      if (i.type === 'bundle' && i.bundleItems) {
+        return sum + (i.bundleItems as any[]).reduce((s, b) => s + (parseFloat(b.originalPrice) || 0), 0);
+      }
+      return sum + (parseFloat(i.price) || 0) * (i.quantity || 1);
+    }, 0);
+
+    const discount = parseFloat(order.discount ?? '0') || 0;
+    const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const codFee = parseFloat((order as any).codFee) || 0;
+    const newTotal = newSubtotal - discount + deliveryFee + codFee;
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        subtotal: newSubtotal.toFixed(2),
+        total: newTotal.toFixed(2),
+      },
+      include: { items: true },
+    });
+  }
+
   async updateOrderItems(orderId: number, newItems: any[]) {
     // Get existing order items to restore their stock
     const existingOrder = await this.prisma.order.findUnique({
