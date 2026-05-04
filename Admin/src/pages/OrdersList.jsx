@@ -1303,19 +1303,27 @@ const OrdersList = () => {
     let shipY = 62;
     if (address) {
       pdf.setFont(undefined, 'bold');
-      pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 10, shipY);
-      shipY += 3.5;
-      pdf.text(address.addressLine1 || '', 10, shipY);
-      shipY += 3.5;
-      if (address.addressLine2) {
-        pdf.text(address.addressLine2, 10, shipY);
-        shipY += 3.5;
-      }
-      pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 10, shipY);
-      shipY += 3.5;
-      pdf.text('Landmark:', 10, shipY);
-      pdf.text(address.landmark || 'N/A', 26, shipY);
+      const nameLines = pdf.splitTextToSize(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 95);
+      pdf.text(nameLines, 10, shipY);
+      shipY += nameLines.length * 3.5;
       pdf.setFont(undefined, 'normal');
+      const addr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 95);
+      pdf.text(addr1Lines, 10, shipY);
+      shipY += addr1Lines.length * 3.5;
+      if (address.addressLine2) {
+        const addr2Lines = pdf.splitTextToSize(address.addressLine2, 95);
+        pdf.text(addr2Lines, 10, shipY);
+        shipY += addr2Lines.length * 3.5;
+      }
+      const cityLines = pdf.splitTextToSize(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 95);
+      pdf.text(cityLines, 10, shipY);
+      shipY += cityLines.length * 3.5;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Landmark:', 10, shipY);
+      pdf.setFont(undefined, 'normal');
+      const landmarkLines = pdf.splitTextToSize(address.landmark || 'N/A', 70);
+      pdf.text(landmarkLines, 26, shipY);
+      shipY += landmarkLines.length * 3.5;
     }
 
     pdf.setFontSize(8);
