@@ -594,3 +594,33 @@
     }
   }
 }
+
+// Orders table specific overrides
+.orders-list {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--gray-100);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+      border-radius: 3px;
+    }
+
+    .table {
+      min-width: 1100px;
+
+      th, td {
+        padding: 10px 12px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+    }
+  }
+}

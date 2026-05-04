@@ -16,7 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
-import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats } from "../api/order";
+import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
@@ -1715,18 +1715,38 @@ const OrdersList = () => {
   };
 
   const downloadStatsAsImage = async () => {
-  if (!statsRef.current) return;
-
   try {
-    const canvas = await html2canvas(statsRef.current, {
+    // Create a hidden off-screen clone with mobile layout
+    const clone = statsRef.current.cloneNode(true);
+    clone.style.position = 'fixed';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.width = '360px';
+
+    const cardsContainer = clone.querySelector('[data-summary-cards]');
+    if (cardsContainer) {
+      cardsContainer.style.flexDirection = 'column';
+      cardsContainer.style.width = '100%';
+      Array.from(cardsContainer.querySelectorAll('.stat-card')).forEach(c => {
+        c.style.flex = 'none';
+        c.style.minWidth = 'unset';
+        c.style.width = '100%';
+      });
+    }
+
+    document.body.appendChild(clone);
+    await new Promise(resolve => setTimeout(resolve, 80));
+
+    const canvas = await html2canvas(clone, {
       backgroundColor: '#ffffff',
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      scrollY: -window.scrollY,
-      scrollX: -window.scrollX,
-      windowHeight: statsRef.current.scrollHeight,
+      windowWidth: 360,
+      windowHeight: clone.scrollHeight,
     });
+
+    document.body.removeChild(clone);
 
     const link = document.createElement('a');
     link.download = `order-summary-stats-${new Date().toISOString().split('T')[0]}.png`;
@@ -1891,6 +1911,21 @@ const resetDateRange = () => {
           minute: "2-digit",
           hour12: true,
         }),
+    },
+    {
+      key: "updatedAt",
+      label: "Shipped Date",
+      render: (value, row) =>
+        row.status === "Shipped" || row.status === "Delivered"
+          ? new Date(value).toLocaleString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : "-",
     },
     {
       key: "actions",
@@ -2098,6 +2133,7 @@ const resetDateRange = () => {
 
     {/* Summary cards row – equal width */}
     <div
+      data-summary-cards
       style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -2487,7 +2523,7 @@ const resetDateRange = () => {
                 </div>
               </div>
               <div className="order-items-section">
-                <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                   Order Items
                   {!editingItems ? (
                     <button onClick={() => { setEditItems(selectedOrder.items?.map(i => ({ ...i })) || []); setEditingItems(true); fetchAllProducts(); }}
@@ -2619,6 +2655,24 @@ const resetDateRange = () => {
                                   </p>
                                 )}
                                 <p>Qty: {item.quantity} × ₹{item.price}</p>
+                                {selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && (
+                                  <button
+                                    onClick={async () => {
+                                      if (!window.confirm('Remove this item? Stock will be restored and subtotal updated.')) return;
+                                      try {
+                                        const updated = await removeOrderItem(selectedOrder.id, item.id);
+                                        setSelectedOrder(updated);
+                                        await fetchOrders();
+                                        toast.success('Item removed and subtotal updated');
+                                      } catch (e) {
+                                        toast.error('Failed to remove item');
+                                      }
+                                    }}
+                                    style={{ marginTop: '6px', padding: '4px 10px', background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
+                                  >
+                                    Remove
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>
