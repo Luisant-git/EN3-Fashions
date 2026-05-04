@@ -1869,16 +1869,7 @@ const resetDateRange = () => {
         return totalQty;
       },
     },
-    {
-      key: "couponCode",
-      label: "Coupon",
-      render: (value, row) => value ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', width: 'fit-content' }}>{value}</span>
-          <span style={{ color: '#dc2626', fontSize: '10px', fontWeight: '500' }}>- ₹{row.discount}</span>
-        </div>
-      ) : '-'
-    },
+
     { key: "total", label: "Final Total", render: (value) => `₹${value}` },
     {
       key: "status",
@@ -2382,7 +2373,7 @@ const resetDateRange = () => {
 )}
         </div>
       </div>
- <div className="table-container">
+ <div className="table-container" style={{ overflowX: 'auto', width: '100%' }}>
         <DataTable
           data={filteredOrders}
           columns={columns}
