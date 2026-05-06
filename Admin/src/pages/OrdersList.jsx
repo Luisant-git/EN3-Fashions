@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
+import { getCourierPartners } from '../api/courierPartnerApi';
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
@@ -42,6 +43,7 @@ const OrdersList = () => {
   const [endDate, setEndDate] = useState("");
   const [couponFilter, setCouponFilter] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [courierPartners, setCourierPartners] = useState([]);
   const [cancelRemarks, setCancelRemarks] = useState("");
   const [codCharge, setCodCharge] = useState("");
   const [courierCharge, setCourierCharge] = useState("");
@@ -58,6 +60,7 @@ const OrdersList = () => {
     fetchOrders();
     fetchSignature();
     fetchCoupons();
+    fetchCourierPartners();
   }, []);
 
   useEffect(() => {
@@ -70,6 +73,15 @@ const OrdersList = () => {
       setAvailableCoupons(data);
     } catch (error) {
       console.error("Error fetching coupons:", error);
+    }
+  };
+
+  const fetchCourierPartners = async () => {
+    try {
+      const data = await getCourierPartners();
+      setCourierPartners(data);
+    } catch (error) {
+      console.error('Error fetching courier partners:', error);
     }
   };
 
@@ -1840,7 +1852,17 @@ const resetDateRange = () => {
     }
   };
 
-  const columns = [
+  const formatDate = (value) =>
+    new Date(value).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+  const baseColumns = [
     { key: "id", label: "Order ID", render: (value) => <span style={{whiteSpace: 'nowrap'}}>#ORD-{value}</span> },
     {
       key: "user",
@@ -1876,7 +1898,6 @@ const resetDateRange = () => {
         return totalQty;
       },
     },
-
     { key: "total", label: "Final Total", render: (value) => `₹${value}` },
     {
       key: "status",
@@ -1897,34 +1918,21 @@ const resetDateRange = () => {
         </span>
       ),
     },
-    {
-      key: "createdAt",
-      label: "Date",
-      render: (value) =>
-        new Date(value).toLocaleString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }),
-    },
-    {
-      key: "updatedAt",
-      label: "Shipped Date",
-      render: (value, row) =>
-        row.status === "Shipped" || row.status === "Delivered"
-          ? new Date(value).toLocaleString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })
-          : "-",
-    },
+  ];
+
+  const columns = [
+    ...baseColumns,
+    ...(statusFilter === "delivered"
+      ? [{ key: "updatedAt", label: "Delivery Date", render: (value) => formatDate(value) }]
+      : statusFilter === "cancelled"
+      ? [{ key: "updatedAt", label: "Cancelled Date", render: (value) => formatDate(value) }]
+      : statusFilter === "shipped"
+      ? [{ key: "updatedAt", label: "Shipped Date", render: (value) => formatDate(value) }]
+      : [
+          { key: "createdAt", label: "Date", render: (value) => formatDate(value) },
+          { key: "updatedAt", label: "Shipped Date", render: (value, row) => row.status === "Shipped" || row.status === "Delivered" ? formatDate(value) : "-" },
+        ]
+    ),
     {
       key: "actions",
       label: "Actions",
@@ -2732,16 +2740,38 @@ const resetDateRange = () => {
       ) : (
         <>
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name (Manual Fallback)</label>
-            <input
-              type="text"
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Partner</label>
+            <select
               value={courierName}
-              onChange={(e) => setCourierName(e.target.value)}
+              onChange={(e) => {
+                const selected = courierPartners.find(p => p.name === e.target.value);
+                setCourierName(e.target.value);
+                if (selected?.trackingLink) setTrackingLink(selected.trackingLink);
+                else setTrackingLink('');
+              }}
               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-            />
+            >
+              <option value="">-- Select Courier --</option>
+              {courierPartners.map(p => (
+                <option key={p.id} value={p.name}>{p.name}</option>
+              ))}
+              <option value="__manual__">Other (Manual)</option>
+            </select>
           </div>
+          {courierName === '__manual__' && (
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name</label>
+              <input
+                type="text"
+                value={courierName === '__manual__' ? '' : courierName}
+                onChange={(e) => setCourierName(e.target.value)}
+                placeholder="Enter courier name"
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+              />
+            </div>
+          )}
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID (Manual Fallback)</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID</label>
             <input
               type="text"
               value={trackingId}
@@ -2750,7 +2780,7 @@ const resetDateRange = () => {
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link (Manual Fallback)</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link</label>
             <input
               type="text"
               value={trackingLink}

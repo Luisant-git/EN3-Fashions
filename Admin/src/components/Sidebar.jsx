@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers, MessageCircle} from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers, MessageCircle, Truck} from 'lucide-react'
 
 const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const [expandedItems, setExpandedItems] = useState({})
@@ -38,6 +38,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   { key: 'banner-list', icon: Image, label: 'Banners', path: '/banner-list' },
   { key: 'coupon-list', icon: TicketPercent, label: 'Coupons', path: '/coupon-list' },
   { key: 'shipping-settings', icon: Warehouse, label: 'Shipping Settings', path: '/shipping-settings' },
+  { key: 'courier-partners', icon: Truck, label: 'Courier Partners', path: '/courier-partners' },
   // { key: 'pincode-list', icon: MapPin, label: 'Pincodes', path: '/pincode-list' },
       ]
     },

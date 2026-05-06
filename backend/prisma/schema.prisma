@@ -368,6 +368,14 @@ model SizeChart {
   updatedAt       DateTime  @updatedAt
 }
 
+model CourierPartner {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  trackingLink String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model SystemErrorLog {
   id           Int      @id @default(autoincrement())
   userId       Int?
