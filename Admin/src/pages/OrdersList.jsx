@@ -18,6 +18,7 @@ import {
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
 import { getCourierPartners } from '../api/courierPartnerApi';
+import { getCoupons } from '../api/couponApi';
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
 import * as XLSX from 'xlsx';
