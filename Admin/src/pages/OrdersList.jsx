@@ -2149,25 +2149,27 @@ const resetDateRange = () => {
   data-summary-cards
   style={{
     display: 'flex',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     gap: '16px',
   }}
 >
-  <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
-  >
+  {/* First Row */}
+  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
     <div
-      className="stat-icon"
-      style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
     >
-      <Package size={24} />
+      <div
+        className="stat-icon"
+        style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
+      >
+        <Package size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{orderStats.totalSales}</h3>
+        <p>Total Bills</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>{orderStats.totalSales}</h3>
-      <p>Total Bills</p>
-    </div>
-  </div>
 
   <div
     className="stat-card"
@@ -2217,9 +2219,6 @@ const resetDateRange = () => {
     </div>
   </div>
 
-  {/* Row break */}
-  <div style={{ width: '100%' }} />
-
   {/* NEW CARD: Total Shipping Value */}
   <div
     className="stat-card"
@@ -2234,25 +2233,28 @@ const resetDateRange = () => {
     <div className="stat-content">
       <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
       <p>Shipping Value</p>
-    </div>
+      </div>
   </div>
+</div>
 
-  {/* NEW CARD: Total COD Value */}
-  <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
-  >
+  {/* Second Row */}
+  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+    {/* NEW CARD: Total COD Value */}
     <div
-      className="stat-icon"
-      style={{ backgroundColor: '#fce7f3', color: '#db2777' }}
+      className="stat-card"
+      style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
     >
-      <Receipt size={24} />
+      <div
+        className="stat-icon"
+        style={{ backgroundColor: '#fce7f3', color: '#db2777' }}
+      >
+        <Receipt size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalCodValue?.toFixed(2) || '0.00'}</h3>
+        <p>COD Value</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>₹{orderStats.totalCodValue?.toFixed(2) || '0.00'}</h3>
-      <p>COD Value</p>
-    </div>
-  </div>
 
   <div
     className="stat-card"
@@ -2285,9 +2287,10 @@ const resetDateRange = () => {
       <p>Total Abandoned</p>
     </div>
   </div>
-</div>
+    </div>
   </div>
 </div>
+  </div>
       <div className="status-tabs">
         <button
           className={statusFilter === "all" ? "tab active" : "tab"}
