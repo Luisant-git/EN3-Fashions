@@ -2155,7 +2155,7 @@ const resetDateRange = () => {
 >
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2171,7 +2171,7 @@ const resetDateRange = () => {
 
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2187,7 +2187,7 @@ const resetDateRange = () => {
 
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2203,7 +2203,7 @@ const resetDateRange = () => {
 
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2217,10 +2217,13 @@ const resetDateRange = () => {
     </div>
   </div>
 
+  {/* Row break */}
+  <div style={{ width: '100%' }} />
+
   {/* NEW CARD: Total Shipping Value */}
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2237,7 +2240,7 @@ const resetDateRange = () => {
   {/* NEW CARD: Total COD Value */}
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2253,7 +2256,7 @@ const resetDateRange = () => {
 
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
@@ -2269,7 +2272,7 @@ const resetDateRange = () => {
 
   <div
     className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '180px', maxWidth: '220px' }}
+    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
   >
     <div
       className="stat-icon"
