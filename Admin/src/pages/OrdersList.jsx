@@ -761,7 +761,7 @@ const exportAllOrdersExcel = () => {
       'Variant ID': variantIds.join(', \n') || 'N/A',
       'Item Qty': qtys.join(', \n') || '0',
       'Quantity': totalQty,
-      'Charged Weight (kg)': order.chargedWeight || 0,
+      'Charged Weight': order.chargedWeight || 0,
       'Total Amount': parseFloat(order.total || 0),
       'Discount': parseFloat(order.discount || 0),
       'Coupon Code': order.couponCode || 'N/A',
@@ -786,7 +786,7 @@ const exportAllOrdersExcel = () => {
     'Variant ID': '',
     'Item Qty': '',
     'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
-    'Charged Weight (kg)': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight (kg)']) || 0), 0),
+    'Charged Weight': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight']) || 0), 0),
     'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
     'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
     'Coupon Code': '',
@@ -1215,7 +1215,7 @@ const exportAllOrdersExcel = () => {
       'Variant ID': variantIds.join(', \n') || 'N/A',
       'Item Qty': qtys.join(', \n') || '0',
       'Total Quantity': totalQty,
-      'Charged Weight (kg)': order.chargedWeight || 0,  // ADD THIS LINE
+      'Charged Weight': order.chargedWeight || 0,  // ADD THIS LINE
       'Courier Name': order.courierName || 'N/A',
       'Tracking ID': order.trackingId || 'N/A',
       'Tracking Link': order.trackingLink || 'N/A',
@@ -1245,7 +1245,7 @@ const exportAllOrdersExcel = () => {
     'Variant ID': '',
     'Item Qty': '',
     'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
-    'Charged Weight (kg)': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight (kg)']) || 0), 0),  // ADD THIS LINE
+    'Charged Weight': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight']) || 0), 0),  // ADD THIS LINE
     'Courier Name': '',
     'Tracking ID': '',
     'Tracking Link': '',
@@ -2514,7 +2514,7 @@ const resetDateRange = () => {
                     <p><strong>Courier Charge (Admin):</strong> ₹{selectedOrder.courierCharge}</p>
                   )}
                   {selectedOrder.chargedWeight > 0 && (
-  <p><strong>Charged Weight(Admin):</strong> {selectedOrder.chargedWeight} kg</p>
+  <p><strong>Charged Weight(Admin):</strong> {selectedOrder.chargedWeight} </p>
 )}
                 </div>
 
@@ -2838,13 +2838,13 @@ const resetDateRange = () => {
     {/* Two fields for Shipped: Charged Weight and Courier Charge */}
     <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
       <div style={{ flex: 1 }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Charged Weight (kg) (Optional)</label>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Charged Weight (Optional)</label>
         <input
           type="number"
           step="0.01"
           value={chargedWeight}
           onChange={(e) => setChargedWeight(e.target.value)}
-          placeholder="0.00 kg"
+          placeholder="0.00 "
           style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
         />
       </div>
