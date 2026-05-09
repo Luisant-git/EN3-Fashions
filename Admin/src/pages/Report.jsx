@@ -473,24 +473,6 @@ const Reports = () => {
               </div>
             </div>
 
-            {/* Sales Report Status Filter Tabs */}
-            <div className="sales-status-tabs">
-              <button className={salesStatusFilter === "all" ? "active" : ""} onClick={() => setSalesStatusFilter("all")}>
-                All ({statusCounts.all})
-              </button>
-              <button className={salesStatusFilter === "accepted" ? "active" : ""} onClick={() => setSalesStatusFilter("accepted")}>
-                Accepted ({statusCounts.accepted})
-              </button>
-              <button className={salesStatusFilter === "shipped" ? "active" : ""} onClick={() => setSalesStatusFilter("shipped")}>
-                Shipped ({statusCounts.shipped})
-              </button>
-              <button className={salesStatusFilter === "delivered" ? "active" : ""} onClick={() => setSalesStatusFilter("delivered")}>
-                Delivered ({statusCounts.delivered})
-              </button>
-              <button className={salesStatusFilter === "cancelled" ? "active" : ""} onClick={() => setSalesStatusFilter("cancelled")}>
-                Cancelled ({statusCounts.cancelled})
-              </button>
-            </div>
           </div>
         )}
 
@@ -544,6 +526,27 @@ const Reports = () => {
           </div>
         )}
       </div>
+      
+      {/* Sales Report Status Filter Tabs - Moved outside summaryRef to exclude from download */}
+      {activeTab === "sales" && (
+        <div className="sales-status-tabs">
+          <button className={salesStatusFilter === "all" ? "active" : ""} onClick={() => setSalesStatusFilter("all")}>
+            All ({statusCounts.all})
+          </button>
+          <button className={salesStatusFilter === "accepted" ? "active" : ""} onClick={() => setSalesStatusFilter("accepted")}>
+            Accepted ({statusCounts.accepted})
+          </button>
+          <button className={salesStatusFilter === "shipped" ? "active" : ""} onClick={() => setSalesStatusFilter("shipped")}>
+            Shipped ({statusCounts.shipped})
+          </button>
+          <button className={salesStatusFilter === "delivered" ? "active" : ""} onClick={() => setSalesStatusFilter("delivered")}>
+            Delivered ({statusCounts.delivered})
+          </button>
+          <button className={salesStatusFilter === "cancelled" ? "active" : ""} onClick={() => setSalesStatusFilter("cancelled")}>
+            Cancelled ({statusCounts.cancelled})
+          </button>
+        </div>
+      )}
 
       {/* Filters Section */}
       <div className="filters-section">
