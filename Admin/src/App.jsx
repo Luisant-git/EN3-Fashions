@@ -68,6 +68,7 @@ import './styles/pages/create-combo.scss'
 import './styles/pages/add-shipping.scss'
 import './styles/WhatsAppChat.scss'
 import './styles/pages/settings.scss'
+import Reports from './pages/Report';
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -152,6 +153,7 @@ function App() {
               <Route path="/edit-shipping/:id" element={<EditShipping />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/courier-partners" element={<CourierPartnerList />} />
+              <Route path="/reports" element={<Reports />} />
               {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
               {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>

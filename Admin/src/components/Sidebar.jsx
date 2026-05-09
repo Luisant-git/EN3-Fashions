@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package, ShoppingCart, Users, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers, MessageCircle, Truck} from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Users, FileText, Warehouse, Settings, ChevronDown, ChevronRight, BarChart3, Eye, Plus, List, Gift, Tag, Image, Percent, MapPin, Star, TrendingUp, UserPlus, Menu, X,FolderKanban,TicketPercent, Layers, MessageCircle, Truck} from 'lucide-react'
 
 const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const [expandedItems, setExpandedItems] = useState({})
@@ -65,6 +65,12 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
         { key: 'customer-list', icon: List, label: 'Customer List', path: '/customer-list' }
       ]
     },
+    {
+  key: 'reports',
+  icon: FileText,
+  label: 'Reports',
+  path: '/reports'  // Single path, not children
+},
     {
       key: 'settings',
       icon: Settings,

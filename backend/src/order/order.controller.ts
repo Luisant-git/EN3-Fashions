@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Patch, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request, Patch, Query, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -207,4 +207,64 @@ async getOrderStats(
       return { success: false, error: 'Payment verification failed' };
     }
   }
+
+  // Get Shipping Report
+@Get('reports/shipping')
+async getShippingReport(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+  try {
+    const data = await this.orderService.getShippingReport(startDate, endDate);
+    return {
+      success: true,
+      data,
+      message: 'Shipping report fetched successfully'
+    };
+  } catch (error) {
+    throw new BadRequestException(error.message);
+  }
+}
+
+// Get Shipping Report Summary
+@Get('reports/shipping/summary')
+async getShippingReportSummary(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+  try {
+    const data = await this.orderService.getShippingReportSummary(startDate, endDate);
+    return {
+      success: true,
+      data,
+      message: 'Shipping report summary fetched successfully'
+    };
+  } catch (error) {
+    throw new BadRequestException(error.message);
+  }
+}
+
+// Get Sales Report
+@Get('reports/sales')
+async getSalesReport(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+  try {
+    const data = await this.orderService.getSalesReport(startDate, endDate);
+    return {
+      success: true,
+      data,
+      message: 'Sales report fetched successfully'
+    };
+  } catch (error) {
+    throw new BadRequestException(error.message);
+  }
+}
+
+// Get Sales Report Summary
+@Get('reports/sales/summary')
+async getSalesReportSummary(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+  try {
+    const data = await this.orderService.getSalesReportSummary(startDate, endDate);
+    return {
+      success: true,
+      data,
+      message: 'Sales report summary fetched successfully'
+    };
+  } catch (error) {
+    throw new BadRequestException(error.message);
+  }
+}
 }

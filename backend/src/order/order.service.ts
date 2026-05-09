@@ -192,12 +192,14 @@ async getOrderStats(startDate?: string, endDate?: string) {
     const uniqueCustomers = new Set<number>();
     let totalQuantity = 0;
     let totalValue = 0;
+    let totalShippingValue = 0;
+    let totalCodValue = 0;
 
-    // Statuses to include in calculations
+    // Statuses to include in main calculations
     const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
 
     orders.forEach(order => {
-      // Only include Accepted, Shipped, Delivered orders
+      // Only include Accepted, Shipped, Delivered orders for main stats
       if (includeStatuses.includes(order.status)) {
         // Total Sales (count of orders)
         totalSales += 1;
@@ -217,8 +219,18 @@ async getOrderStats(startDate?: string, endDate?: string) {
           }
         });
         
-        // Total Value (sum of all order totals)
+        // Total Value (sum of all order totals from Accepted, Shipped, Delivered)
         totalValue += parseFloat(order.total) || 0;
+      }
+      
+      // TOTAL SHIPPING VALUE: Sum of order totals from orders with status 'Shipped'
+      if (order.status === 'Shipped') {
+        totalShippingValue += parseFloat(order.total) || 0;
+      }
+      
+      // TOTAL COD VALUE: Sum of order totals from COD orders with status 'Accepted', 'Shipped', or 'Delivered'
+      if (order.paymentMethod === 'cod' && ['Accepted', 'Shipped', 'Delivered'].includes(order.status)) {
+        totalCodValue += parseFloat(order.total) || 0;
       }
     });
 
@@ -226,92 +238,114 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalSales,
       totalCustomers: uniqueCustomers.size,
       totalQuantity,
-      totalValue
+      totalValue,
+      totalShippingValue,
+      totalCodValue
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);
     throw new Error('Failed to fetch order statistics');
   }
 }
-
-  async updateOrderStatus(orderId: number, status?: string, invoiceUrl?: string, packageSlipUrl?: string, courierName?: string, trackingId?: string, trackingLink?: string, cancelRemarks?: string, codCharge?: number, courierCharge?: number) {
-    const updateData: any = {};
-    if (status) updateData.status = status;
-    if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
-    if (packageSlipUrl) updateData.packageSlipUrl = packageSlipUrl;
-    if (courierName && courierName !== "not provided") updateData.courierName = courierName;
-    if (trackingId && trackingId !== "not provided") updateData.trackingId = trackingId;
-    if (trackingLink && trackingLink !== "not provided") updateData.trackingLink = trackingLink;
-    if (codCharge != null) updateData.codCharge = codCharge;
-    if (courierCharge != null) updateData.courierCharge = courierCharge;
-
-    
-if (status === 'Cancelled') {
-  updateData.cancelRemarks = cancelRemarks || null;
-} else if (status) {
-  // if we are changing away from Cancelled, clear remarks
-  updateData.cancelRemarks = null;
-}
-    const existingOrder = await this.prisma.order.findUnique({
-      where: { id: orderId }
-    });
-
-    const protectedStatuses = ['Placed', 'Accepted', 'Shipped', 'Delivered', 'Cancelled'];
-    if (status === 'Abandoned' && existingOrder && protectedStatuses.includes(existingOrder.status)) {
-      console.log(`Prevented marking a ${existingOrder.status} order (${orderId}) as Abandoned`);
-      // Even if we don't update status, we should still update other fields if provided
-      if (Object.keys(updateData).length > 1) {
-        delete updateData.status;
-      } else {
-        return existingOrder;
-      }
-    }
-
-    const order = await this.prisma.order.update({
-      where: { id: orderId },
-      data: updateData,
-      include: { items: true }
-    });
-
-    // If payment successful, clear cart and send WhatsApp
-    if (status === 'Placed') {
-      // Clear user's cart
-      const cart = await this.prisma.cart.findUnique({
-        where: { userId: order.userId }
-      });
-      if (cart) {
-        await this.prisma.cartItem.deleteMany({
-          where: { cartId: cart.id }
-        });
-      }
-
-      // Deduct stock for online orders (after payment verification)
-      if (existingOrder?.status !== 'Placed') {
-        await this.deductStock((order as any).items);
-      }
-
-      // Send WhatsApp confirmation
-      await this.whatsappService.sendOrderConfirmation(order);
-    }
- 
-    // Send WhatsApp notification based on status
-    if (status === 'Accepted') {
-      await this.whatsappService.sendOrderAccepted(order);
-    } else if (status === 'Shipped') {
-      const trackingInfo = {
-        courier: courierName || order.courierName || 'N/A',
-        trackingId: trackingId || order.trackingId || 'N/A',
-        trackingUrl: trackingLink || order.trackingLink || 'N/A'
-      };
-      const invoiceFilename = `invoice-${order.id}.pdf`;
-      await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
-    } else if (status === 'Delivered') {
-      const invoiceFilename = `invoice-${order.id}.pdf`;
-      await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
-    }
- 
-    return order;
+  async updateOrderStatus(
+  orderId: number, 
+  status?: string, 
+  invoiceUrl?: string, 
+  packageSlipUrl?: string, 
+  courierName?: string, 
+  trackingId?: string, 
+  trackingLink?: string, 
+  cancelRemarks?: string, 
+  chargedWeight?: number,    // For Shipped status
+  courierCharge?: number,
+  codCharge?: number         // For Delivered status
+) {
+  const updateData: any = {};
+  if (status) updateData.status = status;
+  if (invoiceUrl) updateData.invoiceUrl = invoiceUrl;
+  if (packageSlipUrl) updateData.packageSlipUrl = packageSlipUrl;
+  if (courierName && courierName !== "not provided") updateData.courierName = courierName;
+  if (trackingId && trackingId !== "not provided") updateData.trackingId = trackingId;
+  if (trackingLink && trackingLink !== "not provided") updateData.trackingLink = trackingLink;
+  if (courierCharge != null) updateData.courierCharge = courierCharge;
+  
+  // Use chargedWeight only when status is 'Shipped'
+  if (status === 'Shipped' && chargedWeight != null) {
+    updateData.chargedWeight = chargedWeight;
   }
+  
+  // Use codCharge only when status is 'Delivered'
+  if (status === 'Delivered' && codCharge != null) {
+    updateData.codCharge = codCharge;
+  }
+
+  if (status === 'Cancelled') {
+    updateData.cancelRemarks = cancelRemarks || null;
+  } else if (status) {
+    // if we are changing away from Cancelled, clear remarks
+    updateData.cancelRemarks = null;
+  }
+  
+  const existingOrder = await this.prisma.order.findUnique({
+    where: { id: orderId }
+  });
+
+  const protectedStatuses = ['Placed', 'Accepted', 'Shipped', 'Delivered', 'Cancelled'];
+  if (status === 'Abandoned' && existingOrder && protectedStatuses.includes(existingOrder.status)) {
+    console.log(`Prevented marking a ${existingOrder.status} order (${orderId}) as Abandoned`);
+    // Even if we don't update status, we should still update other fields if provided
+    if (Object.keys(updateData).length > 1) {
+      delete updateData.status;
+    } else {
+      return existingOrder;
+    }
+  }
+
+  const order = await this.prisma.order.update({
+    where: { id: orderId },
+    data: updateData,
+    include: { items: true }
+  });
+
+  // If payment successful, clear cart and send WhatsApp
+  if (status === 'Placed') {
+    // Clear user's cart
+    const cart = await this.prisma.cart.findUnique({
+      where: { userId: order.userId }
+    });
+    if (cart) {
+      await this.prisma.cartItem.deleteMany({
+        where: { cartId: cart.id }
+      });
+    }
+
+    // Deduct stock for online orders (after payment verification)
+    if (existingOrder?.status !== 'Placed') {
+      await this.deductStock((order as any).items);
+    }
+
+    // Send WhatsApp confirmation
+    await this.whatsappService.sendOrderConfirmation(order);
+  }
+
+  // Send WhatsApp notification based on status
+  if (status === 'Accepted') {
+    await this.whatsappService.sendOrderAccepted(order);
+  } else if (status === 'Shipped') {
+    const trackingInfo = {
+      courier: courierName || order.courierName || 'N/A',
+      trackingId: trackingId || order.trackingId || 'N/A',
+      trackingUrl: trackingLink || order.trackingLink || 'N/A'
+    };
+    const invoiceFilename = `invoice-${order.id}.pdf`;
+    await this.whatsappService.sendOrderShipped(order, trackingInfo, invoiceFilename);
+  } else if (status === 'Delivered') {
+    const invoiceFilename = `invoice-${order.id}.pdf`;
+    await this.whatsappService.sendOrderDelivered(order, invoiceFilename);
+  }
+
+  return order;
+}
 
   async updateOrderAddress(orderId: number, shippingAddress: any) {
     return this.prisma.order.update({
@@ -540,4 +574,255 @@ if (status === 'Cancelled') {
       console.error('CRITICAL: Failed to write to SystemErrorLog database table:', e.message);
     }
   }
+
+
+// Sales Report - Get orders with status 'Accepted', 'Shipped', 'Delivered', or 'Cancelled'
+// For cancelled orders, all financial values will be 0
+async getSalesReport(startDate?: string, endDate?: string) {
+  try {
+    // Build date filter
+    const dateFilter: any = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) {
+        dateFilter.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.lte = endDateTime;
+      }
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: {
+          in: ['Accepted', 'Shipped', 'Delivered', 'Cancelled']
+        },
+        ...dateFilter
+      },
+      include: {
+        items: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return orders.map(order => {
+      const isCancelled = order.status === 'Cancelled';
+      
+      const totalProductsValue = order.items.reduce((sum, item) => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          return sum + (item.bundleItems as any[]).reduce((s, b) => s + (parseFloat(b.originalPrice) || 0), 0);
+        }
+        return sum + (parseFloat(item.price) || 0) * (item.quantity || 1);
+      }, 0);
+
+      // Handle null values by providing default '0' string first, then parse
+      const subtotalStr = order.subtotal || '0';
+      const discountStr = order.discount || '0';
+      const deliveryFeeStr = order.deliveryFee || '0';
+      const codFeeStr = order.codFee || '0';
+      const totalStr = order.total || '0';
+
+      // If cancelled, set all financial values to 0
+      return {
+        id: order.id,
+        orderId: `ORD-${order.id}`,
+        customer: order.user?.name || (order.shippingAddress as any)?.fullName || 'N/A',
+        phone: order.user?.phone || (order.shippingAddress as any)?.mobile || 'N/A',
+        email: order.user?.email || 'N/A',
+        city: (order.shippingAddress as any)?.city || 'N/A',
+        state: (order.shippingAddress as any)?.state || 'N/A',
+        orderDate: order.createdAt,
+        shippingDate: order.status === 'Shipped' || order.status === 'Delivered' ? order.updatedAt : null,
+        status: order.status,
+        cancelRemarks: order.cancelRemarks || 'N/A',
+        // Financial values - set to 0 for cancelled orders
+        productValue: isCancelled ? 0 : totalProductsValue,
+        subtotal: isCancelled ? 0 : parseFloat(subtotalStr),
+        discount: isCancelled ? 0 : parseFloat(discountStr),
+        deliveryFee: isCancelled ? 0 : parseFloat(deliveryFeeStr),
+        codFee: isCancelled ? 0 : parseFloat(codFeeStr),
+        codCharge: isCancelled ? 0 : (order.codCharge || 0),
+        courierCharge: isCancelled ? 0 : (order.courierCharge || 0),
+        total: isCancelled ? 0 : parseFloat(totalStr),
+        settlementAmt: isCancelled ? 0 : (parseFloat(totalStr) - (order.courierCharge || 0)),
+        paymentMethod: order.paymentMethod,
+        couponCode: order.couponCode || 'N/A',
+        items: order.items,
+        itemsCount: order.items.length,
+        quantity: order.items.reduce((sum, item) => {
+          if (item.type === 'bundle' && item.bundleItems) {
+            return sum + (item.bundleItems as any[]).length;
+          }
+          return sum + (item.quantity || 0);
+        }, 0)
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching sales report:', error);
+    throw new Error('Failed to fetch sales report');
+  }
+}
+// Shipping Report - Get orders with status 'Shipped' or 'Delivered'
+async getShippingReport(startDate?: string, endDate?: string) {
+  try {
+    const dateFilter: any = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) {
+        dateFilter.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.lte = endDateTime;
+      }
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: {
+          in: ['Shipped', 'Delivered']
+        },
+        ...dateFilter
+      },
+      include: {
+        items: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return orders.map(order => {
+      // Parse all values correctly
+      const subtotal = order.subtotal ? parseFloat(order.subtotal) : 0;
+      const deliveryFee = order.deliveryFee ? parseFloat(order.deliveryFee) : 0;
+      const codFee = order.codFee ? parseFloat(order.codFee) : 0;
+      const discount = order.discount ? parseFloat(order.discount) : 0;
+      const total = order.total ? parseFloat(order.total) : 0;
+      const courierCharge = order.courierCharge || 0;
+      const chargedWeight = order.chargedWeight || 0;
+      
+      // Calculate quantity
+      const quantity = order.items.reduce((sum, item) => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          return sum + (item.bundleItems as any[]).length;
+        }
+        return sum + (item.quantity || 0);
+      }, 0);
+      
+      // Settlement Amount = Total - Courier Charge (what you actually pay to courier)
+      const settlementAmt = total - courierCharge;
+      
+      return {
+        id: order.id,
+        orderId: `ORD-${order.id}`,
+        customer: order.user?.name || (order.shippingAddress as any)?.fullName || 'N/A',
+        phone: order.user?.phone || (order.shippingAddress as any)?.mobile || 'N/A',
+        email: order.user?.email || 'N/A',
+        city: (order.shippingAddress as any)?.city || 'N/A',
+        state: (order.shippingAddress as any)?.state || 'N/A',
+        orderDate: order.createdAt,
+        shippingDate: order.updatedAt,
+        status: order.status,
+        subtotal: subtotal,
+        deliveryFee: deliveryFee,
+        codFee: codFee,
+        discount: discount,
+        total: total,
+        courierCharge: courierCharge,
+        chargedWeight: chargedWeight,
+        settlementAmt: settlementAmt,
+        paymentMethod: order.paymentMethod,
+        couponCode: order.couponCode || 'N/A',
+        items: order.items,
+        itemsCount: order.items.length,
+        quantity: quantity
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching shipping report:', error);
+    throw new Error('Failed to fetch shipping report');
+  }
+}
+
+// Get shipping report summary
+async getShippingReportSummary(startDate?: string, endDate?: string) {
+  try {
+    const reportData = await this.getShippingReport(startDate, endDate);
+    
+    return {
+      totalShipments: reportData.length,
+      totalChargedWeight: reportData.reduce((sum, item) => sum + (item.chargedWeight || 0), 0),
+      totalCourierCharges: reportData.reduce((sum, item) => sum + (item.courierCharge || 0), 0),
+      totalAmount: reportData.reduce((sum, item) => sum + item.total, 0),
+      totalSettlement: reportData.reduce((sum, item) => sum + item.settlementAmt, 0)
+    };
+  } catch (error) {
+    console.error('Error fetching shipping report summary:', error);
+    throw new Error('Failed to fetch shipping report summary');
+  }
+}
+
+
+
+// Get sales report summary - Excludes cancelled orders from calculations
+async getSalesReportSummary(startDate?: string, endDate?: string) {
+  try {
+    const reportData = await this.getSalesReport(startDate, endDate);
+    
+    // Filter out cancelled orders for summary calculations
+    const activeOrders = reportData.filter(item => 
+      item.status !== 'Cancelled'
+    );
+    
+    // Get cancelled orders count (for display)
+    const cancelledOrders = reportData.filter(item => 
+      item.status === 'Cancelled'
+    );
+    
+    return {
+      // All orders count (including cancelled)
+      totalOrdersAll: reportData.length,
+      totalCancelledOrders: cancelledOrders.length,
+      
+      // Summary calculations excluding cancelled orders (amounts are 0 for cancelled)
+      totalOrders: activeOrders.length,
+      totalCustomers: new Set(activeOrders.map(item => item.phone)).size,
+      totalQuantity: activeOrders.reduce((sum, item) => sum + item.quantity, 0),
+      totalValue: activeOrders.reduce((sum, item) => sum + item.total, 0),
+      totalShippingValue: activeOrders.filter(item => item.status === 'Shipped').reduce((sum, item) => sum + item.total, 0),
+      totalCodValue: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.total, 0),
+      totalDiscount: activeOrders.reduce((sum, item) => sum + item.discount, 0),
+      totalDeliveryFee: activeOrders.reduce((sum, item) => sum + item.deliveryFee, 0),
+      totalCodFee: activeOrders.reduce((sum, item) => sum + item.codFee, 0),
+      totalCodCharge: activeOrders.reduce((sum, item) => sum + item.codCharge, 0),
+      totalCourierCharge: activeOrders.reduce((sum, item) => sum + item.courierCharge, 0),
+      totalSettlement: activeOrders.reduce((sum, item) => sum + item.settlementAmt, 0)
+    };
+  } catch (error) {
+    console.error('Error fetching sales report summary:', error);
+    throw new Error('Failed to fetch sales report summary');
+  }
+}
 }

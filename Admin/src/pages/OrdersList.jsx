@@ -50,13 +50,16 @@ const OrdersList = () => {
   const [courierCharge, setCourierCharge] = useState("");
   const modalRef = useRef(null);
   const statsRef = useRef(null);
-  const [orderStats, setOrderStats] = useState({
+  const [chargedWeight, setChargedWeight] = useState("");
+
+const [orderStats, setOrderStats] = useState({
   totalSales: 0,
   totalCustomers: 0,
   totalQuantity: 0,
-  totalValue: 0
+  totalValue: 0,
+  totalShippingValue: 0,  // Add this
+  totalCodValue: 0        // Add this
 });
-
   useEffect(() => {
     fetchOrders();
     fetchSignature();
@@ -179,17 +182,18 @@ const OrdersList = () => {
     setShowViewModal(true);
   };
 
-  const handleEditOrder = (order) => {
-    setSelectedOrder(order);
-    setNewStatus(order.status);
-    setCourierName(order.courierName === "not provided" ? "" : (order.courierName || ""));
-    setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
-    setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
-     setCancelRemarks(order.cancelRemarks || "");
-    setCodCharge(order.codCharge || "");
-    setCourierCharge(order.courierCharge || "");
-    setShowEditModal(true);
-  };
+const handleEditOrder = (order) => {
+  setSelectedOrder(order);
+  setNewStatus(order.status);
+  setCourierName(order.courierName === "not provided" ? "" : (order.courierName || ""));
+  setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
+  setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
+  setCancelRemarks(order.cancelRemarks || "");
+  setCodCharge(order.codCharge || "");
+  setCourierCharge(order.courierCharge || "");
+  setChargedWeight(order.chargedWeight || "");  // NEW: for shipped orders
+  setShowEditModal(true);
+};
 
   const generatePDFBlob = (pdf) => {
     return pdf.output('blob');
@@ -498,84 +502,84 @@ const OrdersList = () => {
     return pdf;
   };
 
-  const handleUpdateStatus = async () => {
-    try {
-      setUploading(true);
+const handleUpdateStatus = async () => {
+  try {
+    setUploading(true);
 
-      
     if (newStatus === 'Cancelled' && !cancelRemarks.trim()) {
       toast.error('Please enter cancellation remarks');
       setUploading(false);
       return;
     }
 
-      let invoiceUrl = null;
-      let packageSlipUrl = null;
+    let invoiceUrl = null;
+    let packageSlipUrl = null;
 
-      if (newStatus === 'Shipped') {
-        // Fetch fresh order data directly from API
-        const freshOrders = await fetchOrdersApi();
-        const orderToUse = freshOrders.find(o => o.id === selectedOrder.id);
+    if (newStatus === 'Shipped') {
+      // Fetch fresh order data directly from API
+      const freshOrders = await fetchOrdersApi();
+      const orderToUse = freshOrders.find(o => o.id === selectedOrder.id);
 
-        if (!orderToUse) {
-          alert('Order not found');
-          setUploading(false);
-          return;
-        }
-
-        console.log('Fresh order data:', orderToUse);
-        console.log('Order created at:', orderToUse.createdAt);
-        console.log('Current time:', new Date().toLocaleString('en-GB'));
-
-        // Delete ALL old invoice and package slip files for this order
-        await deleteOrderFiles(orderToUse.id).catch(e => console.log('Error deleting old files:', e));
-
-        // Wait a moment to ensure deletion completes
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Always generate new PDFs
-        try {
-          console.log('Generating invoice at:', new Date().toLocaleString('en-GB'));
-          const invoicePdf = generateInvoicePDF(freshOrders.find(o => o.id === selectedOrder.id), false);
-          const invoiceBlob = generatePDFBlob(invoicePdf);
-          const invoiceFile = new File([invoiceBlob], `invoice-${orderToUse.id}.pdf`, { type: 'application/pdf' });
-          const invoiceResult = await uploadFile(invoiceFile);
-          invoiceUrl = invoiceResult.url;
-
-          const packagePdf = createPackageSlipPDF(orderToUse);
-          const packageBlob = generatePDFBlob(packagePdf);
-          const packageFile = new File([packageBlob], `packageslip-${orderToUse.id}.pdf`, { type: 'application/pdf' });
-          const packageResult = await uploadFile(packageFile);
-          packageSlipUrl = packageResult.url;
-        } catch (uploadError) {
-          console.error('Upload failed:', uploadError);
-          alert('Failed to upload documents. Status will not be changed.');
-          setUploading(false);
-          return;
-        }
+      if (!orderToUse) {
+        alert('Order not found');
+        setUploading(false);
+        return;
       }
 
-      await updateOrderStatus(
-        selectedOrder.id,
-        newStatus,
-        invoiceUrl,
-        packageSlipUrl,
-        courierName || "not provided",
-        trackingId || "not provided",
-        trackingLink || "not provided",
-        newStatus === 'Cancelled' ? cancelRemarks : null,
-        codCharge || null,
-        courierCharge || null
-      );
-      await fetchOrders();
-      setShowEditModal(false);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert('Failed to update order status');
-    } finally {
-      setUploading(false);
+      console.log('Fresh order data:', orderToUse);
+      console.log('Order created at:', orderToUse.createdAt);
+      console.log('Current time:', new Date().toLocaleString('en-GB'));
+
+      // Delete ALL old invoice and package slip files for this order
+      await deleteOrderFiles(orderToUse.id).catch(e => console.log('Error deleting old files:', e));
+
+      // Wait a moment to ensure deletion completes
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Always generate new PDFs
+      try {
+        console.log('Generating invoice at:', new Date().toLocaleString('en-GB'));
+        const invoicePdf = generateInvoicePDF(freshOrders.find(o => o.id === selectedOrder.id), false);
+        const invoiceBlob = generatePDFBlob(invoicePdf);
+        const invoiceFile = new File([invoiceBlob], `invoice-${orderToUse.id}.pdf`, { type: 'application/pdf' });
+        const invoiceResult = await uploadFile(invoiceFile);
+        invoiceUrl = invoiceResult.url;
+
+        const packagePdf = createPackageSlipPDF(orderToUse);
+        const packageBlob = generatePDFBlob(packagePdf);
+        const packageFile = new File([packageBlob], `packageslip-${orderToUse.id}.pdf`, { type: 'application/pdf' });
+        const packageResult = await uploadFile(packageFile);
+        packageSlipUrl = packageResult.url;
+      } catch (uploadError) {
+        console.error('Upload failed:', uploadError);
+        alert('Failed to upload documents. Status will not be changed.');
+        setUploading(false);
+        return;
+      }
     }
-  };
+
+ await updateOrderStatus(
+  selectedOrder.id,
+  newStatus,
+  invoiceUrl,
+  packageSlipUrl,
+  courierName || "not provided",
+  trackingId || "not provided",
+  trackingLink || "not provided",
+  newStatus === 'Cancelled' ? cancelRemarks : null,
+  newStatus === 'Shipped' ? chargedWeight || null : null,  // chargedWeight for Shipped
+  newStatus === 'Shipped' ? courierCharge || null : (newStatus === 'Delivered' ? courierCharge || null : null),  // courierCharge for both
+  newStatus === 'Delivered' ? codCharge || null : null     // codCharge only for Delivered
+);
+    await fetchOrders();
+    setShowEditModal(false);
+  } catch (error) {
+    console.error("Error updating status:", error);
+    alert('Failed to update order status');
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handlePushToShiprocket = async (orderId) => {
     if (!window.confirm('Are you sure you want to push this order to Shiprocket?')) return;
@@ -676,8 +680,7 @@ const OrdersList = () => {
     const pdf = createPackageSlipPDF(order);
     pdf.save(`package-slip-${order.id}.pdf`);
   };
-
-  const exportAllOrdersExcel = () => {
+const exportAllOrdersExcel = () => {
   // Use filteredOrders which already includes date filter from the existing filteredOrders logic
   let filteredOrders = orders.filter(order => {
     const matchesSearch =
@@ -758,6 +761,7 @@ const OrdersList = () => {
       'Variant ID': variantIds.join(', \n') || 'N/A',
       'Item Qty': qtys.join(', \n') || '0',
       'Quantity': totalQty,
+      'Charged Weight (kg)': order.chargedWeight || 0,
       'Total Amount': parseFloat(order.total || 0),
       'Discount': parseFloat(order.discount || 0),
       'Coupon Code': order.couponCode || 'N/A',
@@ -782,6 +786,7 @@ const OrdersList = () => {
     'Variant ID': '',
     'Item Qty': '',
     'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
+    'Charged Weight (kg)': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight (kg)']) || 0), 0),
     'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
     'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
     'Coupon Code': '',
@@ -804,7 +809,6 @@ const OrdersList = () => {
   
   XLSX.writeFile(workbook, `orders${filterText}${couponText}${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
-
   const generateAllPackageSlips = () => {
     const placedOrders = orders.filter(order => order.status === 'Placed');
 
@@ -1136,132 +1140,134 @@ const OrdersList = () => {
   };
 
   const exportShippedOrdersExcel = () => {
-    let shippedOrders = orders.filter(order => order.status === 'Shipped');
+  let shippedOrders = orders.filter(order => order.status === 'Shipped');
 
-    // Use consistent filtering logic
-    shippedOrders = orders.filter(order => {
-      const matchesStatus = order.status === 'Shipped';
-      const matchesSearch =
-        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Use consistent filtering logic
+  shippedOrders = orders.filter(order => {
+    const matchesStatus = order.status === 'Shipped';
+    const matchesSearch =
+      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCoupon =
-        !couponFilter ? true :
-          couponFilter === "any_coupon" ? !!order.couponCode :
-            couponFilter === "no_coupon" ? !order.couponCode :
-              order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+    const matchesCoupon =
+      !couponFilter ? true :
+      couponFilter === "any_coupon" ? !!order.couponCode :
+      couponFilter === "no_coupon" ? !order.couponCode :
+      order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
 
-      let matchesDate = true;
-      if (startDate || endDate) {
-        const orderDate = new Date(order.createdAt);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const orderDate = new Date(order.createdAt);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
 
-        if (start && end) {
-          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-        } else if (start) {
-          matchesDate = orderDate >= start;
-        } else if (end) {
-          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
-        }
+      if (start && end) {
+        matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+      } else if (start) {
+        matchesDate = orderDate >= start;
+      } else if (end) {
+        matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
       }
-      return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
-    });
-
-    if (shippedOrders.length === 0) {
-      alert('No shipped orders found for the selected date range');
-      return;
     }
+    return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
+  });
 
-    const excelData = shippedOrders.map((order, index) => {
-      let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
-      order.items?.forEach(item => {
-        if (item.type === 'bundle' && item.bundleItems) {
-          item.bundleItems.forEach(b => {
-            names.push(`${item.name} (${b.color})`);
-            sizes.push(b.size || 'N/A');
-            colors.push(b.color || 'N/A');
-            variantIds.push(b.sizeVariantId || 'N/A');
-            qtys.push(1);
-          });
-        } else {
-          names.push(item.name || 'N/A');
-          sizes.push(item.size || 'N/A');
-          colors.push(item.color || 'N/A');
-          variantIds.push(item.sizeVariantId || 'N/A');
-          qtys.push(item.quantity || 1);
-        }
-      });
+  if (shippedOrders.length === 0) {
+    alert('No shipped orders found for the selected date range');
+    return;
+  }
 
-      const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
-
-      return {
-        'S.No': index + 1,
-        'Order ID': `ORD-${order.id}`,
-        'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
-        'Phone': order.user?.phone || 'N/A',
-        'Email': order.user?.email || 'N/A',
-        'City': order.shippingAddress?.city || 'N/A',
-        'State': order.shippingAddress?.state || 'N/A',
-        'Items Count': names.length || 0,
-        'Product Name': names.join(', \n') || 'N/A',
-        'Size': sizes.join(', \n') || 'N/A',
-        'Color': colors.join(', \n') || 'N/A',
-        'Variant ID': variantIds.join(', \n') || 'N/A',
-        'Item Qty': qtys.join(', \n') || '0',
-        'Total Quantity': totalQty,
-        'Courier Name': order.courierName || 'N/A',
-        'Tracking ID': order.trackingId || 'N/A',
-        'Tracking Link': order.trackingLink || 'N/A',
-        'Shipped Date': new Date(order.updatedAt).toLocaleString('en-GB'),
-        'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
-        'Coupon Code': order.couponCode || 'N/A',
-        'Discount': parseFloat(order.discount || 0),
-        'Payment Method': order.paymentMethod || 'N/A',
-        'Total Amount': parseFloat(order.total || 0),
-        'COD Charge': parseFloat(order.codCharge || 0),
-        'Courier Charge': parseFloat(order.courierCharge || 0)
-      };
+  const excelData = shippedOrders.map((order, index) => {
+    let names = [], sizes = [], colors = [], variantIds = [], qtys = [];
+    order.items?.forEach(item => {
+      if (item.type === 'bundle' && item.bundleItems) {
+        item.bundleItems.forEach(b => {
+          names.push(`${item.name} (${b.color})`);
+          sizes.push(b.size || 'N/A');
+          colors.push(b.color || 'N/A');
+          variantIds.push(b.sizeVariantId || 'N/A');
+          qtys.push(1);
+        });
+      } else {
+        names.push(item.name || 'N/A');
+        sizes.push(item.size || 'N/A');
+        colors.push(item.color || 'N/A');
+        variantIds.push(item.sizeVariantId || 'N/A');
+        qtys.push(item.quantity || 1);
+      }
     });
 
-    const totals = {
-      'S.No': '',
-      'Order ID': '',
-      'Customer Name': '',
-      'Phone': '',
-      'Email': '',
-      'City': '',
-      'State': 'TOTAL',
-      'Items Count': excelData.reduce((sum, row) => sum + row['Items Count'], 0),
-      'Product Name': '',
-      'Size': '',
-      'Color': '',
-      'Variant ID': '',
-      'Item Qty': '',
-      'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
-      'Courier Name': '',
-      'Tracking ID': '',
-      'Tracking Link': '',
-      'Shipped Date': '',
-      'Order Date': '',
-      'Coupon Code': '',
-      'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
-      'Payment Method': '',
-      'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
-      'COD Charge': excelData.reduce((sum, row) => sum + parseFloat(row['COD Charge'] || 0), 0).toFixed(2),
-      'Courier Charge': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charge'] || 0), 0).toFixed(2)
+    const totalQty = qtys.reduce((sum, q) => sum + parseInt(q || 0), 0);
+
+    return {
+      'S.No': index + 1,
+      'Order ID': `ORD-${order.id}`,
+      'Customer Name': order.user?.name || order.shippingAddress?.fullName || 'N/A',
+      'Phone': order.user?.phone || 'N/A',
+      'Email': order.user?.email || 'N/A',
+      'City': order.shippingAddress?.city || 'N/A',
+      'State': order.shippingAddress?.state || 'N/A',
+      'Items Count': names.length || 0,
+      'Product Name': names.join(', \n') || 'N/A',
+      'Size': sizes.join(', \n') || 'N/A',
+      'Color': colors.join(', \n') || 'N/A',
+      'Variant ID': variantIds.join(', \n') || 'N/A',
+      'Item Qty': qtys.join(', \n') || '0',
+      'Total Quantity': totalQty,
+      'Charged Weight (kg)': order.chargedWeight || 0,  // ADD THIS LINE
+      'Courier Name': order.courierName || 'N/A',
+      'Tracking ID': order.trackingId || 'N/A',
+      'Tracking Link': order.trackingLink || 'N/A',
+      'Shipped Date': new Date(order.updatedAt).toLocaleString('en-GB'),
+      'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
+      'Coupon Code': order.couponCode || 'N/A',
+      'Discount': parseFloat(order.discount || 0),
+      'Payment Method': order.paymentMethod || 'N/A',
+      'Total Amount': parseFloat(order.total || 0),
+      'COD Charge': parseFloat(order.codCharge || 0),
+      'Courier Charge': parseFloat(order.courierCharge || 0)
     };
+  });
 
-    excelData.push(totals);
-
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipped Orders');
-
-    const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
-    XLSX.writeFile(workbook, `shipped-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  const totals = {
+    'S.No': '',
+    'Order ID': '',
+    'Customer Name': '',
+    'Phone': '',
+    'Email': '',
+    'City': '',
+    'State': 'TOTAL',
+    'Items Count': excelData.reduce((sum, row) => sum + row['Items Count'], 0),
+    'Product Name': '',
+    'Size': '',
+    'Color': '',
+    'Variant ID': '',
+    'Item Qty': '',
+    'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
+    'Charged Weight (kg)': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight (kg)']) || 0), 0),  // ADD THIS LINE
+    'Courier Name': '',
+    'Tracking ID': '',
+    'Tracking Link': '',
+    'Shipped Date': '',
+    'Order Date': '',
+    'Coupon Code': '',
+    'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
+    'Payment Method': '',
+    'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+    'COD Charge': excelData.reduce((sum, row) => sum + parseFloat(row['COD Charge'] || 0), 0).toFixed(2),
+    'Courier Charge': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charge'] || 0), 0).toFixed(2)
   };
+
+  excelData.push(totals);
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipped Orders');
+
+  const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
+  XLSX.writeFile(workbook, `shipped-orders${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
 
 
 
@@ -2138,111 +2144,145 @@ const resetDateRange = () => {
       </button>
     </div>
 
-    {/* Summary cards row – equal width */}
+ {/* Summary cards row – equal width */}
+<div
+  data-summary-cards
+  style={{
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '16px',
+  }}
+>
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
     <div
-      data-summary-cards
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '16px',
-      }}
+      className="stat-icon"
+      style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
     >
-      <div
-        className="stat-card"
-        style={{ flex: '1 1 0', minWidth: '180px' }}
-      >
-        <div
-          className="stat-icon"
-          style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
-        >
-          <Package size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>{orderStats.totalSales}</h3>
-          <p>Total Bills</p>
-        </div>
-      </div>
-
-      <div
-        className="stat-card"
-        style={{ flex: '1 1 0', minWidth: '180px' }}
-      >
-        <div
-          className="stat-icon"
-          style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}
-        >
-          <Users size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>{orderStats.totalCustomers}</h3>
-          <p>Total Customers</p>
-        </div>
-      </div>
-
-      <div
-        className="stat-card"
-        style={{ flex: '1 1 0', minWidth: '180px' }}
-      >
-        <div
-          className="stat-icon"
-          style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}
-        >
-          <Package size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>{orderStats.totalQuantity}</h3>
-          <p>Total Quantity</p>
-        </div>
-      </div>
-
-      <div
-        className="stat-card"
-        style={{ flex: '1 1 0', minWidth: '180px' }}
-      >
-        <div
-          className="stat-icon"
-          style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}
-        >
-          <Receipt size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>₹{orderStats.totalValue.toFixed(2)}</h3>
-          <p>Total Value</p>
-        </div>
-      </div>
-
-      <div
-        className="stat-card"
-        style={{ flex: '1 1 0', minWidth: '180px' }}
-      >
-        <div
-          className="stat-icon"
-          style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
-        >
-          <X size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>{statusCounts.cancelled}</h3>
-          <p>Total Cancelled</p>
-        </div>
-      </div>
-
-      <div
-        className="stat-card"
-        style={{ flex: '1 1 0', minWidth: '180px', maxWidth: '220px' }}
-      >
-        <div
-          className="stat-icon"
-          style={{ backgroundColor: '#fff7ed', color: '#f97316' }}
-        >
-          <Clock size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>{statusCounts.abandoned}</h3>
-          <p>Total Abandoned</p>
-        </div>
-      </div>
+      <Package size={24} />
     </div>
+    <div className="stat-content">
+      <h3>{orderStats.totalSales}</h3>
+      <p>Total Bills</p>
+    </div>
+  </div>
+
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}
+    >
+      <Users size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{orderStats.totalCustomers}</h3>
+      <p>Total Customers</p>
+    </div>
+  </div>
+
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}
+    >
+      <Package size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{orderStats.totalQuantity}</h3>
+      <p>Total Quantity</p>
+    </div>
+  </div>
+
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}
+    >
+      <Receipt size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>₹{orderStats.totalValue?.toFixed(2) || '0.00'}</h3>
+      <p>Total Value</p>
+    </div>
+  </div>
+
+  {/* NEW CARD: Total Shipping Value */}
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}
+    >
+      <Truck size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
+      <p>Shipping Value</p>
+    </div>
+  </div>
+
+  {/* NEW CARD: Total COD Value */}
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#fce7f3', color: '#db2777' }}
+    >
+      <Receipt size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>₹{orderStats.totalCodValue?.toFixed(2) || '0.00'}</h3>
+      <p>COD Value</p>
+    </div>
+  </div>
+
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
+    >
+      <X size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.cancelled}</h3>
+      <p>Total Cancelled</p>
+    </div>
+  </div>
+
+  <div
+    className="stat-card"
+    style={{ flex: '1 1 0', minWidth: '180px', maxWidth: '220px' }}
+  >
+    <div
+      className="stat-icon"
+      style={{ backgroundColor: '#fff7ed', color: '#f97316' }}
+    >
+      <Clock size={24} />
+    </div>
+    <div className="stat-content">
+      <h3>{statusCounts.abandoned}</h3>
+      <p>Total Abandoned</p>
+    </div>
+  </div>
+</div>
   </div>
 </div>
       <div className="status-tabs">
@@ -2473,6 +2513,9 @@ const resetDateRange = () => {
                   {selectedOrder.courierCharge > 0 && (
                     <p><strong>Courier Charge (Admin):</strong> ₹{selectedOrder.courierCharge}</p>
                   )}
+                  {selectedOrder.chargedWeight > 0 && (
+  <p><strong>Charged Weight(Admin):</strong> {selectedOrder.chargedWeight} kg</p>
+)}
                 </div>
 
                
@@ -2721,101 +2764,123 @@ const resetDateRange = () => {
     </select>
   </div>
 
-  {/* Shipped block */}
-  {newStatus === 'Shipped' && (
-    <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-      <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
-        📄 Invoice and package slip will be automatically generated and uploaded.
-      </p>
-      {selectedOrder?.trackingId ? (
-        <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#e6f4ea', borderRadius: '6px', border: '1px solid #ceead6' }}>
-          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#137333' }}><strong>✓ Automatically Synced via Shiprocket</strong></p>
-          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Courier:</strong> {selectedOrder.courierName || 'Shiprocket'}</p>
-          <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Tracking ID:</strong> {selectedOrder.trackingId}</p>
-          {selectedOrder.trackingLink && (
-            <p style={{ margin: '0', fontSize: '14px', color: '#333' }}>
-              <strong>Tracking Link:</strong> <a href={selectedOrder.trackingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>Click here to track</a>
-            </p>
-          )}
+ {/* Shipped block - shows Charged Weight and Courier Charge */}
+{newStatus === 'Shipped' && (
+  <div style={{ flex: '1', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+    <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
+      📄 Invoice and package slip will be automatically generated and uploaded.
+    </p>
+    {selectedOrder?.trackingId ? (
+      <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#e6f4ea', borderRadius: '6px', border: '1px solid #ceead6' }}>
+        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#137333' }}><strong>✓ Automatically Synced via Shiprocket</strong></p>
+        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Courier:</strong> {selectedOrder.courierName || 'Shiprocket'}</p>
+        <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}><strong>Tracking ID:</strong> {selectedOrder.trackingId}</p>
+        {selectedOrder.trackingLink && (
+          <p style={{ margin: '0', fontSize: '14px', color: '#333' }}>
+            <strong>Tracking Link:</strong> <a href={selectedOrder.trackingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>Click here to track</a>
+          </p>
+        )}
+      </div>
+    ) : (
+      <>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Partner</label>
+          <select
+            value={courierName}
+            onChange={(e) => {
+              const selected = courierPartners.find(p => p.name === e.target.value);
+              setCourierName(e.target.value);
+              if (selected?.trackingLink) setTrackingLink(selected.trackingLink);
+              else setTrackingLink('');
+            }}
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
+          >
+            <option value="">-- Select Courier --</option>
+            {courierPartners.map(p => (
+              <option key={p.id} value={p.name}>{p.name}</option>
+            ))}
+            <option value="__manual__">Other (Manual)</option>
+          </select>
         </div>
-      ) : (
-        <>
+        {courierName === '__manual__' && (
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Partner</label>
-            <select
-              value={courierName}
-              onChange={(e) => {
-                const selected = courierPartners.find(p => p.name === e.target.value);
-                setCourierName(e.target.value);
-                if (selected?.trackingLink) setTrackingLink(selected.trackingLink);
-                else setTrackingLink('');
-              }}
-              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-            >
-              <option value="">-- Select Courier --</option>
-              {courierPartners.map(p => (
-                <option key={p.id} value={p.name}>{p.name}</option>
-              ))}
-              <option value="__manual__">Other (Manual)</option>
-            </select>
-          </div>
-          {courierName === '__manual__' && (
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name</label>
-              <input
-                type="text"
-                value={courierName === '__manual__' ? '' : courierName}
-                onChange={(e) => setCourierName(e.target.value)}
-                placeholder="Enter courier name"
-                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-              />
-            </div>
-          )}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Courier Name</label>
             <input
               type="text"
-              value={trackingId}
-              onChange={(e) => setTrackingId(e.target.value)}
+              value={courierName === '__manual__' ? '' : courierName}
+              onChange={(e) => setCourierName(e.target.value)}
+              placeholder="Enter courier name"
               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
             />
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link</label>
-            <input
-              type="text"
-              value={trackingLink}
-              onChange={(e) => setTrackingLink(e.target.value)}
-              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
-            />
-          </div>
-        </>
-      )}
-      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>COD Charge (Optional)</label>
+        )}
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking ID</label>
           <input
-            type="number"
-            value={codCharge}
-            onChange={(e) => setCodCharge(e.target.value)}
-            placeholder="₹0.00"
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+            type="text"
+            value={trackingId}
+            onChange={(e) => setTrackingId(e.target.value)}
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
           />
         </div>
-        <div style={{ flex: 1 }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Courier Charge (Optional)</label>
+        <div>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Tracking Link</label>
           <input
-            type="number"
-            value={courierCharge}
-            onChange={(e) => setCourierCharge(e.target.value)}
-            placeholder="₹0.00"
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+            type="text"
+            value={trackingLink}
+            onChange={(e) => setTrackingLink(e.target.value)}
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
           />
         </div>
+      </>
+    )}
+    
+    {/* Two fields for Shipped: Charged Weight and Courier Charge */}
+    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+      <div style={{ flex: 1 }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Charged Weight (kg) (Optional)</label>
+        <input
+          type="number"
+          step="0.01"
+          value={chargedWeight}
+          onChange={(e) => setChargedWeight(e.target.value)}
+          placeholder="0.00 kg"
+          style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+        />
+      </div>
+      <div style={{ flex: 1 }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Courier Charge (Optional)</label>
+        <input
+          type="number"
+          value={courierCharge}
+          onChange={(e) => setCourierCharge(e.target.value)}
+          placeholder="₹0.00"
+          style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+        />
       </div>
     </div>
-  )}
+  </div>
+)}
 
+{/* Delivered block - shows ONLY COD Charge field */}
+{newStatus === 'Delivered' && (
+  <div style={{ flex: '1', padding: '20px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+    <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#166534', fontStyle: 'italic' }}>
+      Order will be marked as <strong>Delivered</strong>. You can add COD charge if applicable.
+    </p>
+    
+    <div>
+      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#166534' }}>COD Charge (Optional)</label>
+      <input
+        type="number"
+        value={codCharge}
+        onChange={(e) => setCodCharge(e.target.value)}
+        placeholder="₹0.00"
+        style={{ width: '100%', padding: '10px', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+      />
+    </div>
+  </div>
+)}
   {/* Cancelled block */}
   {/* Cancelled block */}
 {newStatus === 'Cancelled' && (

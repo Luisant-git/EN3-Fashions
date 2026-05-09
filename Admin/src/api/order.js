@@ -136,6 +136,101 @@ export const deleteOrderFiles = async (orderId) => {
   }
 };
 
+// Add these functions to your existing order.js file
+
+// Get Sales Report
+export const getSalesReport = async (startDate, endDate) => {
+  try {
+    let url = `${API_BASE_URL}/orders/reports/sales`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch sales report');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get Sales Report Summary
+export const getSalesReportSummary = async (startDate, endDate) => {
+  try {
+    let url = `${API_BASE_URL}/orders/reports/sales/summary`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch sales report summary');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+// Get Shipping Report
+export const getShippingReport = async (startDate, endDate) => {
+  try {
+    let url = `${API_BASE_URL}/orders/reports/shipping`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message);
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching shipping report:', error);
+    throw error;
+  }
+};
+
+// Get Shipping Report Summary
+export const getShippingReportSummary = async (startDate, endDate) => {
+  try {
+    let url = `${API_BASE_URL}/orders/reports/shipping/summary`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message);
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching shipping report summary:', error);
+    throw error;
+  }
+};
+
 export const pushToShiprocket = async (orderId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/webhook/create`, {
@@ -153,4 +248,6 @@ export const pushToShiprocket = async (orderId) => {
   } catch (error) {
     throw error;
   }
+
+  
 };
