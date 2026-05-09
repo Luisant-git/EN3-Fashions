@@ -1747,7 +1747,7 @@ const exportAllOrdersExcel = () => {
     clone.style.position = 'fixed';
     clone.style.left = '-9999px';
     clone.style.top = '0';
-    clone.style.width = '360px';
+    clone.style.width = '400px';
 
     const cardsContainer = clone.querySelector('[data-summary-cards]');
     if (cardsContainer) {
@@ -1757,6 +1757,8 @@ const exportAllOrdersExcel = () => {
         c.style.flex = 'none';
         c.style.minWidth = 'unset';
         c.style.width = '100%';
+        const h3 = c.querySelector('h3');
+        if (h3) h3.style.whiteSpace = 'nowrap';
       });
     }
 
@@ -1768,7 +1770,7 @@ const exportAllOrdersExcel = () => {
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      windowWidth: 360,
+      windowWidth: 400,
       windowHeight: clone.scrollHeight,
     });
 
@@ -2011,8 +2013,8 @@ const resetDateRange = () => {
     }}
   >
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0', cursor: 'pointer' }}
       onClick={() => setStatusFilter("placed")}
     >
       <div className="stat-icon placed">
@@ -2025,8 +2027,8 @@ const resetDateRange = () => {
     </div>
 
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0', cursor: 'pointer' }}
       onClick={() => setStatusFilter("accepted")}
     >
       <div
@@ -2042,8 +2044,8 @@ const resetDateRange = () => {
     </div>
 
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0', cursor: 'pointer' }}
       onClick={() => setStatusFilter("shipped")}
     >
       <div className="stat-icon shipped">
@@ -2056,8 +2058,8 @@ const resetDateRange = () => {
     </div>
 
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0', cursor: 'pointer' }}
       onClick={() => setStatusFilter("delivered")}
     >
       <div
@@ -2073,8 +2075,8 @@ const resetDateRange = () => {
     </div>
 
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '180px', cursor: 'pointer' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0', cursor: 'pointer' }}
       onClick={() => setStatusFilter("abandoned")}
     >
       <div className="stat-icon abandoned">
@@ -2154,10 +2156,10 @@ const resetDateRange = () => {
   }}
 >
   {/* First Row */}
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0' }}
     >
       <div
         className="stat-icon"
@@ -2172,8 +2174,8 @@ const resetDateRange = () => {
     </div>
 
   <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+    className="stat-card summary-stat-card"
+    style={{ flex: '1 1 0' }}
   >
     <div
       className="stat-icon"
@@ -2188,8 +2190,8 @@ const resetDateRange = () => {
   </div>
 
   <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+    className="stat-card summary-stat-card"
+    style={{ flex: '1 1 0' }}
   >
     <div
       className="stat-icon"
@@ -2204,8 +2206,8 @@ const resetDateRange = () => {
   </div>
 
   <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+    className="stat-card summary-stat-card"
+    style={{ flex: '1 1 0' }}
   >
     <div
       className="stat-icon"
@@ -2221,8 +2223,8 @@ const resetDateRange = () => {
 
   {/* NEW CARD: Total Shipping Value */}
   <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+    className="stat-card summary-stat-card"
+    style={{ flex: '1 1 0' }}
   >
     <div
       className="stat-icon"
@@ -2238,11 +2240,11 @@ const resetDateRange = () => {
 </div>
 
   {/* Second Row */}
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
     {/* NEW CARD: Total COD Value */}
     <div
-      className="stat-card"
-      style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+      className="stat-card summary-stat-card"
+      style={{ flex: '1 1 0' }}
     >
       <div
         className="stat-icon"
@@ -2257,8 +2259,8 @@ const resetDateRange = () => {
     </div>
 
   <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+    className="stat-card summary-stat-card"
+    style={{ flex: '1 1 0' }}
   >
     <div
       className="stat-icon"
@@ -2273,8 +2275,8 @@ const resetDateRange = () => {
   </div>
 
   <div
-    className="stat-card"
-    style={{ flex: '1 1 0', minWidth: '150px', maxWidth: '200px' }}
+    className="stat-card summary-stat-card"
+    style={{ flex: '1 1 0' }}
   >
     <div
       className="stat-icon"

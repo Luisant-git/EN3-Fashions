@@ -125,7 +125,7 @@ const Reports = () => {
       clone.style.position = 'fixed';
       clone.style.left = '-9999px';
       clone.style.top = '0';
-      clone.style.width = '360px';
+      clone.style.width = '400px';
       
       // Adjust card layout for mobile
       const cardsContainer = clone.querySelector('.summary-cards-container');
@@ -135,6 +135,8 @@ const Reports = () => {
         Array.from(cardsContainer.querySelectorAll('.stat-card')).forEach(card => {
           card.style.width = '100%';
           card.style.marginBottom = '10px';
+          const h3 = card.querySelector('h3');
+          if (h3) h3.style.whiteSpace = 'nowrap';
         });
       }
 
@@ -146,7 +148,7 @@ const Reports = () => {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        windowWidth: 360,
+        windowWidth: 400,
         windowHeight: clone.scrollHeight,
       });
 
