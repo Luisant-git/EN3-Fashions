@@ -11,7 +11,8 @@ import {
   ShoppingBag,
   Users,
   Eye,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CreditCard
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { 
@@ -418,16 +419,7 @@ const Reports = () => {
                 <ImageIcon size={16} /> Download
               </button>
             </div>
-            <div className="summary-cards-container orders-stats">
-              <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
-                  <Package size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>{salesSummary.totalOrders}</h3>
-                  <p>Total Bills</p>
-                </div>
-              </div>
+            <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
                   <Users size={24} />
@@ -438,12 +430,39 @@ const Reports = () => {
                 </div>
               </div>
               <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
+                  <Package size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{salesSummary.totalOrders}</h3>
+                  <p>Total Bills</p>
+                </div>
+              </div>
+              <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
                   <Package size={24} />
                 </div>
                 <div className="stat-content">
                   <h3>{salesSummary.totalQuantity}</h3>
                   <p>Total Quantity</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#f0fdfa', color: '#0d9488' }}>
+                  <CreditCard size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(salesSummary.totalValue - salesSummary.totalCodValue)}</h3>
+                  <p>Online Value</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#fce7f3', color: '#db2777' }}>
+                  <Receipt size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(salesSummary.totalCodValue)}</h3>
+                  <p>COD Value</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -464,15 +483,6 @@ const Reports = () => {
                   <p>Shipped Value</p>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#fce7f3', color: '#db2777' }}>
-                  <Receipt size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalCodValue)}</h3>
-                  <p>COD Value</p>
-                </div>
-              </div>
             </div>
 
           </div>
@@ -487,7 +497,7 @@ const Reports = () => {
                 <ImageIcon size={16} /> Download
               </button>
             </div>
-            <div className="summary-cards-container orders-stats">
+            <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
                   <Truck size={24} />

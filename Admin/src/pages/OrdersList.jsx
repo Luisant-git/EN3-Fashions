@@ -14,6 +14,7 @@ import {
   Receipt,
   Image as ImageIcon,
   Users,
+  CreditCard,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
@@ -2155,16 +2156,20 @@ const resetDateRange = () => {
     gap: '16px',
   }}
 >
-  {/* First Row */}
-  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-    <div
-      className="stat-card summary-stat-card"
-      style={{ flex: '1 1 0' }}
-    >
-      <div
-        className="stat-icon"
-        style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}
-      >
+  {/* First Row: 5 Cards */}
+  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
+        <Users size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{orderStats.totalCustomers}</h3>
+        <p>Total Customers</p>
+      </div>
+    </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
         <Package size={24} />
       </div>
       <div className="stat-content">
@@ -2173,83 +2178,28 @@ const resetDateRange = () => {
       </div>
     </div>
 
-  <div
-    className="stat-card summary-stat-card"
-    style={{ flex: '1 1 0' }}
-  >
-    <div
-      className="stat-icon"
-      style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}
-    >
-      <Users size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{orderStats.totalCustomers}</h3>
-      <p>Total Customers</p>
-    </div>
-  </div>
-
-  <div
-    className="stat-card summary-stat-card"
-    style={{ flex: '1 1 0' }}
-  >
-    <div
-      className="stat-icon"
-      style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}
-    >
-      <Package size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{orderStats.totalQuantity}</h3>
-      <p>Total Quantity</p>
-    </div>
-  </div>
-
-  <div
-    className="stat-card summary-stat-card"
-    style={{ flex: '1 1 0' }}
-  >
-    <div
-      className="stat-icon"
-      style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}
-    >
-      <Receipt size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>₹{orderStats.totalValue?.toFixed(2) || '0.00'}</h3>
-      <p>Total Value</p>
-    </div>
-  </div>
-
-  {/* NEW CARD: Total Shipping Value */}
-  <div
-    className="stat-card summary-stat-card"
-    style={{ flex: '1 1 0' }}
-  >
-    <div
-      className="stat-icon"
-      style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}
-    >
-      <Truck size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
-      <p>Shipping Value</p>
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
+        <Package size={24} />
       </div>
-  </div>
-</div>
+      <div className="stat-content">
+        <h3>{orderStats.totalQuantity}</h3>
+        <p>Total Quantity</p>
+      </div>
+    </div>
 
-  {/* Second Row */}
-  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-    {/* NEW CARD: Total COD Value */}
-    <div
-      className="stat-card summary-stat-card"
-      style={{ flex: '1 1 0' }}
-    >
-      <div
-        className="stat-icon"
-        style={{ backgroundColor: '#fce7f3', color: '#db2777' }}
-      >
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#f0fdfa', color: '#0d9488' }}>
+        <CreditCard size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{(orderStats.totalValue - orderStats.totalCodValue)?.toFixed(2) || '0.00'}</h3>
+        <p>Online Value</p>
+      </div>
+    </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fce7f3', color: '#db2777' }}>
         <Receipt size={24} />
       </div>
       <div className="stat-content">
@@ -2257,42 +2207,56 @@ const resetDateRange = () => {
         <p>COD Value</p>
       </div>
     </div>
-
-  <div
-    className="stat-card summary-stat-card"
-    style={{ flex: '1 1 0' }}
-  >
-    <div
-      className="stat-icon"
-      style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
-    >
-      <X size={24} />
-    </div>
-    <div className="stat-content">
-      <h3>{statusCounts.cancelled}</h3>
-      <p>Total Cancelled</p>
-    </div>
   </div>
 
-  <div
-    className="stat-card summary-stat-card"
-    style={{ flex: '1 1 0' }}
-  >
-    <div
-      className="stat-icon"
-      style={{ backgroundColor: '#fff7ed', color: '#f97316' }}
-    >
-      <Clock size={24} />
+  {/* Second Row: 4 Cards */}
+  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
+        <Receipt size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalValue?.toFixed(2) || '0.00'}</h3>
+        <p>Total Value</p>
+      </div>
     </div>
-    <div className="stat-content">
-      <h3>{statusCounts.abandoned}</h3>
-      <p>Total Abandoned</p>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+        <Truck size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
+        <p>Shipping Value</p>
+      </div>
     </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
+        <Clock size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.abandoned}</h3>
+        <p>Total Abandoned</p>
+      </div>
+    </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
+        <X size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.cancelled}</h3>
+        <p>Total Cancelled</p>
+      </div>
+    </div>
+    
+    {/* Optional: Add an empty div or adjust flex to keep cards same width as row 1 if needed */}
+    <div style={{ flex: '1 1 0', visibility: 'hidden' }}></div>
   </div>
     </div>
   </div>
 </div>
-  </div>
       <div className="status-tabs">
         <button
           className={statusFilter === "all" ? "tab active" : "tab"}
