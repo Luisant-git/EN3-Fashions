@@ -295,6 +295,7 @@ const Reports = () => {
       label: "Cancel Reason", 
       render: (value, row) => row.status === 'Cancelled' ? (value || '-') : '-'
     },
+    { key: "chargedWeight", label: "Charged Wgt (g)", render: (value) => formatNumber(value) },
     { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
     { key: "codCharge", label: "COD/Online Comm", render: (value) => formatCurrency(value) },
     { 

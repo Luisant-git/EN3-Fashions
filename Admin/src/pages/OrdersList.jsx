@@ -2893,19 +2893,45 @@ const resetDateRange = () => {
     <textarea
       value={cancelRemarks}
       onChange={(e) => setCancelRemarks(e.target.value)}
-     
       style={{
         width: '100%',
         minHeight: '110px',
         padding: '10px',
-        border: '1px solid #fca5a5',
+        border: '1px solid #fecaca',
         borderRadius: '6px',
         fontSize: '14px',
+        boxSizing: 'border-box',
+        outline: 'none',
         resize: 'vertical',
         backgroundColor: '#fff7f7',
         color: '#111827',
       }}
     />
+
+    {/* Cost fields for Cancelled shipments */}
+    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+      <div style={{ flex: 1 }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#991b1b' }}>Charged Weight (g)</label>
+        <input
+          type="number"
+          step="0.01"
+          value={chargedWeight}
+          onChange={(e) => setChargedWeight(e.target.value)}
+          placeholder="0.00 g"
+          style={{ width: '100%', padding: '10px', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+        />
+      </div>
+      <div style={{ flex: 1 }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#991b1b' }}>Courier Charge</label>
+        <input
+          type="number"
+          value={courierCharge}
+          onChange={(e) => setCourierCharge(e.target.value)}
+          placeholder="₹0.00"
+          style={{ width: '100%', padding: '10px', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+        />
+      </div>
+    </div>
   </div>
 )}
 
