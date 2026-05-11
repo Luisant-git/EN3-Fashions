@@ -646,6 +646,7 @@ async getSalesReport(startDate?: string, endDate?: string) {
         orderDate: order.createdAt,
         shippingDate: order.status === 'Shipped' || order.status === 'Delivered' ? order.updatedAt : null,
         status: order.status,
+        trackingId: order.trackingId || '-',
         cancelRemarks: order.cancelRemarks || 'N/A',
         // Financial values - set to 0 for cancelled orders
         productValue: isCancelled ? 0 : totalProductsValue,
@@ -745,6 +746,7 @@ async getShippingReport(startDate?: string, endDate?: string) {
         orderDate: order.createdAt,
         shippingDate: order.updatedAt,
         status: order.status,
+        trackingId: order.trackingId || '-',
         subtotal: subtotal,
         deliveryFee: deliveryFee,
         codFee: codFee,

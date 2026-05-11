@@ -762,7 +762,7 @@ const exportAllOrdersExcel = () => {
       'Variant ID': variantIds.join(', \n') || 'N/A',
       'Item Qty': qtys.join(', \n') || '0',
       'Quantity': totalQty,
-      'Charged Weight': order.chargedWeight || 0,
+      'Charged Weight (gms)': order.chargedWeight || 0,
       'Total Amount': parseFloat(order.total || 0),
       'Discount': parseFloat(order.discount || 0),
       'Coupon Code': order.couponCode || 'N/A',
@@ -787,7 +787,7 @@ const exportAllOrdersExcel = () => {
     'Variant ID': '',
     'Item Qty': '',
     'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
-    'Charged Weight': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight']) || 0), 0),
+    'Charged Weight (gms)': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight (gms)']) || 0), 0),
     'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
     'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
     'Coupon Code': '',
@@ -1215,8 +1215,8 @@ const exportAllOrdersExcel = () => {
       'Color': colors.join(', \n') || 'N/A',
       'Variant ID': variantIds.join(', \n') || 'N/A',
       'Item Qty': qtys.join(', \n') || '0',
-      'Total Quantity': totalQty,
-      'Charged Weight': order.chargedWeight || 0,  // ADD THIS LINE
+      'Quantity': totalQty,
+      'Charged Weight (gms)': order.chargedWeight || 0,
       'Courier Name': order.courierName || 'N/A',
       'Tracking ID': order.trackingId || 'N/A',
       'Tracking Link': order.trackingLink || 'N/A',
@@ -1246,7 +1246,7 @@ const exportAllOrdersExcel = () => {
     'Variant ID': '',
     'Item Qty': '',
     'Total Quantity': excelData.reduce((sum, row) => sum + row['Total Quantity'], 0),
-    'Charged Weight': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight']) || 0), 0),  // ADD THIS LINE
+    'Charged Weight (gms)': excelData.reduce((sum, row) => sum + (parseFloat(row['Charged Weight (gms)']) || 0), 0),
     'Courier Name': '',
     'Tracking ID': '',
     'Tracking Link': '',
@@ -1937,7 +1937,10 @@ const resetDateRange = () => {
       : statusFilter === "cancelled"
       ? [{ key: "updatedAt", label: "Cancelled Date", render: (value) => formatDate(value) }]
       : statusFilter === "shipped"
-      ? [{ key: "updatedAt", label: "Shipped Date", render: (value) => formatDate(value) }]
+      ? [
+          { key: "updatedAt", label: "Shipped Date", render: (value) => formatDate(value) },
+          { key: "trackingId", label: "Tracking ID" }
+        ]
       : [
           { key: "createdAt", label: "Date", render: (value) => formatDate(value) },
           { key: "updatedAt", label: "Shipped Date", render: (value, row) => row.status === "Shipped" || row.status === "Delivered" ? formatDate(value) : "-" },
@@ -2479,15 +2482,15 @@ const resetDateRange = () => {
                     <p><strong>Discount:</strong> -₹{selectedOrder.discount}</p>
                   )}
                   <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
-                  {selectedOrder.codCharge > 0 && (
-                    <p><strong>COD Charge (Admin):</strong> ₹{selectedOrder.codCharge}</p>
+                  {selectedOrder.chargedWeight > 0 && (
+                    <p><strong>Charged Weight (Admin):</strong> {selectedOrder.chargedWeight} g</p>
                   )}
                   {selectedOrder.courierCharge > 0 && (
                     <p><strong>Courier Charge (Admin):</strong> ₹{selectedOrder.courierCharge}</p>
                   )}
-                  {selectedOrder.chargedWeight > 0 && (
-  <p><strong>Charged Weight(Admin):</strong> {selectedOrder.chargedWeight} </p>
-)}
+                  {selectedOrder.codCharge > 0 && (
+                    <p><strong>COD/online commission (Admin):</strong> ₹{selectedOrder.codCharge}</p>
+                  )}
                 </div>
 
                
@@ -2810,13 +2813,13 @@ const resetDateRange = () => {
     {/* Two fields for Shipped: Charged Weight and Courier Charge */}
     <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
       <div style={{ flex: 1 }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Charged Weight (Optional)</label>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Charged Weigh (Optional)</label>
         <input
           type="number"
           step="0.01"
           value={chargedWeight}
           onChange={(e) => setChargedWeight(e.target.value)}
-          placeholder="0.00 "
+          placeholder="0.00 g"
           style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
         />
       </div>
@@ -2838,11 +2841,11 @@ const resetDateRange = () => {
 {newStatus === 'Delivered' && (
   <div style={{ flex: '1', padding: '20px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
     <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#166534', fontStyle: 'italic' }}>
-      Order will be marked as <strong>Delivered</strong>. You can add COD charge if applicable.
+      Order will be marked as <strong>Delivered</strong>. You can add COD/online commission if applicable.
     </p>
     
     <div>
-      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#166534' }}>COD Charge (Optional)</label>
+      <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#166534' }}>COD/online commission (Optional)</label>
       <input
         type="number"
         value={codCharge}

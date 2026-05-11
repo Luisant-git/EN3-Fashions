@@ -21,7 +21,7 @@ import {
   getShippingReport,
   getShippingReportSummary 
 } from "../api/order";
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { toast } from 'react-toastify';
 import html2canvas from 'html2canvas';
 import '../styles/pages/report.scss';
@@ -228,6 +228,7 @@ const Reports = () => {
   const baseColumns = [
     { key: "sno", label: "S.No", width: "60px" },
     { key: "orderId", label: "Order ID", render: (value) => <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{value}</span> },
+    { key: "trackingId", label: "Tracking ID", render: (value) => value || "-" },
     {
       key: "customer",
       label: "Customer",
@@ -269,8 +270,9 @@ const Reports = () => {
     { key: "deliveryFee", label: "Delivery Fee", render: (value) => formatCurrency(value) },
     { key: "codFee", label: "COD Fee", render: (value) => formatCurrency(value) },
     { key: "discount", label: "Discount", render: (value) => formatCurrency(value) },
-    { key: "chargedWeight", label: "Charged Wgt", render: (value) => formatNumber(value) },
+    { key: "chargedWeight", label: "Charged Wgt (g)", render: (value) => formatNumber(value) },
     { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
+    { key: "codCharge", label: "COD/Online Comm", render: (value) => formatCurrency(value) },
     { key: "settlementAmt", label: "Settlement AMT", render: (value) => formatCurrency(value) },
     {
       key: "actions",
@@ -293,6 +295,8 @@ const Reports = () => {
       label: "Cancel Reason", 
       render: (value, row) => row.status === 'Cancelled' ? (value || '-') : '-'
     },
+    { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
+    { key: "codCharge", label: "COD/Online Comm", render: (value) => formatCurrency(value) },
     { 
       key: "settlementAmt", 
       label: "Settlement AMT", 
@@ -322,27 +326,91 @@ const Reports = () => {
     const excelData = data.map((row, index) => ({
       'S.No': index + 1,
       'Order ID': row.orderId,
+      'Tracking ID': row.trackingId || '-',
       'Customer Name': row.customer,
       'Phone': row.phone,
       'City': row.city,
       'Order Date': row.orderDate ? new Date(row.orderDate).toLocaleDateString('en-GB') : '-',
       'Shipping Date': row.shippingDate ? new Date(row.shippingDate).toLocaleDateString('en-GB') : '-',
-      'Status': row.status,
+      'Status': row.status || '-',
       'Payment Method': row.paymentMethod,
       'Items': row.itemsCount,
       'Quantity': row.quantity,
-      'Subtotal': row.subtotal ? formatCurrency(row.subtotal) : '-',
-      'Delivery Fee': row.deliveryFee ? formatCurrency(row.deliveryFee) : '-',
-      'COD Fee': row.codFee ? formatCurrency(row.codFee) : '-',
-      'Discount': row.discount ? formatCurrency(row.discount) : '-',
-      'Total': formatCurrency(row.total),
-      'Charged Weight': row.chargedWeight || 0,
-      'Courier Charge': row.courierCharge ? formatCurrency(row.courierCharge) : '-',
-      'Settlement AMT': formatCurrency(row.settlementAmt),
+      'Subtotal': row.subtotal ? parseFloat(row.subtotal) : 0,
+      'Delivery Fee': row.deliveryFee ? parseFloat(row.deliveryFee) : 0,
+      'COD Fee': row.codFee ? parseFloat(row.codFee) : 0,
+      'Discount': row.discount ? parseFloat(row.discount) : 0,
+      'Total': row.total ? parseFloat(row.total) : 0,
+      'Charged Weight (gms)': row.chargedWeight || 0,
+      'Courier Charge': row.courierCharge ? parseFloat(row.courierCharge) : 0,
+      'COD/Online Commission': row.codCharge ? parseFloat(row.codCharge) : 0,
+      'Settlement AMT': row.settlementAmt ? parseFloat(row.settlementAmt) : 0,
       'Cancel Reason': row.status === 'Cancelled' ? (row.cancelRemarks || '-') : '-'
     }));
 
+    // Add Total Row
+    const totals = {
+      'S.No': '',
+      'Order ID': '',
+      'Tracking ID': '',
+      'Customer Name': '',
+      'Phone': '',
+      'City': '',
+      'Order Date': '',
+      'Shipping Date': '',
+      'Status': 'TOTAL',
+      'Payment Method': '',
+      'Items': excelData.reduce((sum, r) => sum + (r['Items'] || 0), 0),
+      'Quantity': excelData.reduce((sum, r) => sum + (r['Quantity'] || 0), 0),
+      'Subtotal': parseFloat(excelData.reduce((sum, r) => sum + (r['Subtotal'] || 0), 0).toFixed(2)),
+      'Delivery Fee': parseFloat(excelData.reduce((sum, r) => sum + (r['Delivery Fee'] || 0), 0).toFixed(2)),
+      'COD Fee': parseFloat(excelData.reduce((sum, r) => sum + (r['COD Fee'] || 0), 0).toFixed(2)),
+      'Discount': parseFloat(excelData.reduce((sum, r) => sum + (r['Discount'] || 0), 0).toFixed(2)),
+      'Total': parseFloat(excelData.reduce((sum, r) => sum + (r['Total'] || 0), 0).toFixed(2)),
+      'Charged Weight (gms)': parseFloat(excelData.reduce((sum, r) => sum + (r['Charged Weight (gms)'] || 0), 0).toFixed(2)),
+      'Courier Charge': parseFloat(excelData.reduce((sum, r) => sum + (r['Courier Charge'] || 0), 0).toFixed(2)),
+      'COD/Online Commission': parseFloat(excelData.reduce((sum, r) => sum + (r['COD/Online Commission'] || 0), 0).toFixed(2)),
+      'Settlement AMT': parseFloat(excelData.reduce((sum, r) => sum + (r['Settlement AMT'] || 0), 0).toFixed(2)),
+      'Cancel Reason': ''
+    };
+    
+    // Add empty row for gap
+    excelData.push({
+      'S.No': '', 'Order ID': '', 'Tracking ID': '', 'Customer Name': '', 'Phone': '', 'City': '', 'Order Date': '', 'Shipping Date': '', 'Status': '', 'Payment Method': '', 'Items': '', 'Quantity': '', 'Subtotal': '', 'Delivery Fee': '', 'COD Fee': '', 'Discount': '', 'Total': '', 'Charged Weight (gms)': '', 'Courier Charge': '', 'Settlement AMT': '', 'Cancel Reason': ''
+    });
+    
+    excelData.push(totals);
+
     const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Apply background color to TOTAL row
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    const lastRowIndex = range.e.r;
+    
+    for (let c = 0; c <= range.e.c; c++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: lastRowIndex, c: c });
+      if (!worksheet[cellAddress]) continue;
+      
+      worksheet[cellAddress].s = {
+        fill: { 
+          fgColor: { rgb: "E8EAF6" }, // Light indigo background
+          patternType: "solid"
+        },
+        font: { 
+          bold: true,
+          color: { rgb: "3F51B5" } // Indigo text
+        },
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "double", color: { rgb: "000000" } }
+        },
+        alignment: {
+          vertical: "center",
+          horizontal: "center"
+        }
+      };
+    }
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, filename);
     
@@ -353,12 +421,24 @@ const Reports = () => {
   };
 
   const exportShippingReport = () => {
-    const dataWithSno = filteredShippingData.map((item, idx) => ({ ...item, sno: idx + 1 }));
+    const sortedData = [...filteredShippingData].sort((a, b) => {
+      const order = { 'Shipped': 1, 'Delivered': 2 };
+      const aVal = order[a.status] || 99;
+      const bVal = order[b.status] || 99;
+      return aVal - bVal;
+    });
+    const dataWithSno = sortedData.map((item, idx) => ({ ...item, sno: idx + 1 }));
     exportToExcel(dataWithSno, 'Shipping_Report');
   };
 
   const exportSalesReport = () => {
-    const dataWithSno = filteredSalesData.map((item, idx) => ({ ...item, sno: idx + 1 }));
+    const sortedData = [...filteredSalesData].sort((a, b) => {
+      const order = { 'Shipped': 1, 'Delivered': 2 };
+      const aVal = order[a.status] || 99;
+      const bVal = order[b.status] || 99;
+      return aVal - bVal;
+    });
+    const dataWithSno = sortedData.map((item, idx) => ({ ...item, sno: idx + 1 }));
     exportToExcel(dataWithSno, 'Sales_Report');
   };
 
@@ -656,7 +736,7 @@ const Reports = () => {
                   {selectedOrder.chargedWeight > 0 && (
                     <div className="info-row">
                       <span className="info-label">Charged Weight:</span>
-                      <span className="info-value">{selectedOrder.chargedWeight} </span>
+                      <span className="info-value">{selectedOrder.chargedWeight} g</span>
                     </div>
                   )}
                 </div>
