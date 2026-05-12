@@ -22,7 +22,7 @@ import {
   getShippingReportSummary 
 } from "../api/order";
 import * as XLSX from 'xlsx-js-style';
-import { toast } from 'react-toastify';
+
 import html2canvas from 'html2canvas';
 import '../styles/pages/report.scss';
 
@@ -73,7 +73,7 @@ const Reports = () => {
       setSalesData(data);
     } catch (error) {
       console.error("Error fetching sales report:", error);
-      toast.error("Failed to fetch sales report");
+
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ const Reports = () => {
       setShippingData(data);
     } catch (error) {
       console.error("Error fetching shipping report:", error);
-      toast.error("Failed to fetch shipping report");
+
     } finally {
       setLoading(false);
     }
@@ -160,10 +160,10 @@ const Reports = () => {
       link.download = `${activeTab}-summary-${dateRange}-${new Date().toISOString().split('T')[0]}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      toast.success('Summary downloaded as image');
+
     } catch (error) {
       console.error('Error downloading summary image:', error);
-      toast.error('Failed to download summary image');
+
     }
   };
 
@@ -320,7 +320,6 @@ const Reports = () => {
   // Export Functions
   const exportToExcel = (data, filename) => {
     if (data.length === 0) {
-      toast.error('No data to export');
       return;
     }
 
@@ -418,7 +417,7 @@ const Reports = () => {
     const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
     const statusFilterText = salesStatusFilter !== "all" ? `_${salesStatusFilter}` : '';
     XLSX.writeFile(workbook, `${filename}${dateRange}${statusFilterText}_${new Date().toISOString().split('T')[0]}.xlsx`);
-    toast.success(`${filename} exported successfully`);
+
   };
 
   const exportShippingReport = () => {
