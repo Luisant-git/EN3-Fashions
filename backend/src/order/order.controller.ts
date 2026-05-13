@@ -100,8 +100,9 @@ async getOrderStats(
         updateOrderStatusDto.trackingId,
         updateOrderStatusDto.trackingLink,
         updateOrderStatusDto.cancelRemarks,
-        updateOrderStatusDto.codCharge,
+        updateOrderStatusDto.chargedWeight,
         updateOrderStatusDto.courierCharge,
+        updateOrderStatusDto.codCharge,
       );
     } catch (error) {
       // Catch native order update crashes

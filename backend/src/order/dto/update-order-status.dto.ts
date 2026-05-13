@@ -39,6 +39,11 @@ export class UpdateOrderStatusDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
+  chargedWeight?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
   codCharge?: number;
 
   @ApiProperty({ required: false })

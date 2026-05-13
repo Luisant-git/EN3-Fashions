@@ -52,7 +52,7 @@ export const getOrderStats = async (startDate = '', endDate = '') => {
   }
 };
 
-export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink, cancelRemarks, codCharge, courierCharge) => {
+export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink, cancelRemarks, chargedWeight, courierCharge, codCharge) => {
   try {
     const body = { status };
     if (invoiceUrl) body.invoiceUrl = invoiceUrl;
@@ -61,8 +61,9 @@ export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlip
     if (trackingId) body.trackingId = trackingId;
     if (trackingLink) body.trackingLink = trackingLink;
     if (cancelRemarks !== undefined) body.cancelRemarks = cancelRemarks;
-    if (codCharge) body.codCharge = parseFloat(codCharge);
+    if (chargedWeight) body.chargedWeight = parseFloat(chargedWeight);
     if (courierCharge) body.courierCharge = parseFloat(courierCharge);
+    if (codCharge) body.codCharge = parseFloat(codCharge);
 
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
       method: 'PATCH',
