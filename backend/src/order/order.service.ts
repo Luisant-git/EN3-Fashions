@@ -658,7 +658,7 @@ async getSalesReport(startDate?: string, endDate?: string) {
         courierCharge: (order.courierCharge || 0),
         total: isCancelled ? 0 : parseFloat(totalStr),
         chargedWeight: (order.chargedWeight || 0),
-        settlementAmt: isCancelled ? (-(order.courierCharge || 0) - (order.codCharge || 0)) : (parseFloat(totalStr) - (order.courierCharge || 0)),
+        settlementAmt: isCancelled ? (-(order.courierCharge || 0) - (order.codCharge || 0)) : (parseFloat(totalStr) - (order.codCharge || 0)),
         paymentMethod: order.paymentMethod,
         couponCode: order.couponCode || 'N/A',
         items: order.items,
@@ -733,8 +733,8 @@ async getShippingReport(startDate?: string, endDate?: string) {
         return sum + (item.quantity || 0);
       }, 0);
       
-      // Settlement Amount = Total - Courier Charge (what you actually pay to courier)
-      const settlementAmt = total - courierCharge;
+      // Settlement Amount = Total - COD/online commission (Admin)
+      const settlementAmt = total - (order.codCharge || 0);
       
       return {
         id: order.id,

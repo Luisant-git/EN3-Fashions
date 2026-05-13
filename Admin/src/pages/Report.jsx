@@ -175,7 +175,9 @@ const Reports = () => {
         item.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+        item.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.paymentMethod?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = salesStatusFilter === "all" || 
         (item.status?.toLowerCase() === salesStatusFilter.toLowerCase());
@@ -270,9 +272,9 @@ const Reports = () => {
     { key: "deliveryFee", label: "Delivery Fee", render: (value) => formatCurrency(value) },
     { key: "codFee", label: "COD Fee", render: (value) => formatCurrency(value) },
     { key: "discount", label: "Discount", render: (value) => formatCurrency(value) },
-    { key: "chargedWeight", label: "Charged Wgt (g)", render: (value) => formatNumber(value) },
+    { key: "chargedWeight", label: "Weight (gms)", render: (value) => formatNumber(value) },
     { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
-    { key: "codCharge", label: "COD/Online Comm", render: (value) => formatCurrency(value) },
+    { key: "codCharge", label: "COD/online commission (Admin)", render: (value) => formatCurrency(value) },
     { key: "settlementAmt", label: "Settlement AMT", render: (value) => formatCurrency(value) },
     {
       key: "actions",
@@ -295,9 +297,9 @@ const Reports = () => {
       label: "Cancel Reason", 
       render: (value, row) => row.status === 'Cancelled' ? (value || '-') : '-'
     },
-    { key: "chargedWeight", label: "Charged Wgt (g)", render: (value) => formatNumber(value) },
+    { key: "chargedWeight", label: "Weight (gms)", render: (value) => formatNumber(value) },
     { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
-    { key: "codCharge", label: "COD/Online Comm", render: (value) => formatCurrency(value) },
+    { key: "codCharge", label: "COD/online commission (Admin)", render: (value) => formatCurrency(value) },
     { 
       key: "settlementAmt", 
       label: "Settlement AMT", 
@@ -341,10 +343,11 @@ const Reports = () => {
       'COD Fee': row.codFee ? parseFloat(row.codFee) : 0,
       'Discount': row.discount ? parseFloat(row.discount) : 0,
       'Total': row.total ? parseFloat(row.total) : 0,
-      'Charged Weight (gms)': row.chargedWeight || 0,
-      'Courier Charge': row.courierCharge ? parseFloat(row.courierCharge) : 0,
-      'COD/Online Commission': row.codCharge ? parseFloat(row.codCharge) : 0,
+      'COD/online commission (Admin)': row.codCharge ? parseFloat(row.codCharge) : 0,
       'Settlement AMT': row.settlementAmt ? parseFloat(row.settlementAmt) : 0,
+      'Weight (gms)': row.chargedWeight || 0,
+      'Courier Charge': row.courierCharge ? parseFloat(row.courierCharge) : 0,
+      'Total profit': (parseFloat(row.settlementAmt) || 0) - (parseFloat(row.courierCharge) || 0),
       'Cancel Reason': row.status === 'Cancelled' ? (row.cancelRemarks || '-') : '-'
     }));
 
@@ -367,16 +370,17 @@ const Reports = () => {
       'COD Fee': parseFloat(excelData.reduce((sum, r) => sum + (r['COD Fee'] || 0), 0).toFixed(2)),
       'Discount': parseFloat(excelData.reduce((sum, r) => sum + (r['Discount'] || 0), 0).toFixed(2)),
       'Total': parseFloat(excelData.reduce((sum, r) => sum + (r['Total'] || 0), 0).toFixed(2)),
-      'Charged Weight (gms)': parseFloat(excelData.reduce((sum, r) => sum + (r['Charged Weight (gms)'] || 0), 0).toFixed(2)),
-      'Courier Charge': parseFloat(excelData.reduce((sum, r) => sum + (r['Courier Charge'] || 0), 0).toFixed(2)),
-      'COD/Online Commission': parseFloat(excelData.reduce((sum, r) => sum + (r['COD/Online Commission'] || 0), 0).toFixed(2)),
+      'COD/online commission (Admin)': parseFloat(excelData.reduce((sum, r) => sum + (r['COD/online commission (Admin)'] || 0), 0).toFixed(2)),
       'Settlement AMT': parseFloat(excelData.reduce((sum, r) => sum + (r['Settlement AMT'] || 0), 0).toFixed(2)),
+      'Weight (gms)': '',
+      'Courier Charge': parseFloat(excelData.reduce((sum, r) => sum + (r['Courier Charge'] || 0), 0).toFixed(2)),
+      'Total profit': parseFloat(excelData.reduce((sum, r) => sum + (r['Total profit'] || 0), 0).toFixed(2)),
       'Cancel Reason': ''
     };
     
     // Add empty row for gap
     excelData.push({
-      'S.No': '', 'Order ID': '', 'Tracking ID': '', 'Customer Name': '', 'Phone': '', 'City': '', 'Order Date': '', 'Shipping Date': '', 'Status': '', 'Payment Method': '', 'Items': '', 'Quantity': '', 'Subtotal': '', 'Delivery Fee': '', 'COD Fee': '', 'Discount': '', 'Total': '', 'Charged Weight (gms)': '', 'Courier Charge': '', 'Settlement AMT': '', 'Cancel Reason': ''
+      'S.No': '', 'Order ID': '', 'Tracking ID': '', 'Customer Name': '', 'Phone': '', 'City': '', 'Order Date': '', 'Shipping Date': '', 'Status': '', 'Payment Method': '', 'Items': '', 'Quantity': '', 'Subtotal': '', 'Delivery Fee': '', 'COD Fee': '', 'Discount': '', 'Total': '', 'COD/online commission (Admin)': '', 'Settlement AMT': '', 'Weight (gms)': '', 'Courier Charge': '', 'Total profit': '', 'Cancel Reason': ''
     });
     
     excelData.push(totals);
@@ -455,7 +459,9 @@ const Reports = () => {
         item.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+        item.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.paymentMethod?.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .map((item, idx) => ({ ...item, sno: idx + 1 }));
   })();
@@ -593,7 +599,7 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{formatNumber(shippingSummary.totalChargedWeight).toFixed(2)} </h3>
-                  <p>Total Charged Weight</p>
+                  <p>Total Weight (gms)</p>
                 </div>
               </div>
               <div className="stat-card">
@@ -646,7 +652,7 @@ const Reports = () => {
           <Search size={20} className="search-icon" />
           <input 
             type="text" 
-            placeholder="Search by order ID, customer, phone or city..." 
+            placeholder="Search by order ID, tracking ID, customer, phone, city or payment..." 
             value={searchTerm} 
             onChange={(e) => setSearchTerm(e.target.value)} 
             className="search-input" 
@@ -725,20 +731,24 @@ const Reports = () => {
                     <span className="info-label">Total:</span>
                     <span className="info-value">{formatCurrency(selectedOrder.total)}</span>
                   </div>
+                  {selectedOrder.chargedWeight > 0 && (
+                    <div className="info-row">
+                      <span className="info-label">Weight (gms):</span>
+                      <span className="info-value">{selectedOrder.chargedWeight} g</span>
+                    </div>
+                  )}
                   <div className="info-row">
                     <span className="info-label">Courier Charge:</span>
                     <span className="info-value">{formatCurrency(selectedOrder.courierCharge)}</span>
                   </div>
                   <div className="info-row">
+                    <span className="info-label">COD/online commission (Admin):</span>
+                    <span className="info-value">{formatCurrency(selectedOrder.codCharge)}</span>
+                  </div>
+                  <div className="info-row">
                     <span className="info-label">Settlement:</span>
                     <span className="info-value">{formatCurrency(selectedOrder.settlementAmt)}</span>
                   </div>
-                  {selectedOrder.chargedWeight > 0 && (
-                    <div className="info-row">
-                      <span className="info-label">Charged Weight:</span>
-                      <span className="info-value">{selectedOrder.chargedWeight} g</span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="shipping-address">
