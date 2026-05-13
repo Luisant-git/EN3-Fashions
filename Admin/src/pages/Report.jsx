@@ -276,6 +276,11 @@ const Reports = () => {
     { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
     { key: "codCharge", label: "COD/online commission (Admin)", render: (value) => formatCurrency(value) },
     { key: "settlementAmt", label: "Settlement AMT", render: (value) => formatCurrency(value) },
+    { 
+      key: "totalProfit", 
+      label: "Total profit", 
+      render: (_, row) => formatCurrency((row.settlementAmt || 0) - (row.courierCharge || 0)) 
+    },
     {
       key: "actions",
       label: "Actions",
@@ -292,11 +297,6 @@ const Reports = () => {
 
   const salesColumns = [
     ...baseColumns,
-    { 
-      key: "cancelRemarks", 
-      label: "Cancel Reason", 
-      render: (value, row) => row.status === 'Cancelled' ? (value || '-') : '-'
-    },
     { key: "chargedWeight", label: "Weight (gms)", render: (value) => formatNumber(value) },
     { key: "courierCharge", label: "Courier Charge", render: (value) => formatCurrency(value) },
     { key: "codCharge", label: "COD/online commission (Admin)", render: (value) => formatCurrency(value) },
@@ -304,6 +304,11 @@ const Reports = () => {
       key: "settlementAmt", 
       label: "Settlement AMT", 
       render: (value) => formatCurrency(value)
+    },
+    { 
+      key: "totalProfit", 
+      label: "Total profit", 
+      render: (_, row) => formatCurrency((row.settlementAmt || 0) - (row.courierCharge || 0)) 
     },
     {
       key: "actions",
@@ -691,7 +696,12 @@ const Reports = () => {
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef}>
             <div className="modal-header">
-              <h2>Order Details - {selectedOrder.orderId}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 style={{ margin: 0 }}>Order Details - {selectedOrder.orderId}</h2>
+                <span className={`status-badge ${getModalStatusClass(selectedOrder.status)}`}>
+                  {selectedOrder.status}
+                </span>
+              </div>
               <button onClick={() => setShowViewModal(false)} className="close-btn">
                 <X size={20} />
               </button>
@@ -709,12 +719,14 @@ const Reports = () => {
                     <span className="info-label">Phone:</span>
                     <span className="info-value">{selectedOrder.phone}</span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Status:</span>
-                    <span className={`status-badge ${getModalStatusClass(selectedOrder.status)}`}>
-                      {selectedOrder.status}
-                    </span>
-                  </div>
+                  {selectedOrder.status === 'Cancelled' && (
+                    <div className="info-row">
+                      <span className="info-label">Cancel Reason:</span>
+                      <span className="info-value" style={{ color: '#dc2626', fontWeight: '500' }}>
+                        {selectedOrder.cancelRemarks || '-'}
+                      </span>
+                    </div>
+                  )}
                   <div className="info-row">
                     <span className="info-label">Payment:</span>
                     <span className="info-value">{selectedOrder.paymentMethod}</span>
@@ -748,6 +760,12 @@ const Reports = () => {
                   <div className="info-row">
                     <span className="info-label">Settlement:</span>
                     <span className="info-value">{formatCurrency(selectedOrder.settlementAmt)}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label" style={{ fontWeight: 'bold' }}>Total Profit:</span>
+                    <span className="info-value" style={{ fontWeight: 'bold', color: '#10b981' }}>
+                      {formatCurrency((selectedOrder.settlementAmt || 0) - (selectedOrder.courierCharge || 0))}
+                    </span>
                   </div>
                 </div>
 

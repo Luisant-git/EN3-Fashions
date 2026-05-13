@@ -22,7 +22,7 @@ import { getCourierPartners } from '../api/courierPartnerApi';
 import { getCoupons } from '../api/couponApi';
 import API_BASE_URL from "../api/config";
 import jsPDF from "jspdf";
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import html2canvas from 'html2canvas';
 import { getProducts } from '../api/productApi';
 import { toast } from 'react-toastify';
@@ -762,15 +762,17 @@ const exportAllOrdersExcel = () => {
       'Variant ID': variantIds.join(', \n') || 'N/A',
       'Item Qty': qtys.join(', \n') || '0',
       'Quantity': totalQty,
-      'Weight (gms)': order.chargedWeight || 0,
       'Total Amount': parseFloat(order.total || 0),
+      'COD/online commission (Admin)': parseFloat(order.codCharge || 0),
+      'Settlement Amount': (parseFloat(order.total || 0) - parseFloat(order.codCharge || 0)).toFixed(2),
+      'Weight (gms)': order.chargedWeight || 0,
+      'Courier Charges': parseFloat(order.courierCharge || 0).toFixed(2),
+      'Total profit': (parseFloat(order.total || 0) - parseFloat(order.codCharge || 0) - parseFloat(order.courierCharge || 0)).toFixed(2),
       'Discount': parseFloat(order.discount || 0),
       'Coupon Code': order.couponCode || 'N/A',
       'Status': order.status,
       'Payment': order.paymentMethod || 'N/A',
-      'Order Date': new Date(order.createdAt).toLocaleString('en-GB'),
-      'Settlement Amount': (parseFloat(order.total || 0) - parseFloat(order.deliveryFee || 0)).toFixed(2),
-      'Courier Charges': parseFloat(order.deliveryFee || 0).toFixed(2)
+      'Order Date': new Date(order.createdAt).toLocaleString('en-GB')
     };
   });
 
@@ -786,19 +788,43 @@ const exportAllOrdersExcel = () => {
     'Color': '',
     'Variant ID': '',
     'Item Qty': '',
-    'Quantity': excelData.reduce((sum, row) => sum + row.Quantity, 0),
-    'Weight (gms)': excelData.reduce((sum, row) => sum + (parseFloat(row['Weight (gms)']) || 0), 0),
+    'Quantity': excelData.reduce((sum, row) => sum + (row.Quantity || 0), 0),
     'Total Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Total Amount'] || 0), 0).toFixed(2),
+    'COD/online commission (Admin)': excelData.reduce((sum, row) => sum + (parseFloat(row['COD/online commission (Admin)']) || 0), 0).toFixed(2),
+    'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount'] || 0), 0).toFixed(2),
+    'Weight (gms)': excelData.reduce((sum, row) => sum + (parseFloat(row['Weight (gms)']) || 0), 0),
+    'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges'] || 0), 0).toFixed(2),
+    'Total profit': excelData.reduce((sum, row) => sum + parseFloat(row['Total profit'] || 0), 0).toFixed(2),
     'Discount': excelData.reduce((sum, row) => sum + parseFloat(row['Discount'] || 0), 0).toFixed(2),
     'Coupon Code': '',
     'Status': '',
     'Payment': '',
-    'Order Date': '',
-    'Settlement Amount': excelData.reduce((sum, row) => sum + parseFloat(row['Settlement Amount'] || 0), 0).toFixed(2),
-    'Courier Charges': excelData.reduce((sum, row) => sum + parseFloat(row['Courier Charges'] || 0), 0).toFixed(2)
+    'Order Date': ''
   };
 
-  excelData.push(totals);
+  // Add gap row
+  excelData.push({
+    'S.No': '', 'Order ID': '', 'Customer': '', 'City': '', 'Phone': '', 'Products': '', 'Product Name': '', 'Size': '', 'Color': '', 'Variant ID': '', 'Item Qty': '', 'Quantity': '', 'Total Amount': '', 'COD/online commission (Admin)': '', 'Settlement Amount': '', 'Weight (gms)': '', 'Courier Charges': '', 'Total profit': '', 'Discount': '', 'Coupon Code': '', 'Status': '', 'Payment': '', 'Order Date': ''
+  });
+
+  // Apply styles to totals row
+  const styledTotals = {};
+  Object.keys(totals).forEach(key => {
+    styledTotals[key] = {
+      v: totals[key],
+      s: {
+        fill: { fgColor: { rgb: "E1F5FE" } }, // Light blue background
+        font: { bold: true },
+        alignment: { horizontal: "center" },
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } }
+        }
+      }
+    };
+  });
+
+  excelData.push(styledTotals);
 
   const worksheet = XLSX.utils.json_to_sheet(excelData);
   const workbook = XLSX.utils.book_new();
