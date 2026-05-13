@@ -696,12 +696,7 @@ const Reports = () => {
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <h2 style={{ margin: 0 }}>Order Details - {selectedOrder.orderId}</h2>
-                <span className={`status-badge ${getModalStatusClass(selectedOrder.status)}`}>
-                  {selectedOrder.status}
-                </span>
-              </div>
+              <h2 style={{ margin: 0 }}>Order Details - {selectedOrder.orderId}</h2>
               <button onClick={() => setShowViewModal(false)} className="close-btn">
                 <X size={20} />
               </button>
@@ -718,6 +713,14 @@ const Reports = () => {
                   <div className="info-row">
                     <span className="info-label">Phone:</span>
                     <span className="info-value">{selectedOrder.phone}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Status:</span>
+                    <span className="info-value">
+                      <span className={`status-badge ${getModalStatusClass(selectedOrder.status)}`}>
+                        {selectedOrder.status}
+                      </span>
+                    </span>
                   </div>
                   {selectedOrder.status === 'Cancelled' && (
                     <div className="info-row">
