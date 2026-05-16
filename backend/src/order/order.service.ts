@@ -395,7 +395,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
     });
   }
 
-  async updateOrderItems(orderId: number, newItems: any[]) {
+  async updateOrderItems(orderId: number, newItems: any[], subtotal?: number, total?: number) {
     // Get existing order items to restore their stock
     const existingOrder = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -428,7 +428,20 @@ async getOrderStats(startDate?: string, endDate?: string) {
     // Deduct stock for new items
     await this.deductStock(newItems);
 
-    return this.prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+    // Update subtotal and total if provided
+    const updateData: any = {};
+    if (subtotal !== undefined) {
+      updateData.subtotal = subtotal.toString();
+    }
+    if (total !== undefined) {
+      updateData.total = total.toString();
+    }
+
+    return this.prisma.order.update({ 
+      where: { id: orderId }, 
+      data: updateData,
+      include: { items: true } 
+    });
   }
 
   private async restoreStock(orderItems: any[]) {

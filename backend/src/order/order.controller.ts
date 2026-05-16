@@ -72,8 +72,8 @@ async getOrderStats(
 
   @Patch(':orderId/items')
   @ApiOperation({ summary: 'Update order items with stock adjustment (Admin)' })
-  async updateOrderItems(@Param('orderId') orderId: string, @Body() body: { items: any[] }) {
-    return this.orderService.updateOrderItems(parseInt(orderId), body.items);
+  async updateOrderItems(@Param('orderId') orderId: string, @Body() body: { items: any[], subtotal?: number, total?: number }) {
+    return this.orderService.updateOrderItems(parseInt(orderId), body.items, body.subtotal, body.total);
   }
 
   @Patch(':orderId/remove-item')

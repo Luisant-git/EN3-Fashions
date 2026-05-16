@@ -129,6 +129,12 @@ const [orderStats, setOrderStats] = useState({
   const [editItems, setEditItems] = useState([]);
   const [savingOrder, setSavingOrder] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
+  const [addProductSearch, setAddProductSearch] = useState('');
+  const [addProductSelected, setAddProductSelected] = useState(null);
+  const [addProductColor, setAddProductColor] = useState('');
+  const [addProductSize, setAddProductSize] = useState('');
+  const [addProductQty, setAddProductQty] = useState(1);
+  const [addProductPrice, setAddProductPrice] = useState('');
 
   const handleSaveAddress = async () => {
     try {
@@ -160,22 +166,114 @@ const [orderStats, setOrderStats] = useState({
   };
 
   const handleSaveItems = async () => {
+    // Validate all items have required fields
+    const invalidItems = editItems.filter(item => 
+      !item.color || !item.size || !item.quantity || item.price === '' || item.price === null || item.price === undefined ||
+      item.quantity <= 0 || item.price < 0
+    );
+    
+    if (invalidItems.length > 0) {
+      toast.error('All items must have color, size, quantity (>0), and price (≥0)');
+      return;
+    }
+    
     try {
       setSavingOrder(true);
-      await fetch(`${API_BASE_URL}/orders/${selectedOrder.id}/items`, {
+      // Recalculate subtotal and total from editItems
+      const newSubtotal = editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0);
+      const discount = parseFloat(selectedOrder.discount) || 0;
+      const deliveryFee = parseFloat(selectedOrder.deliveryFee) || 0;
+      const codFee = parseFloat(selectedOrder.codFee) || 0;
+      const newTotal = newSubtotal - discount + deliveryFee + codFee;
+      
+      const response = await fetch(`${API_BASE_URL}/orders/${selectedOrder.id}/items`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: editItems }),
+        body: JSON.stringify({ items: editItems, subtotal: parseFloat(newSubtotal.toFixed(2)), total: parseFloat(newTotal.toFixed(2)) }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update order');
+      }
+      
       await fetchOrders();
-      setSelectedOrder(prev => ({ ...prev, items: editItems }));
+      setSelectedOrder(prev => ({ ...prev, items: editItems, subtotal: newSubtotal.toFixed(2), total: newTotal.toFixed(2) }));
       setEditingItems(false);
+      setAddProductSearch('');
+      setAddProductSelected(null);
+      setAddProductColor('');
+      setAddProductSize('');
+      setAddProductQty(1);
+      setAddProductPrice('');
       toast.success('Order items updated');
     } catch (e) {
+      console.error('Error updating items:', e);
       toast.error('Failed to update items');
     } finally {
       setSavingOrder(false);
     }
+  };
+
+  const getAddProductMatches = () => {
+    if (!addProductSearch.trim()) return [];
+    const q = addProductSearch.toLowerCase();
+    const results = [];
+    allProducts.forEach(prod => {
+      // Match by product name
+      if (prod.name?.toLowerCase().includes(q)) {
+        results.push({ prod, matchType: 'name' });
+        return;
+      }
+      // Match by variant ID across colors/sizes
+      prod.colors?.forEach(c => {
+        c.sizes?.forEach(s => {
+          if (s.sizeVariantId?.toLowerCase().includes(q)) {
+            results.push({ prod, matchType: 'variant', color: c.name, size: s.size });
+          }
+        });
+      });
+    });
+    return results.slice(0, 10);
+  };
+
+  const handleAddProductToOrder = () => {
+    if (!addProductSelected || !addProductColor || !addProductSize) {
+      toast.error('Please select product, color and size');
+      return;
+    }
+    
+    if (addProductPrice === '' || addProductPrice === null || addProductPrice === undefined || parseFloat(addProductPrice) < 0) {
+      toast.error('Please enter a valid price (≥0)');
+      return;
+    }
+    
+    if (!addProductQty || parseInt(addProductQty) <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+    
+    const prod = addProductSelected;
+    const colorObj = prod.colors?.find(c => c.name === addProductColor);
+    const sizeObj = colorObj?.sizes?.find(s => s.size === addProductSize);
+    const newItem = {
+      productId: prod.id,
+      name: prod.name,
+      imageUrl: colorObj?.image || '',
+      color: addProductColor,
+      size: addProductSize,
+      sizeVariantId: sizeObj?.sizeVariantId || '',
+      price: parseFloat(addProductPrice) || parseFloat(sizeObj?.price) || parseFloat(prod.basePrice) || 0,
+      quantity: parseInt(addProductQty) || 1,
+      hsnCode: prod.hsnCode || '',
+    };
+    setEditItems(prev => [...prev, newItem]);
+    setAddProductSearch('');
+    setAddProductSelected(null);
+    setAddProductColor('');
+    setAddProductSize('');
+    setAddProductQty(1);
+    setAddProductPrice('');
+    toast.success('Product added to order');
   };
 
   const handleViewOrder = (order) => {
@@ -2441,7 +2539,7 @@ const resetDateRange = () => {
 
       {showViewModal && selectedOrder && (
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} ref={modalRef} style={{ maxWidth: '1000px', width: '95%' }}>
      <div className="modal-header">
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
     <h2 style={{ margin: 0 }}>Order Details - #ORD-{selectedOrder.id}</h2>
@@ -2499,7 +2597,7 @@ const resetDateRange = () => {
                   {selectedOrder.couponCode && (
                     <p><strong>Coupon:</strong> {selectedOrder.couponCode}</p>
                   )}
-                  <p><strong>Subtotal:</strong> ₹{selectedOrder.subtotal}</p>
+                  <p><strong>Subtotal:</strong> ₹{editingItems ? editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0).toFixed(2) : selectedOrder.subtotal}</p>
                   <p><strong>Delivery Fee:</strong> ₹{selectedOrder.deliveryFee}</p>
                   {parseFloat(selectedOrder.codFee) > 0 && (
                     <p><strong>COD Fee:</strong> ₹{selectedOrder.codFee}</p>
@@ -2507,7 +2605,7 @@ const resetDateRange = () => {
                   {selectedOrder.discount && parseFloat(selectedOrder.discount) > 0 && (
                     <p><strong>Discount:</strong> -₹{selectedOrder.discount}</p>
                   )}
-                  <p><strong>Total:</strong> ₹{selectedOrder.total}</p>
+                  <p><strong>Total:</strong> ₹{editingItems ? (editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0) - (parseFloat(selectedOrder.discount) || 0) + (parseFloat(selectedOrder.deliveryFee) || 0) + (parseFloat(selectedOrder.codFee) || 0)).toFixed(2) : selectedOrder.total}</p>
                   {selectedOrder.chargedWeight > 0 && (
                     <p><strong>Weight (Admin):</strong> {selectedOrder.chargedWeight} g</p>
                   )}
@@ -2587,13 +2685,163 @@ const resetDateRange = () => {
                         style={{ fontSize: '12px', padding: '4px 10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
                         {savingOrder ? 'Saving...' : 'Save'}
                       </button>
-                      <button onClick={() => setEditingItems(false)}
+                      <button onClick={() => { setEditingItems(false); setAddProductSearch(''); setAddProductSelected(null); setAddProductColor(''); setAddProductSize(''); setAddProductQty(1); setAddProductPrice(''); }}
                         style={{ fontSize: '12px', padding: '4px 10px', background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
                         Cancel
                       </button>
                     </div>
                   )}
                 </h4>
+
+                {/* Add Product Section - only in edit mode */}
+                {editingItems && (
+                  <div style={{ marginBottom: '16px', padding: '16px', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: '#0369a1' }}>Add Product to Order</h5>
+                    
+                    {/* Search Input */}
+                    <div style={{ position: 'relative', marginBottom: '12px' }}>
+                      <input
+                        type="text"
+                        placeholder="Search by product name or variant ID..."
+                        value={addProductSearch}
+                        onChange={e => { setAddProductSearch(e.target.value); setAddProductSelected(null); setAddProductColor(''); setAddProductSize(''); }}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #bae6fd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                      />
+                      {addProductSearch.trim() && !addProductSelected && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', zIndex: 100, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginTop: '4px' }}>
+                          {getAddProductMatches().length === 0 ? (
+                            <div style={{ padding: '12px', fontSize: '13px', color: '#6b7280' }}>No products found</div>
+                          ) : getAddProductMatches().map((match, i) => (
+                            <div
+                              key={i}
+                              onClick={() => {
+                                setAddProductSelected(match.prod);
+                                setAddProductSearch(match.prod.name);
+                                if (match.matchType === 'variant') {
+                                  setAddProductColor(match.color);
+                                  setAddProductSize(match.size);
+                                  const sizeObj = match.prod.colors?.find(c => c.name === match.color)?.sizes?.find(s => s.size === match.size);
+                                  setAddProductPrice(sizeObj?.price || match.prod.basePrice || '0');
+                                } else {
+                                  setAddProductColor('');
+                                  setAddProductSize('');
+                                  setAddProductPrice('');
+                                }
+                              }}
+                              style={{ padding: '10px 12px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                            >
+                              <span>{match.prod.name}</span>
+                              {match.matchType === 'variant' && (
+                                <span style={{ fontSize: '11px', background: '#fef3c7', padding: '3px 8px', borderRadius: '4px', color: '#92400e' }}>
+                                  {match.color} / {match.size}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Selection Form - Matching existing product layout */}
+                    {addProductSelected && (
+                      <div style={{ display: 'flex', gap: '16px', padding: '12px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
+                        {/* Left side: Image */}
+                        <img 
+                          src={addProductColor && addProductSelected.colors?.find(c => c.name === addProductColor)?.image || addProductSelected.colors?.[0]?.image || ''} 
+                          alt={addProductSelected.name}
+                          style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb', flexShrink: 0, marginTop: '10px'}}
+                        />
+
+                        {/* Right side: Product Name on top, Form Fields below */}
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {/* Product Name */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: '#111827' }}>{addProductSelected.name}</p>
+                            <button
+                              onClick={handleAddProductToOrder}
+                              disabled={!addProductColor || !addProductSize}
+                              style={{ 
+                                padding: '6px 14px',
+                                background: (!addProductColor || !addProductSize) ? '#9ca3af' : '#4169E1', 
+                                color: 'white', 
+                                border: 'none', 
+                                borderRadius: '6px', 
+                                fontSize: '13px', 
+                                fontWeight: '600', 
+                                cursor: (!addProductColor || !addProductSize) ? 'not-allowed' : 'pointer', 
+                                whiteSpace: 'nowrap',
+                                height: '32px'
+                              }}
+                            >
+                              + Add
+                            </button>
+                          </div>
+                          
+                          {/* Form Fields */}
+                          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+                            <div style={{ flex: '1 1 150px' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Color</label>
+                              <select
+                                value={addProductColor}
+                                onChange={e => { 
+                                  setAddProductColor(e.target.value); 
+                                  setAddProductSize(''); 
+                                  setAddProductPrice('');
+                                }}
+                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: 'white' }}
+                              >
+                                <option value=""></option>
+                                {addProductSelected.colors?.map(c => (
+                                  <option key={c.name} value={c.name}>{c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div style={{ flex: '1 1 150px' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Size</label>
+                              <select
+                                value={addProductSize}
+                                onChange={e => {
+                                  setAddProductSize(e.target.value);
+                                  const sizeObj = addProductSelected.colors?.find(c => c.name === addProductColor)?.sizes?.find(s => s.size === e.target.value);
+                                  setAddProductPrice(sizeObj?.price || addProductSelected.basePrice || '0');
+                                }}
+                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: 'white' }}
+                                disabled={!addProductColor}
+                              >
+                                <option value=""></option>
+                                {addProductSelected.colors?.find(c => c.name === addProductColor)?.sizes?.map(s => (
+                                  <option key={s.size} value={s.size}>{s.size}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div style={{ flex: '0 0 80px', marginBottom: '16px' }}>
+                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Qty</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={addProductQty}
+                                onChange={e => setAddProductQty(e.target.value)}
+                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', textAlign: 'center' }}
+                              />
+                            </div>
+                            <div style={{ flex: '0 0 90px',  marginBottom: '16px'  }}>
+                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Price</label>
+                              <input
+                                type="number"
+                                value={addProductPrice}
+                                onChange={e => setAddProductPrice(e.target.value)}
+                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="order-items">
                   {(!editingItems ? selectedOrder.items : editItems)?.map((item, idx) => (
                     <div key={idx} className="order-item">
@@ -2641,7 +2889,13 @@ const resetDateRange = () => {
                                         };
                                         setEditItems(updated);
                                       }}
-                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                      style={{ 
+                                        width: '100%', 
+                                        padding: '5px 8px', 
+                                        border: editItems[idx]?.color ? '1px solid #ddd' : '2px solid #ef4444', 
+                                        borderRadius: '6px', 
+                                        fontSize: '13px' 
+                                      }}
                                     >
                                       <option value="">-- Color --</option>
                                       {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors || []).map(c => (
@@ -2667,7 +2921,13 @@ const resetDateRange = () => {
                                         };
                                         setEditItems(updated);
                                       }}
-                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                      style={{ 
+                                        width: '100%', 
+                                        padding: '5px 8px', 
+                                        border: editItems[idx]?.size ? '1px solid #ddd' : '2px solid #ef4444', 
+                                        borderRadius: '6px', 
+                                        fontSize: '13px' 
+                                      }}
                                     >
                                       <option value="">-- Size --</option>
                                       {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors?.find(c => c.name === editItems[idx]?.color)?.sizes || []).map(s => (
@@ -2680,9 +2940,16 @@ const resetDateRange = () => {
                                     <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Qty</label>
                                     <input
                                       type="number"
+                                      min="1"
                                       value={editItems[idx]?.quantity || ''}
-                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], quantity: e.target.value }; setEditItems(updated); }}
-                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], quantity: parseInt(e.target.value) || 1 }; setEditItems(updated); }}
+                                      style={{ 
+                                        width: '100%', 
+                                        padding: '5px 8px', 
+                                        border: (editItems[idx]?.quantity && editItems[idx]?.quantity > 0) ? '1px solid #ddd' : '2px solid #ef4444', 
+                                        borderRadius: '6px', 
+                                        fontSize: '13px' 
+                                      }}
                                     />
                                   </div>
                                   {/* Price */}
@@ -2690,12 +2957,33 @@ const resetDateRange = () => {
                                     <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Price</label>
                                     <input
                                       type="number"
+                                      min="0"
+                                      step="0.01"
                                       value={editItems[idx]?.price || ''}
-                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], price: e.target.value }; setEditItems(updated); }}
-                                      style={{ width: '100%', padding: '5px 8px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px' }}
+                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], price: parseFloat(e.target.value) || 0 }; setEditItems(updated); }}
+                                      style={{ 
+                                        width: '100%', 
+                                        padding: '5px 8px', 
+                                        border: (editItems[idx]?.price !== '' && editItems[idx]?.price !== null && editItems[idx]?.price !== undefined && editItems[idx]?.price >= 0) ? '1px solid #ddd' : '2px solid #ef4444', 
+                                        borderRadius: '6px', 
+                                        fontSize: '13px' 
+                                      }}
                                     />
                                   </div>
                                 </div>
+                                {/* Remove button in edit mode */}
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm('Remove this item from the order?')) {
+                                      const updated = editItems.filter((_, i) => i !== idx);
+                                      setEditItems(updated);
+                                      toast.success('Item removed');
+                                    }
+                                  }}
+                                  style={{ marginTop: '4px', padding: '4px 10px', background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', alignSelf: 'flex-start' }}
+                                >
+                                  Remove
+                                </button>
                               </div>
                             ) : (
                               <>
