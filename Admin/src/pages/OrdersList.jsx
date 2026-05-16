@@ -2622,10 +2622,12 @@ const resetDateRange = () => {
                   <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
                     Shipping Address
                     {!editingAddress ? (
-                      <button onClick={() => { setEditAddress({ ...selectedOrder.shippingAddress }); setEditingAddress(true); }}
-                        style={{ fontSize: '12px', padding: '4px 10px', background: '#4169E1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-                        <Edit size={12} style={{ marginRight: 4 }} />Edit
-                      </button>
+                      selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && selectedOrder.status !== 'Abandoned' && (
+                        <button onClick={() => { setEditAddress({ ...selectedOrder.shippingAddress }); setEditingAddress(true); }}
+                          style={{ fontSize: '12px', padding: '4px 10px', background: '#4169E1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                          <Edit size={12} style={{ marginRight: 4 }} />Edit
+                        </button>
+                      )
                     ) : (
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button onClick={handleSaveAddress} disabled={savingOrder}
@@ -2675,10 +2677,12 @@ const resetDateRange = () => {
                 <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                   Order Items
                   {!editingItems ? (
-                    <button onClick={() => { setEditItems(selectedOrder.items?.map(i => ({ ...i })) || []); setEditingItems(true); fetchAllProducts(); }}
-                      style={{ fontSize: '12px', padding: '4px 10px', background: '#4169E1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-                      <Edit size={12} style={{ marginRight: 4 }} />Edit
-                    </button>
+                    selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && selectedOrder.status !== 'Abandoned' && (
+                      <button onClick={() => { setEditItems(selectedOrder.items?.map(i => ({ ...i })) || []); setEditingItems(true); fetchAllProducts(); }}
+                        style={{ fontSize: '12px', padding: '4px 10px', background: '#4169E1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                        <Edit size={12} style={{ marginRight: 4 }} />Edit
+                      </button>
+                    )
                   ) : (
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button onClick={handleSaveItems} disabled={savingOrder}
@@ -2994,7 +2998,7 @@ const resetDateRange = () => {
                                   </p>
                                 )}
                                 <p>Qty: {item.quantity} × ₹{item.price}</p>
-                                {selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && (
+                                {selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && selectedOrder.status !== 'Abandoned' && (
                                   <button
                                     onClick={async () => {
                                       if (!window.confirm('Remove this item? Stock will be restored and subtotal updated.')) return;
