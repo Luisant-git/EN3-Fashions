@@ -1925,6 +1925,8 @@ const resetDateRange = () => {
     order.shippingAddress?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.shippingAddress?.mobile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.shippingAddress?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.courierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase());
   
   const matchesStatus =
@@ -2435,7 +2437,7 @@ const resetDateRange = () => {
             <Search size={16} className="search-icon" />
             <input
               type="text"
-              placeholder="Search orders..."
+              placeholder="Search by name, email, phone, city, order ID, tracking ID, courier..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
