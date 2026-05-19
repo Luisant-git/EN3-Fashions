@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const DataTable = ({ data, columns, searchTerm, searchKey }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
-
-  // Reset page to 1 when data changes (e.g. tab switches or filters are applied)
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [data])
 
   // Filter data based on search term
   const filteredData = data.filter(item =>

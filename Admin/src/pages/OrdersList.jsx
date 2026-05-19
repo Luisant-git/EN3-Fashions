@@ -816,17 +816,19 @@ const exportAllOrdersExcel = () => {
     let matchesDate = true;
     if (startDate || endDate) {
       const orderDate = new Date(order.createdAt);
-      const localYear = orderDate.getFullYear();
-      const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-      const localDay = String(orderDate.getDate()).padStart(2, '0');
-      const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
 
-      if (startDate && endDate) {
-        matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-      } else if (startDate) {
-        matchesDate = orderDateStr >= startDate;
-      } else if (endDate) {
-        matchesDate = orderDateStr <= endDate;
+      if (start && end) {
+        const endOfDay = new Date(end);
+        endOfDay.setHours(23, 59, 59, 999);
+        matchesDate = orderDate >= start && orderDate <= endOfDay;
+      } else if (start) {
+        matchesDate = orderDate >= start;
+      } else if (end) {
+        const endOfDay = new Date(end);
+        endOfDay.setHours(23, 59, 59, 999);
+        matchesDate = orderDate <= endOfDay;
       }
     }
     
@@ -1057,19 +1059,12 @@ const exportAllOrdersExcel = () => {
               order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
       let matchesDate = true;
       if (startDate || endDate) {
-        const orderDate = new Date(order.updatedAt || order.createdAt);
-        const localYear = orderDate.getFullYear();
-        const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-        const localDay = String(orderDate.getDate()).padStart(2, '0');
-        const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
-
-        if (startDate && endDate) {
-          matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-        } else if (startDate) {
-          matchesDate = orderDateStr >= startDate;
-        } else if (endDate) {
-          matchesDate = orderDateStr <= endDate;
-        }
+        const orderDate = new Date(order.createdAt);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        if (start && end) matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        else if (start) matchesDate = orderDate >= start;
+        else if (end) matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
     });
@@ -1124,19 +1119,12 @@ const exportAllOrdersExcel = () => {
               order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
       let matchesDate = true;
       if (startDate || endDate) {
-        const orderDate = new Date(order.updatedAt || order.createdAt);
-        const localYear = orderDate.getFullYear();
-        const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-        const localDay = String(orderDate.getDate()).padStart(2, '0');
-        const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
-
-        if (startDate && endDate) {
-          matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-        } else if (startDate) {
-          matchesDate = orderDateStr >= startDate;
-        } else if (endDate) {
-          matchesDate = orderDateStr <= endDate;
-        }
+        const orderDate = new Date(order.createdAt);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        if (start && end) matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        else if (start) matchesDate = orderDate >= start;
+        else if (end) matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
     });
@@ -1198,17 +1186,15 @@ const exportAllOrdersExcel = () => {
       let matchesDate = true;
       if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
-        const localYear = orderDate.getFullYear();
-        const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-        const localDay = String(orderDate.getDate()).padStart(2, '0');
-        const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
 
-        if (startDate && endDate) {
-          matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-        } else if (startDate) {
-          matchesDate = orderDateStr >= startDate;
-        } else if (endDate) {
-          matchesDate = orderDateStr <= endDate;
+        if (start && end) {
+          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+        } else if (start) {
+          matchesDate = orderDate >= start;
+        } else if (end) {
+          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
         }
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
@@ -1316,18 +1302,16 @@ const exportAllOrdersExcel = () => {
 
     let matchesDate = true;
     if (startDate || endDate) {
-      const orderDate = new Date(order.updatedAt || order.createdAt);
-      const localYear = orderDate.getFullYear();
-      const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-      const localDay = String(orderDate.getDate()).padStart(2, '0');
-      const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+      const orderDate = new Date(order.createdAt);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
 
-      if (startDate && endDate) {
-        matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-      } else if (startDate) {
-        matchesDate = orderDateStr >= startDate;
-      } else if (endDate) {
-        matchesDate = orderDateStr <= endDate;
+      if (start && end) {
+        matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+      } else if (start) {
+        matchesDate = orderDate >= start;
+      } else if (end) {
+        matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
       }
     }
     return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
@@ -1977,21 +1961,16 @@ const resetDateRange = () => {
 
   let matchesDate = true;
   if (startDate || endDate) {
-    const compareDateVal = (statusFilter === 'delivered' || statusFilter === 'cancelled' || statusFilter === 'shipped')
-      ? (order.updatedAt || order.createdAt)
-      : order.createdAt;
-    const orderDate = new Date(compareDateVal);
-    const localYear = orderDate.getFullYear();
-    const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-    const localDay = String(orderDate.getDate()).padStart(2, '0');
-    const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+    const orderDate = new Date(order.createdAt);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
 
-    if (startDate && endDate) {
-      matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-    } else if (startDate) {
-      matchesDate = orderDateStr >= startDate;
-    } else if (endDate) {
-      matchesDate = orderDateStr <= endDate;
+    if (start && end) {
+      matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
+    } else if (start) {
+      matchesDate = orderDate >= start;
+    } else if (end) {
+      matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
     }
   }
 
@@ -1999,56 +1978,14 @@ const resetDateRange = () => {
 });
 
  const getStatusCounts = () => {
-  const filterByStatusDate = (order, targetStatus) => {
-    const matchesSearch =
-      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress?.mobile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.courierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesCoupon = 
-      !couponFilter ? true :
-      couponFilter === "any_coupon" ? !!order.couponCode :
-      couponFilter === "no_coupon" ? !order.couponCode :
-      order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
-
-    let matchesDate = true;
-    if (startDate || endDate) {
-      const compareDateVal = (targetStatus === 'delivered' || targetStatus === 'cancelled' || targetStatus === 'shipped')
-        ? (order.updatedAt || order.createdAt)
-        : order.createdAt;
-      const orderDate = new Date(compareDateVal);
-      const localYear = orderDate.getFullYear();
-      const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
-      const localDay = String(orderDate.getDate()).padStart(2, '0');
-      const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
-
-      if (startDate && endDate) {
-        matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
-      } else if (startDate) {
-        matchesDate = orderDateStr >= startDate;
-      } else if (endDate) {
-        matchesDate = orderDateStr <= endDate;
-      }
-    }
-
-    return matchesSearch && matchesCoupon && matchesDate;
-  };
-
   return {
-    pending: orders.filter((o) => (o.status || '').toLowerCase() === "pending" && filterByStatusDate(o, 'pending')).length,
-    placed: orders.filter((o) => o.status === "Placed" && filterByStatusDate(o, 'placed')).length,
-    accepted: orders.filter((o) => o.status === "Accepted" && filterByStatusDate(o, 'accepted')).length,
-    shipped: orders.filter((o) => o.status === "Shipped" && filterByStatusDate(o, 'shipped')).length,
-    delivered: orders.filter((o) => o.status === "Delivered" && filterByStatusDate(o, 'delivered')).length,
-    cancelled: orders.filter((o) => o.status === "Cancelled" && filterByStatusDate(o, 'cancelled')).length,
-    abandoned: orders.filter((o) => o.status === "Abandoned" && filterByStatusDate(o, 'abandoned')).length,
+    pending: filteredOrders.filter((o) => o.status === "pending").length,
+    placed: filteredOrders.filter((o) => o.status === "Placed").length,
+    accepted: filteredOrders.filter((o) => o.status === "Accepted").length,
+    shipped: filteredOrders.filter((o) => o.status === "Shipped").length,
+    delivered: filteredOrders.filter((o) => o.status === "Delivered").length,
+    cancelled: filteredOrders.filter((o) => o.status === "Cancelled").length,
+    abandoned: filteredOrders.filter((o) => o.status === "Abandoned").length,
   };
 };
 
