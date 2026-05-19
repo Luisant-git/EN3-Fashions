@@ -27,6 +27,11 @@ import html2canvas from 'html2canvas';
 import { getProducts } from '../api/productApi';
 import { toast } from 'react-toastify';
 
+const capitalizeEachWord = (str) => {
+  if (!str) return '';
+  return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+};
+
 const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -139,13 +144,22 @@ const [orderStats, setOrderStats] = useState({
   const handleSaveAddress = async () => {
     try {
       setSavingOrder(true);
+      const formattedAddress = {
+        ...editAddress,
+        fullName: capitalizeEachWord(editAddress.fullName),
+        addressLine1: capitalizeEachWord(editAddress.addressLine1),
+        addressLine2: capitalizeEachWord(editAddress.addressLine2),
+        city: capitalizeEachWord(editAddress.city),
+        state: capitalizeEachWord(editAddress.state),
+        landmark: capitalizeEachWord(editAddress.landmark),
+      };
       await fetch(`${API_BASE_URL}/orders/${selectedOrder.id}/address`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shippingAddress: editAddress }),
+        body: JSON.stringify({ shippingAddress: formattedAddress }),
       });
       await fetchOrders();
-      setSelectedOrder(prev => ({ ...prev, shippingAddress: editAddress }));
+      setSelectedOrder(prev => ({ ...prev, shippingAddress: formattedAddress }));
       setEditingAddress(false);
       toast.success('Shipping address updated');
     } catch (e) {
@@ -335,17 +349,17 @@ const handleEditOrder = (order) => {
     pdf.setFont(undefined, 'normal');
     if (address) {
       let billingY = 40;
-      pdf.text(address.fullName || order.user?.name || 'N/A', 120, billingY);
+      pdf.text(capitalizeEachWord(address.fullName || order.user?.name || 'N/A'), 120, billingY);
       billingY += 5;
-      const addr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 70);
+      const addr1Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine1 || ''), 70);
       pdf.text(addr1Lines, 120, billingY);
       billingY += addr1Lines.length * 5;
       if (address.addressLine2) {
-        const addr2Lines = pdf.splitTextToSize(address.addressLine2, 70);
+        const addr2Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine2), 70);
         pdf.text(addr2Lines, 120, billingY);
         billingY += addr2Lines.length * 5;
       }
-      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, billingY);
+      pdf.text(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || 'N/A')}, ${address.pincode || ''}`, 120, billingY);
       billingY += 5;
       pdf.text('IN', 120, billingY);
     }
@@ -360,19 +374,19 @@ const handleEditOrder = (order) => {
     pdf.setFont(undefined, 'normal');
     if (address) {
       let shippingY = 85;
-      pdf.text(address.fullName || order.user?.name || 'N/A', 120, shippingY);
+      pdf.text(capitalizeEachWord(address.fullName || order.user?.name || 'N/A'), 120, shippingY);
       shippingY += 5;
       pdf.text(address.mobile || order.user?.phone || 'N/A', 120, shippingY);
       shippingY += 5;
-      const shipAddr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 70);
+      const shipAddr1Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine1 || ''), 70);
       pdf.text(shipAddr1Lines, 120, shippingY);
       shippingY += shipAddr1Lines.length * 5;
       if (address.addressLine2) {
-        const shipAddr2Lines = pdf.splitTextToSize(address.addressLine2, 70);
+        const shipAddr2Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine2), 70);
         pdf.text(shipAddr2Lines, 120, shippingY);
         shippingY += shipAddr2Lines.length * 5;
       }
-      pdf.text(`${address.city || ''}, ${address.state || 'N/A'}, ${address.pincode || ''}`, 120, shippingY);
+      pdf.text(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || 'N/A')}, ${address.pincode || ''}`, 120, shippingY);
       shippingY += 5;
       pdf.text('IN', 120, shippingY);
       shippingY += 5;
@@ -738,21 +752,21 @@ const handleUpdateStatus = async () => {
     let shipY = 68;
     if (address) {
       pdf.setFont(undefined, 'bold');
-      pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
+      pdf.text(`${capitalizeEachWord(address.fullName || order.user?.name || 'N/A')} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
       pdf.setFont(undefined, 'normal');
       shipY += 7;
-      pdf.text(address.addressLine1 || '', 20, shipY);
+      pdf.text(capitalizeEachWord(address.addressLine1 || ''), 20, shipY);
       shipY += 7;
       if (address.addressLine2) {
-        pdf.text(address.addressLine2, 20, shipY);
+        pdf.text(capitalizeEachWord(address.addressLine2), 20, shipY);
         shipY += 7;
       }
-      pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
+      pdf.text(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || '')}, ${address.pincode || ''}`, 20, shipY);
       shipY += 7;
       pdf.setFont(undefined, 'bold');
       pdf.text('Landmark:', 20, shipY);
       pdf.setFont(undefined, 'normal');
-      pdf.text(address.landmark || 'N/A', 50, shipY);
+      pdf.text(capitalizeEachWord(address.landmark || 'N/A'), 50, shipY);
     }
 
     pdf.setFontSize(12);
@@ -785,7 +799,8 @@ const exportAllOrdersExcel = () => {
     const matchesSearch =
       order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" ||
@@ -801,19 +816,17 @@ const exportAllOrdersExcel = () => {
     let matchesDate = true;
     if (startDate || endDate) {
       const orderDate = new Date(order.createdAt);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
+      const localYear = orderDate.getFullYear();
+      const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+      const localDay = String(orderDate.getDate()).padStart(2, '0');
+      const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
 
-      if (start && end) {
-        const endOfDay = new Date(end);
-        endOfDay.setHours(23, 59, 59, 999);
-        matchesDate = orderDate >= start && orderDate <= endOfDay;
-      } else if (start) {
-        matchesDate = orderDate >= start;
-      } else if (end) {
-        const endOfDay = new Date(end);
-        endOfDay.setHours(23, 59, 59, 999);
-        matchesDate = orderDate <= endOfDay;
+      if (startDate && endDate) {
+        matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+      } else if (startDate) {
+        matchesDate = orderDateStr >= startDate;
+      } else if (endDate) {
+        matchesDate = orderDateStr <= endDate;
       }
     }
     
@@ -991,21 +1004,21 @@ const exportAllOrdersExcel = () => {
       let shipY = 68;
       if (address) {
         pdf.setFont(undefined, 'bold');
-        pdf.text(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
+        pdf.text(`${capitalizeEachWord(address.fullName || order.user?.name || 'N/A')} (${address.mobile || order.user?.phone || 'N/A'})`, 20, shipY);
         pdf.setFont(undefined, 'normal');
         shipY += 7;
-        pdf.text(address.addressLine1 || '', 20, shipY);
+        pdf.text(capitalizeEachWord(address.addressLine1 || ''), 20, shipY);
         shipY += 7;
         if (address.addressLine2) {
-          pdf.text(address.addressLine2, 20, shipY);
+          pdf.text(capitalizeEachWord(address.addressLine2), 20, shipY);
           shipY += 7;
         }
-        pdf.text(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 20, shipY);
+        pdf.text(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || '')}, ${address.pincode || ''}`, 20, shipY);
         shipY += 7;
         pdf.setFont(undefined, 'bold');
         pdf.text('Landmark:', 20, shipY);
         pdf.setFont(undefined, 'normal');
-        pdf.text(address.landmark || 'N/A', 50, shipY);
+        pdf.text(capitalizeEachWord(address.landmark || 'N/A'), 50, shipY);
       }
 
       pdf.setFontSize(12);
@@ -1035,7 +1048,8 @@ const exportAllOrdersExcel = () => {
       const matchesSearch =
         order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCoupon =
         !couponFilter ? true :
           couponFilter === "any_coupon" ? !!order.couponCode :
@@ -1043,12 +1057,19 @@ const exportAllOrdersExcel = () => {
               order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
       let matchesDate = true;
       if (startDate || endDate) {
-        const orderDate = new Date(order.createdAt);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
-        if (start && end) matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-        else if (start) matchesDate = orderDate >= start;
-        else if (end) matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+        const orderDate = new Date(order.updatedAt || order.createdAt);
+        const localYear = orderDate.getFullYear();
+        const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+        const localDay = String(orderDate.getDate()).padStart(2, '0');
+        const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+
+        if (startDate && endDate) {
+          matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+        } else if (startDate) {
+          matchesDate = orderDateStr >= startDate;
+        } else if (endDate) {
+          matchesDate = orderDateStr <= endDate;
+        }
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
     });
@@ -1094,7 +1115,8 @@ const exportAllOrdersExcel = () => {
       const matchesSearch =
         order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCoupon =
         !couponFilter ? true :
           couponFilter === "any_coupon" ? !!order.couponCode :
@@ -1102,12 +1124,19 @@ const exportAllOrdersExcel = () => {
               order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
       let matchesDate = true;
       if (startDate || endDate) {
-        const orderDate = new Date(order.createdAt);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
-        if (start && end) matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-        else if (start) matchesDate = orderDate >= start;
-        else if (end) matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+        const orderDate = new Date(order.updatedAt || order.createdAt);
+        const localYear = orderDate.getFullYear();
+        const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+        const localDay = String(orderDate.getDate()).padStart(2, '0');
+        const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+
+        if (startDate && endDate) {
+          matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+        } else if (startDate) {
+          matchesDate = orderDateStr >= startDate;
+        } else if (endDate) {
+          matchesDate = orderDateStr <= endDate;
+        }
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
     });
@@ -1157,7 +1186,8 @@ const exportAllOrdersExcel = () => {
       const matchesSearch =
         order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+        order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCoupon =
         !couponFilter ? true :
@@ -1168,15 +1198,17 @@ const exportAllOrdersExcel = () => {
       let matchesDate = true;
       if (startDate || endDate) {
         const orderDate = new Date(order.createdAt);
-        const start = startDate ? new Date(startDate) : null;
-        const end = endDate ? new Date(endDate) : null;
+        const localYear = orderDate.getFullYear();
+        const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+        const localDay = String(orderDate.getDate()).padStart(2, '0');
+        const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
 
-        if (start && end) {
-          matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-        } else if (start) {
-          matchesDate = orderDate >= start;
-        } else if (end) {
-          matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+        if (startDate && endDate) {
+          matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+        } else if (startDate) {
+          matchesDate = orderDateStr >= startDate;
+        } else if (endDate) {
+          matchesDate = orderDateStr <= endDate;
         }
       }
       return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
@@ -1273,7 +1305,8 @@ const exportAllOrdersExcel = () => {
     const matchesSearch =
       order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCoupon =
       !couponFilter ? true :
@@ -1283,16 +1316,18 @@ const exportAllOrdersExcel = () => {
 
     let matchesDate = true;
     if (startDate || endDate) {
-      const orderDate = new Date(order.createdAt);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
+      const orderDate = new Date(order.updatedAt || order.createdAt);
+      const localYear = orderDate.getFullYear();
+      const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+      const localDay = String(orderDate.getDate()).padStart(2, '0');
+      const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
 
-      if (start && end) {
-        matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-      } else if (start) {
-        matchesDate = orderDate >= start;
-      } else if (end) {
-        matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+      if (startDate && endDate) {
+        matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+      } else if (startDate) {
+        matchesDate = orderDateStr >= startDate;
+      } else if (endDate) {
+        matchesDate = orderDateStr <= endDate;
       }
     }
     return matchesStatus && matchesSearch && matchesDate && matchesCoupon;
@@ -1447,25 +1482,25 @@ const exportAllOrdersExcel = () => {
     let shipY = 62;
     if (address) {
       pdf.setFont(undefined, 'bold');
-      const nameLines = pdf.splitTextToSize(`${address.fullName || order.user?.name || 'N/A'} (${address.mobile || order.user?.phone || 'N/A'})`, 95);
+      const nameLines = pdf.splitTextToSize(`${capitalizeEachWord(address.fullName || order.user?.name || 'N/A')} (${address.mobile || order.user?.phone || 'N/A'})`, 95);
       pdf.text(nameLines, 10, shipY);
       shipY += nameLines.length * 3.5;
       pdf.setFont(undefined, 'normal');
-      const addr1Lines = pdf.splitTextToSize(address.addressLine1 || '', 95);
+      const addr1Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine1 || ''), 95);
       pdf.text(addr1Lines, 10, shipY);
       shipY += addr1Lines.length * 3.5;
       if (address.addressLine2) {
-        const addr2Lines = pdf.splitTextToSize(address.addressLine2, 95);
+        const addr2Lines = pdf.splitTextToSize(capitalizeEachWord(address.addressLine2), 95);
         pdf.text(addr2Lines, 10, shipY);
         shipY += addr2Lines.length * 3.5;
       }
-      const cityLines = pdf.splitTextToSize(`${address.city || ''}, ${address.state || ''}, ${address.pincode || ''}`, 95);
+      const cityLines = pdf.splitTextToSize(`${capitalizeEachWord(address.city || '')}, ${capitalizeEachWord(address.state || '')}, ${address.pincode || ''}`, 95);
       pdf.text(cityLines, 10, shipY);
       shipY += cityLines.length * 3.5;
       pdf.setFont(undefined, 'bold');
       pdf.text('Landmark:', 10, shipY);
       pdf.setFont(undefined, 'normal');
-      const landmarkLines = pdf.splitTextToSize(address.landmark || 'N/A', 70);
+      const landmarkLines = pdf.splitTextToSize(capitalizeEachWord(address.landmark || 'N/A'), 70);
       pdf.text(landmarkLines, 26, shipY);
       shipY += landmarkLines.length * 3.5;
     }
@@ -1927,7 +1962,8 @@ const resetDateRange = () => {
     order.shippingAddress?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.courierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase());
+    `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
   
   const matchesStatus =
     statusFilter === "all" ||
@@ -1941,16 +1977,21 @@ const resetDateRange = () => {
 
   let matchesDate = true;
   if (startDate || endDate) {
-    const orderDate = new Date(order.createdAt);
-    const start = startDate ? new Date(startDate) : null;
-    const end = endDate ? new Date(endDate) : null;
+    const compareDateVal = (statusFilter === 'delivered' || statusFilter === 'cancelled' || statusFilter === 'shipped')
+      ? (order.updatedAt || order.createdAt)
+      : order.createdAt;
+    const orderDate = new Date(compareDateVal);
+    const localYear = orderDate.getFullYear();
+    const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+    const localDay = String(orderDate.getDate()).padStart(2, '0');
+    const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
 
-    if (start && end) {
-      matchesDate = orderDate >= start && orderDate <= new Date(end.setHours(23, 59, 59));
-    } else if (start) {
-      matchesDate = orderDate >= start;
-    } else if (end) {
-      matchesDate = orderDate <= new Date(end.setHours(23, 59, 59));
+    if (startDate && endDate) {
+      matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+    } else if (startDate) {
+      matchesDate = orderDateStr >= startDate;
+    } else if (endDate) {
+      matchesDate = orderDateStr <= endDate;
     }
   }
 
@@ -1958,14 +1999,56 @@ const resetDateRange = () => {
 });
 
  const getStatusCounts = () => {
+  const filterByStatusDate = (order, targetStatus) => {
+    const matchesSearch =
+      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.shippingAddress?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.shippingAddress?.mobile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.shippingAddress?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.trackingId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.courierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCoupon = 
+      !couponFilter ? true :
+      couponFilter === "any_coupon" ? !!order.couponCode :
+      couponFilter === "no_coupon" ? !order.couponCode :
+      order.couponCode?.toLowerCase().includes(couponFilter.toLowerCase());
+
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const compareDateVal = (targetStatus === 'delivered' || targetStatus === 'cancelled' || targetStatus === 'shipped')
+        ? (order.updatedAt || order.createdAt)
+        : order.createdAt;
+      const orderDate = new Date(compareDateVal);
+      const localYear = orderDate.getFullYear();
+      const localMonth = String(orderDate.getMonth() + 1).padStart(2, '0');
+      const localDay = String(orderDate.getDate()).padStart(2, '0');
+      const orderDateStr = `${localYear}-${localMonth}-${localDay}`;
+
+      if (startDate && endDate) {
+        matchesDate = orderDateStr >= startDate && orderDateStr <= endDate;
+      } else if (startDate) {
+        matchesDate = orderDateStr >= startDate;
+      } else if (endDate) {
+        matchesDate = orderDateStr <= endDate;
+      }
+    }
+
+    return matchesSearch && matchesCoupon && matchesDate;
+  };
+
   return {
-    pending: filteredOrders.filter((o) => o.status === "pending").length,
-    placed: filteredOrders.filter((o) => o.status === "Placed").length,
-    accepted: filteredOrders.filter((o) => o.status === "Accepted").length,
-    shipped: filteredOrders.filter((o) => o.status === "Shipped").length,
-    delivered: filteredOrders.filter((o) => o.status === "Delivered").length,
-    cancelled: filteredOrders.filter((o) => o.status === "Cancelled").length,
-    abandoned: filteredOrders.filter((o) => o.status === "Abandoned").length,
+    pending: orders.filter((o) => (o.status || '').toLowerCase() === "pending" && filterByStatusDate(o, 'pending')).length,
+    placed: orders.filter((o) => o.status === "Placed" && filterByStatusDate(o, 'placed')).length,
+    accepted: orders.filter((o) => o.status === "Accepted" && filterByStatusDate(o, 'accepted')).length,
+    shipped: orders.filter((o) => o.status === "Shipped" && filterByStatusDate(o, 'shipped')).length,
+    delivered: orders.filter((o) => o.status === "Delivered" && filterByStatusDate(o, 'delivered')).length,
+    cancelled: orders.filter((o) => o.status === "Cancelled" && filterByStatusDate(o, 'cancelled')).length,
+    abandoned: orders.filter((o) => o.status === "Abandoned" && filterByStatusDate(o, 'abandoned')).length,
   };
 };
 
@@ -2004,8 +2087,8 @@ const resetDateRange = () => {
       key: "user",
       label: "Customer",
       render: (value, row) => {
-        const name = value?.name || row.shippingAddress?.fullName || "N/A";
-        const city = row.shippingAddress?.city || "N/A";
+        const name = capitalizeEachWord(value?.name || row.shippingAddress?.fullName || "N/A");
+        const city = capitalizeEachWord(row.shippingAddress?.city || "N/A");
         const phone = value?.phone || "N/A";
         return (
           <div className="customer-info">
@@ -2437,7 +2520,7 @@ const resetDateRange = () => {
             <Search size={16} className="search-icon" />
             <input
               type="text"
-              placeholder="Search by name, email, phone, city, order ID, tracking ID, courier..."
+              placeholder="Search by name, email, phone, city, order ID, tracking ID, courier, payment (cod/online)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -2592,7 +2675,7 @@ const resetDateRange = () => {
               <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="order-info">
                   <h4>Order Information</h4>
-                  <p><strong>Customer:</strong> {selectedOrder.user?.name || selectedOrder.shippingAddress?.fullName || 'N/A'}</p>
+                  <p><strong>Customer:</strong> {capitalizeEachWord(selectedOrder.user?.name || selectedOrder.shippingAddress?.fullName || 'N/A')}</p>
                   <p><strong>Email:</strong> {selectedOrder.user?.email || 'N/A'}</p>
                   <p><strong>Status:</strong> {selectedOrder.status}</p>
                   <p><strong>Payment:</strong> {selectedOrder.paymentMethod}</p>
@@ -2646,16 +2729,16 @@ const resetDateRange = () => {
                   {!editingAddress ? (
                     selectedOrder.shippingAddress ? (
                       <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                        <p><strong>Name:</strong> {selectedOrder.shippingAddress.fullName || 'N/A'}</p>
+                        <p><strong>Name:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.fullName || 'N/A')}</p>
                         <p><strong>Mobile:</strong> {selectedOrder.shippingAddress.mobile || 'N/A'}</p>
-                        <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address:</strong> {selectedOrder.shippingAddress.addressLine1 || 'N/A'}</p>
+                        <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.addressLine1 || 'N/A')}</p>
                         {selectedOrder.shippingAddress.addressLine2 && (
-                          <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address Line 2:</strong> {selectedOrder.shippingAddress.addressLine2}</p>
+                          <p style={{ wordBreak: 'break-all', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}><strong>Address Line 2:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.addressLine2)}</p>
                         )}
-                        <p><strong>City:</strong> {selectedOrder.shippingAddress.city || 'N/A'}</p>
-                        <p><strong>State:</strong> {selectedOrder.shippingAddress.state || 'N/A'}</p>
+                        <p><strong>City:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.city || 'N/A')}</p>
+                        <p><strong>State:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.state || 'N/A')}</p>
                         <p><strong>Pincode:</strong> {selectedOrder.shippingAddress.pincode || 'N/A'}</p>
-                        <p><strong>Landmark:</strong> {selectedOrder.shippingAddress.landmark || 'N/A'}</p>
+                        <p><strong>Landmark:</strong> {capitalizeEachWord(selectedOrder.shippingAddress.landmark || 'N/A')}</p>
                       </div>
                     ) : <p>No shipping address provided</p>
                   ) : (

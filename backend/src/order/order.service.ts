@@ -223,9 +223,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
         totalValue += parseFloat(order.total) || 0;
       }
       
-      // TOTAL SHIPPING VALUE: Sum of order totals from orders with status 'Shipped'
-      if (order.status === 'Shipped') {
-        totalShippingValue += parseFloat(order.total) || 0;
+      // TOTAL SHIPPING VALUE: Sum of delivery fees from orders with status 'Accepted', 'Shipped', or 'Delivered'
+      if (includeStatuses.includes(order.status)) {
+        totalShippingValue += parseFloat(order.deliveryFee) || 0;
       }
       
       // TOTAL COD VALUE: Sum of order totals from COD orders with status 'Accepted', 'Shipped', or 'Delivered'
@@ -828,7 +828,7 @@ async getSalesReportSummary(startDate?: string, endDate?: string) {
       totalCustomers: new Set(activeOrders.map(item => item.phone)).size,
       totalQuantity: activeOrders.reduce((sum, item) => sum + item.quantity, 0),
       totalValue: activeOrders.reduce((sum, item) => sum + item.total, 0),
-      totalShippingValue: activeOrders.filter(item => item.status === 'Shipped').reduce((sum, item) => sum + item.total, 0),
+      totalShippingValue: activeOrders.reduce((sum, item) => sum + (item.deliveryFee || 0), 0),
       totalCodValue: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.total, 0),
       totalDiscount: activeOrders.reduce((sum, item) => sum + item.discount, 0),
       totalDeliveryFee: activeOrders.reduce((sum, item) => sum + item.deliveryFee, 0),
