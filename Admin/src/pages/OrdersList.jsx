@@ -302,7 +302,15 @@ const handleEditOrder = (order) => {
   setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
   setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
   setCancelRemarks(order.cancelRemarks || "");
-  setCodCharge(order.codCharge || "");
+  
+  const isOnline = order.paymentMethod?.toLowerCase() !== 'cod';
+  if (order.status === 'Delivered' && isOnline && !order.codCharge) {
+    const calculatedCharge = (parseFloat(order.total || 0) * 0.0236).toFixed(2);
+    setCodCharge(calculatedCharge);
+  } else {
+    setCodCharge(order.codCharge || "");
+  }
+
   setCourierCharge(order.courierCharge || "");
   setChargedWeight(order.chargedWeight || "");  // NEW: for shipped orders
   setShowEditModal(true);
@@ -3068,7 +3076,17 @@ const resetDateRange = () => {
     <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Status</label>
     <select
       value={newStatus}
-      onChange={(e) => setNewStatus(e.target.value)}
+      onChange={(e) => {
+        const status = e.target.value;
+        setNewStatus(status);
+        if (status === 'Delivered') {
+          const isOnline = selectedOrder.paymentMethod?.toLowerCase() !== 'cod';
+          if (isOnline) {
+            const calculatedCharge = (parseFloat(selectedOrder.total || 0) * 0.0236).toFixed(2);
+            setCodCharge(calculatedCharge);
+          }
+        }
+      }}
       style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px' }}
     >
       <option value="Placed">Placed</option>
