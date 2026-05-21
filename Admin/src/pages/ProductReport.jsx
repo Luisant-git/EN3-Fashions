@@ -23,10 +23,7 @@ const ProductSalesReport = () => {
   const [sizeFilter, setSizeFilter] = useState('');
   const [variantFilter, setVariantFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState('');
-  const [salesFilter, setSalesFilter] = useState('');
-  const [initialStockFilter, setInitialStockFilter] = useState('');
-  const [saleStockFilter, setSaleStockFilter] = useState('');
-  const [currentStockFilter, setCurrentStockFilter] = useState('');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
 
   useEffect(() => {
     fetchReport();
@@ -36,6 +33,8 @@ const ProductSalesReport = () => {
     try {
       setLoading(true);
       const data = await getProductReport(startDate, endDate);
+      console.log('Product Report Data:', data);
+      console.log('Sample product:', data[0]);
       setProducts(data);
     } catch (error) {
       console.error('Error fetching product report:', error);
@@ -115,10 +114,10 @@ const ProductSalesReport = () => {
   const uniqueSizes = [...new Set(products.map(p => p.size))].filter(Boolean).sort();
   const uniqueVariants = [...new Set(products.map(p => p.sizeVariantId))].filter(Boolean).sort();
   const uniquePrices = [...new Set(products.map(p => p.price))].filter(Boolean).sort((a, b) => a - b);
-  const uniqueSales = [...new Set(products.map(p => p.totalSalesAmount))].filter(Boolean).sort((a, b) => a - b);
-  const uniqueInitialStock = [...new Set(products.map(p => p.initialStock))].filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
-  const uniqueSaleStock = [...new Set(products.map(p => p.saleStock))].filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
-  const uniqueCurrentStock = [...new Set(products.map(p => p.currentStock))].filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
+  const uniqueSubcategories = [...new Set(products.map(p => p.subcategoryName))].filter(Boolean).sort();
+  
+  console.log('Unique Subcategories:', uniqueSubcategories);
+  console.log('Total products:', products.length);
 
   const filteredProducts = products.filter(product => {
     const matchesProduct = !productFilter || product.productName === productFilter;
@@ -126,10 +125,7 @@ const ProductSalesReport = () => {
     const matchesSize = !sizeFilter || product.size === sizeFilter;
     const matchesVariant = !variantFilter || String(product.sizeVariantId) === variantFilter;
     const matchesPrice = !priceFilter || String(product.price) === priceFilter;
-    const matchesSales = !salesFilter || String(product.totalSalesAmount) === salesFilter;
-    const matchesInitialStock = !initialStockFilter || String(product.initialStock) === initialStockFilter;
-    const matchesSaleStock = !saleStockFilter || String(product.saleStock) === saleStockFilter;
-    const matchesCurrentStock = !currentStockFilter || String(product.currentStock) === currentStockFilter;
+    const matchesSubcategory = !subcategoryFilter || product.subcategoryName === subcategoryFilter;
     const matchesSearch = !searchTerm || 
       product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -138,7 +134,7 @@ const ProductSalesReport = () => {
       String(product.price || '').includes(searchTerm) ||
       String(product.totalSalesAmount || '').includes(searchTerm);
     
-    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesPrice && matchesSales && matchesInitialStock && matchesSaleStock && matchesCurrentStock && matchesSearch;
+    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesPrice && matchesSubcategory && matchesSearch;
   });
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>;
@@ -154,6 +150,27 @@ const ProductSalesReport = () => {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ flex: '0 0 200px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Category Name</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Category"
+            value={subcategoryFilter || undefined}
+            onChange={(value) => setSubcategoryFilter(value || '')}
+            style={{ width: '200px' }}
+            size="middle"
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueSubcategories.map(subcategory => ({
+                value: subcategory,
+                label: subcategory
+              }))
+            ]}
+          />
+        </div>
         <div style={{ flex: '0 0 200px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Product</label>
           <Select
@@ -238,69 +255,7 @@ const ProductSalesReport = () => {
             ]}
           />
         </div>
-        <div style={{ flex: '0 0 120px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Initial Stock</label>
-          <Select
-            showSearch
-            allowClear
-            placeholder="Select Stock"
-            value={initialStockFilter || undefined}
-            onChange={(value) => setInitialStockFilter(value || '')}
-            style={{ width: '120px' }}
-            size="middle"
-            filterOption={(input, option) =>
-              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={[
-              ...uniqueInitialStock.map(stock => ({
-                value: String(stock),
-                label: String(stock)
-              }))
-            ]}
-          />
-        </div>
-        <div style={{ flex: '0 0 120px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Sale Stock</label>
-          <Select
-            showSearch
-            allowClear
-            placeholder="Select Stock"
-            value={saleStockFilter || undefined}
-            onChange={(value) => setSaleStockFilter(value || '')}
-            style={{ width: '120px' }}
-            size="middle"
-            filterOption={(input, option) =>
-              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={[
-              ...uniqueSaleStock.map(stock => ({
-                value: String(stock),
-                label: String(stock)
-              }))
-            ]}
-          />
-        </div>
-        <div style={{ flex: '0 0 130px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Current Stock</label>
-          <Select
-            showSearch
-            allowClear
-            placeholder="Select Stock"
-            value={currentStockFilter || undefined}
-            onChange={(value) => setCurrentStockFilter(value || '')}
-            style={{ width: '130px' }}
-            size="middle"
-            filterOption={(input, option) =>
-              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={[
-              ...uniqueCurrentStock.map(stock => ({
-                value: String(stock),
-                label: String(stock)
-              }))
-            ]}
-          />
-        </div>
+
         <div style={{ flex: '0 0 120px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Price</label>
           <Select
@@ -318,27 +273,6 @@ const ProductSalesReport = () => {
               ...uniquePrices.map(price => ({
                 value: String(price),
                 label: `₹${price}`
-              }))
-            ]}
-          />
-        </div>
-        <div style={{ flex: '0 0 140px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Total Sales</label>
-          <Select
-            showSearch
-            allowClear
-            placeholder="Select Sales"
-            value={salesFilter || undefined}
-            onChange={(value) => setSalesFilter(value || '')}
-            style={{ width: '140px' }}
-            size="middle"
-            filterOption={(input, option) =>
-              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={[
-              ...uniqueSales.map(sales => ({
-                value: String(sales),
-                label: `₹${sales.toFixed(2)}`
               }))
             ]}
           />
@@ -370,10 +304,7 @@ const ProductSalesReport = () => {
             setSizeFilter('');
             setVariantFilter('');
             setPriceFilter('');
-            setSalesFilter('');
-            setInitialStockFilter('');
-            setSaleStockFilter('');
-            setCurrentStockFilter('');
+            setSubcategoryFilter('');
             setSearchTerm('');
           }}
           style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -462,21 +393,18 @@ const ProductSalesReport = () => {
       {/* Screenshot Container */}
       <div ref={screenshotRef} style={{ background: 'white' }}>
         {/* Filter Info for Screenshot */}
-        {(startDate || endDate || productFilter || colorFilter || sizeFilter || variantFilter || priceFilter || salesFilter || initialStockFilter || saleStockFilter || currentStockFilter || searchTerm) && (
+        {(startDate || endDate || subcategoryFilter || productFilter || colorFilter || sizeFilter || variantFilter || priceFilter || searchTerm) && (
           <div style={{ padding: '16px', background: '#f9fafb', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#374151' }}>Applied Filters:</h3>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: '#6b7280' }}>
               {startDate && <span><strong>From:</strong> {startDate}</span>}
               {endDate && <span><strong>To:</strong> {endDate}</span>}
+              {subcategoryFilter && <span><strong>Category:</strong> {subcategoryFilter}</span>}
               {productFilter && <span><strong>Product:</strong> {productFilter}</span>}
               {colorFilter && <span><strong>Color:</strong> {colorFilter}</span>}
               {sizeFilter && <span><strong>Size:</strong> {sizeFilter}</span>}
               {variantFilter && <span><strong>Variant ID:</strong> {variantFilter}</span>}
               {priceFilter && <span><strong>Price:</strong> ₹{priceFilter}</span>}
-              {salesFilter && <span><strong>Total Sales:</strong> ₹{parseFloat(salesFilter).toFixed(2)}</span>}
-              {initialStockFilter && <span><strong>Initial Stock:</strong> {initialStockFilter}</span>}
-              {saleStockFilter && <span><strong>Sale Stock:</strong> {saleStockFilter}</span>}
-              {currentStockFilter && <span><strong>Current Stock:</strong> {currentStockFilter}</span>}
               {searchTerm && <span><strong>Search:</strong> {searchTerm}</span>}
             </div>
           </div>

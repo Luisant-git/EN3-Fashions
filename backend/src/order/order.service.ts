@@ -874,7 +874,11 @@ async getProductReport(startDate?: string, endDate?: string) {
     });
 
     // Get all products to fetch current stock and prices
-    const products = await this.prisma.product.findMany();
+    const products = await this.prisma.product.findMany({
+      include: {
+        subCategory: true
+      }
+    });
 
     // Map to store product variant data
     const productMap = new Map<string, any>();
@@ -938,6 +942,7 @@ async getProductReport(startDate?: string, endDate?: string) {
       const product = products.find(p => p.id === item.productId);
       let currentStock = 0;
       let currentPrice = 0;
+      let subcategoryName: string | null = null;
       
       if (product && product.colors) {
         const colors = product.colors as any[];
@@ -949,6 +954,10 @@ async getProductReport(startDate?: string, endDate?: string) {
             currentPrice = parseFloat(sizeVariant.price || '0');
           }
         }
+        // Get subcategory name
+        if (product.subCategory) {
+          subcategoryName = product.subCategory.name;
+        }
       }
       
       const deliveredQty = item.deliveredQty;
@@ -957,6 +966,7 @@ async getProductReport(startDate?: string, endDate?: string) {
       
       return {
         ...item,
+        subcategoryName,
         currentStock,
         initialStock,
         saleStock: deliveredQty,
