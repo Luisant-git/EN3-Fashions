@@ -22,6 +22,11 @@ const ProductSalesReport = () => {
   const [colorFilter, setColorFilter] = useState('');
   const [sizeFilter, setSizeFilter] = useState('');
   const [variantFilter, setVariantFilter] = useState('');
+  const [priceFilter, setPriceFilter] = useState('');
+  const [salesFilter, setSalesFilter] = useState('');
+  const [initialStockFilter, setInitialStockFilter] = useState('');
+  const [saleStockFilter, setSaleStockFilter] = useState('');
+  const [currentStockFilter, setCurrentStockFilter] = useState('');
 
   useEffect(() => {
     fetchReport();
@@ -109,12 +114,22 @@ const ProductSalesReport = () => {
   const uniqueColors = [...new Set(products.map(p => p.color))].filter(Boolean).sort();
   const uniqueSizes = [...new Set(products.map(p => p.size))].filter(Boolean).sort();
   const uniqueVariants = [...new Set(products.map(p => p.sizeVariantId))].filter(Boolean).sort();
+  const uniquePrices = [...new Set(products.map(p => p.price))].filter(Boolean).sort((a, b) => a - b);
+  const uniqueSales = [...new Set(products.map(p => p.totalSalesAmount))].filter(Boolean).sort((a, b) => a - b);
+  const uniqueInitialStock = [...new Set(products.map(p => p.initialStock))].filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
+  const uniqueSaleStock = [...new Set(products.map(p => p.saleStock))].filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
+  const uniqueCurrentStock = [...new Set(products.map(p => p.currentStock))].filter(v => v !== null && v !== undefined).sort((a, b) => a - b);
 
   const filteredProducts = products.filter(product => {
     const matchesProduct = !productFilter || product.productName === productFilter;
     const matchesColor = !colorFilter || product.color === colorFilter;
     const matchesSize = !sizeFilter || product.size === sizeFilter;
     const matchesVariant = !variantFilter || String(product.sizeVariantId) === variantFilter;
+    const matchesPrice = !priceFilter || String(product.price) === priceFilter;
+    const matchesSales = !salesFilter || String(product.totalSalesAmount) === salesFilter;
+    const matchesInitialStock = !initialStockFilter || String(product.initialStock) === initialStockFilter;
+    const matchesSaleStock = !saleStockFilter || String(product.saleStock) === saleStockFilter;
+    const matchesCurrentStock = !currentStockFilter || String(product.currentStock) === currentStockFilter;
     const matchesSearch = !searchTerm || 
       product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,7 +138,7 @@ const ProductSalesReport = () => {
       String(product.price || '').includes(searchTerm) ||
       String(product.totalSalesAmount || '').includes(searchTerm);
     
-    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesSearch;
+    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesPrice && matchesSales && matchesInitialStock && matchesSaleStock && matchesCurrentStock && matchesSearch;
   });
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>;
@@ -134,31 +149,6 @@ const ProductSalesReport = () => {
         <div>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '700' }}>Product Sales Report</h1>
           <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>View delivered product sales with stock tracking and revenue</p>
-        </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button
-            onClick={takeScreenshot}
-            disabled={isCapturing}
-            style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', position: 'relative', minWidth: '130px', justifyContent: 'center' }}
-          >
-            {isCapturing ? (
-              <>
-                <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-                <span>Capturing...</span>
-                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-              </>
-            ) : (
-              <>
-                <Camera size={16} /> Screenshot
-              </>
-            )}
-          </button>
-          <button
-            onClick={exportToExcel}
-            style={{ padding: '10px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Download size={16} /> Export Excel
-          </button>
         </div>
       </div>
 
@@ -248,6 +238,111 @@ const ProductSalesReport = () => {
             ]}
           />
         </div>
+        <div style={{ flex: '0 0 120px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Initial Stock</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Stock"
+            value={initialStockFilter || undefined}
+            onChange={(value) => setInitialStockFilter(value || '')}
+            style={{ width: '120px' }}
+            size="middle"
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueInitialStock.map(stock => ({
+                value: String(stock),
+                label: String(stock)
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 120px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Sale Stock</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Stock"
+            value={saleStockFilter || undefined}
+            onChange={(value) => setSaleStockFilter(value || '')}
+            style={{ width: '120px' }}
+            size="middle"
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueSaleStock.map(stock => ({
+                value: String(stock),
+                label: String(stock)
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 130px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Current Stock</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Stock"
+            value={currentStockFilter || undefined}
+            onChange={(value) => setCurrentStockFilter(value || '')}
+            style={{ width: '130px' }}
+            size="middle"
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueCurrentStock.map(stock => ({
+                value: String(stock),
+                label: String(stock)
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 120px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Price</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Price"
+            value={priceFilter || undefined}
+            onChange={(value) => setPriceFilter(value || '')}
+            style={{ width: '120px' }}
+            size="middle"
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniquePrices.map(price => ({
+                value: String(price),
+                label: `₹${price}`
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 140px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Total Sales</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Sales"
+            value={salesFilter || undefined}
+            onChange={(value) => setSalesFilter(value || '')}
+            style={{ width: '140px' }}
+            size="middle"
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueSales.map(sales => ({
+                value: String(sales),
+                label: `₹${sales.toFixed(2)}`
+              }))
+            ]}
+          />
+        </div>
         <div>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>From</label>
           <input
@@ -274,11 +369,39 @@ const ProductSalesReport = () => {
             setColorFilter('');
             setSizeFilter('');
             setVariantFilter('');
+            setPriceFilter('');
+            setSalesFilter('');
+            setInitialStockFilter('');
+            setSaleStockFilter('');
+            setCurrentStockFilter('');
             setSearchTerm('');
           }}
           style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
         >
           <X size={16} /> Reset All
+        </button>
+        <button
+          onClick={takeScreenshot}
+          disabled={isCapturing}
+          style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', minWidth: '130px', justifyContent: 'center' }}
+        >
+          {isCapturing ? (
+            <>
+              <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+              <span>Capturing...</span>
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </>
+          ) : (
+            <>
+              <Camera size={16} /> Screenshot
+            </>
+          )}
+        </button>
+        <button
+          onClick={exportToExcel}
+          style={{ padding: '10px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          <Download size={16} /> Export Excel
         </button>
       </div>
 
@@ -349,6 +472,11 @@ const ProductSalesReport = () => {
               {colorFilter && <span><strong>Color:</strong> {colorFilter}</span>}
               {sizeFilter && <span><strong>Size:</strong> {sizeFilter}</span>}
               {variantFilter && <span><strong>Variant ID:</strong> {variantFilter}</span>}
+              {priceFilter && <span><strong>Price:</strong> ₹{priceFilter}</span>}
+              {salesFilter && <span><strong>Total Sales:</strong> ₹{parseFloat(salesFilter).toFixed(2)}</span>}
+              {initialStockFilter && <span><strong>Initial Stock:</strong> {initialStockFilter}</span>}
+              {saleStockFilter && <span><strong>Sale Stock:</strong> {saleStockFilter}</span>}
+              {currentStockFilter && <span><strong>Current Stock:</strong> {currentStockFilter}</span>}
               {searchTerm && <span><strong>Search:</strong> {searchTerm}</span>}
             </div>
           </div>
