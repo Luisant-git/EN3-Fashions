@@ -879,7 +879,7 @@ async getProductReport(startDate?: string, endDate?: string) {
     // Map to store product variant data
     const productMap = new Map<string, any>();
 
-    // Process each delivered order
+    // Process each order with Accepted, Shipped, or Delivered status
     orders.forEach(order => {
       order.items.forEach(item => {
         // Handle bundle items
@@ -898,12 +898,13 @@ async getProductReport(startDate?: string, endDate?: string) {
                 imageUrl: bundleItem.colorImage || item.imageUrl,
                 hsnCode: item.hsnCode || 'N/A',
                 deliveredQty: 0,
-                price: parseFloat(bundleItem.originalPrice || '0')
+                totalSalesAmount: 0
               });
             }
             
             const product = productMap.get(key);
             product.deliveredQty += 1;
+            product.totalSalesAmount += parseFloat(bundleItem.originalPrice || '0');
           });
         } else {
           // Handle single items
@@ -919,13 +920,15 @@ async getProductReport(startDate?: string, endDate?: string) {
               imageUrl: item.imageUrl,
               hsnCode: item.hsnCode || 'N/A',
               deliveredQty: 0,
-              price: parseFloat(item.price || '0')
+              totalSalesAmount: 0
             });
           }
           
           const product = productMap.get(key);
           const quantity = item.quantity || 1;
+          const itemPrice = parseFloat(item.price || '0');
           product.deliveredQty += quantity;
+          product.totalSalesAmount += itemPrice * quantity;
         }
       });
     });
@@ -934,6 +937,7 @@ async getProductReport(startDate?: string, endDate?: string) {
     const productReport = Array.from(productMap.values()).map(item => {
       const product = products.find(p => p.id === item.productId);
       let currentStock = 0;
+      let currentPrice = 0;
       
       if (product && product.colors) {
         const colors = product.colors as any[];
@@ -942,20 +946,22 @@ async getProductReport(startDate?: string, endDate?: string) {
           const sizeVariant = colorVariant.sizes.find(s => s.size === item.size);
           if (sizeVariant) {
             currentStock = parseInt(sizeVariant.quantity || '0');
+            currentPrice = parseFloat(sizeVariant.price || '0');
           }
         }
       }
       
       const deliveredQty = item.deliveredQty;
       const initialStock = currentStock + deliveredQty;
-      const totalSalesAmount = deliveredQty * item.price;
+      const avgPrice = deliveredQty > 0 ? item.totalSalesAmount / deliveredQty : currentPrice;
       
       return {
         ...item,
         currentStock,
         initialStock,
         saleStock: deliveredQty,
-        totalSalesAmount: parseFloat(totalSalesAmount.toFixed(2))
+        price: parseFloat(avgPrice.toFixed(2)),
+        totalSalesAmount: parseFloat(item.totalSalesAmount.toFixed(2))
       };
     });
 
