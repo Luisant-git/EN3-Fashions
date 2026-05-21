@@ -200,8 +200,8 @@ const ProductSalesReport = () => {
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Size</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Variant ID</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Initial Stock</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Current Stock</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Sale Stock</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Current Stock</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Price</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Total Sales</th>
               </tr>
@@ -226,8 +226,8 @@ const ProductSalesReport = () => {
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.size}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>{String(product.sizeVariantId || '')}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '600' }}>{product.initialStock}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '600' }}>{product.currentStock}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '600' }}>{product.saleStock}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '600' }}>{product.currentStock}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>₹{product.price}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#7c3aed', fontWeight: '700' }}>₹{product.totalSalesAmount}</td>
                   </tr>
@@ -243,8 +243,8 @@ const ProductSalesReport = () => {
                   <td style={{ padding: '12px 16px' }}></td>
                   <td style={{ padding: '12px 16px' }}></td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.initialStock, 0)}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.saleStock, 0)}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}></td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#7c3aed', fontWeight: '700' }}>₹{filteredProducts.reduce((sum, p) => sum + p.totalSalesAmount, 0).toFixed(2)}</td>
                 </tr>

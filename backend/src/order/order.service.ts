@@ -860,10 +860,12 @@ async getProductReport(startDate?: string, endDate?: string) {
       }
     }
 
-    // Get all delivered orders with items
+    // Get all orders with Accepted, Shipped, or Delivered status
     const orders = await this.prisma.order.findMany({
       where: {
-        status: 'Delivered',
+        status: {
+          in: ['Accepted', 'Shipped', 'Delivered']
+        },
         ...dateFilter
       },
       include: {
