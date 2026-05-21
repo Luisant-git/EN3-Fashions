@@ -579,7 +579,17 @@ const Reports = () => {
                   <ShoppingBag size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(filteredSalesData.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0) + (parseFloat(item.discount) || 0), 0))}</h3>
+                  <h3>{formatCurrency(filteredSalesData.reduce((sum, item) => {
+                    // Calculate base product value from items
+                    const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                      if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                        return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                          bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                      }
+                      return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                    }, 0) || 0;
+                    return sum + itemsValue;
+                  }, 0))}</h3>
                   <p>Total Base Value (Products)</p>
                 </div>
               </div>
