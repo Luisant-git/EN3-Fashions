@@ -12,6 +12,7 @@ const ProductSalesReport = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [isCapturing, setIsCapturing] = useState(false);
   const screenshotRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const ProductSalesReport = () => {
   const takeScreenshot = async () => {
     if (screenshotRef.current) {
       try {
+        setIsCapturing(true);
         const canvas = await html2canvas(screenshotRef.current, {
           scale: 2,
           useCORS: true,
@@ -47,6 +49,8 @@ const ProductSalesReport = () => {
         link.click();
       } catch (error) {
         console.error('Error taking screenshot:', error);
+      } finally {
+        setIsCapturing(false);
       }
     }
   };
@@ -157,9 +161,20 @@ const ProductSalesReport = () => {
         </button>
         <button
           onClick={takeScreenshot}
-          style={{ padding: '10px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
+          disabled={isCapturing}
+          style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', position: 'relative', minWidth: '130px', justifyContent: 'center' }}
         >
-          <Camera size={16} /> Screenshot
+          {isCapturing ? (
+            <>
+              <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+              <span>Capturing...</span>
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </>
+          ) : (
+            <>
+              <Camera size={16} /> Screenshot
+            </>
+          )}
         </button>
         <button
           onClick={exportToExcel}
