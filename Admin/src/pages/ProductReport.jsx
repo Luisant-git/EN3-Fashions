@@ -175,7 +175,7 @@ const ProductSalesReport = () => {
             style={{ width: '200px' }}
             size="middle"
             filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={[
               ...uniqueProducts.map(product => ({
@@ -196,7 +196,7 @@ const ProductSalesReport = () => {
             style={{ width: '150px' }}
             size="middle"
             filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={[
               ...uniqueColors.map(color => ({
@@ -217,7 +217,7 @@ const ProductSalesReport = () => {
             style={{ width: '120px' }}
             size="middle"
             filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={[
               ...uniqueSizes.map(size => ({
@@ -238,7 +238,7 @@ const ProductSalesReport = () => {
             style={{ width: '150px' }}
             size="middle"
             filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={[
               ...uniqueVariants.map(variant => ({
