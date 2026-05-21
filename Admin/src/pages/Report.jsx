@@ -579,8 +579,8 @@ const Reports = () => {
                   <ShoppingBag size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(filteredSalesData.reduce((sum, item) => {
-                    // Calculate base product value from items (price × quantity)
+                  <h3>{formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled').reduce((sum, item) => {
+                    // Calculate base product value from items (price × quantity) - excluding cancelled orders
                     const itemsValue = item.items?.reduce((itemSum, orderItem) => {
                       if (orderItem.type === 'bundle' && orderItem.bundleItems) {
                         return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
