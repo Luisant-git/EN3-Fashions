@@ -462,7 +462,7 @@ const ProductSalesReport = () => {
       {/* Screenshot Container */}
       <div ref={screenshotRef} style={{ background: 'white' }}>
         {/* Filter Info for Screenshot */}
-        {(startDate || endDate || productFilter || colorFilter || sizeFilter || variantFilter || searchTerm) && (
+        {(startDate || endDate || productFilter || colorFilter || sizeFilter || variantFilter || priceFilter || salesFilter || initialStockFilter || saleStockFilter || currentStockFilter || searchTerm) && (
           <div style={{ padding: '16px', background: '#f9fafb', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#374151' }}>Applied Filters:</h3>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: '#6b7280' }}>
