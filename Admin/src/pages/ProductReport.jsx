@@ -40,7 +40,6 @@ const ProductReport = () => {
       'Delivered': product.delivered,
       'Cancelled': product.cancelled,
       'Abandoned': product.abandoned,
-      'Pending': product.pending,
       'Total Quantity': product.totalQuantity
     }));
 
@@ -58,7 +57,6 @@ const ProductReport = () => {
       'Delivered': filteredProducts.reduce((sum, p) => sum + p.delivered, 0),
       'Cancelled': filteredProducts.reduce((sum, p) => sum + p.cancelled, 0),
       'Abandoned': filteredProducts.reduce((sum, p) => sum + p.abandoned, 0),
-      'Pending': filteredProducts.reduce((sum, p) => sum + p.pending, 0),
       'Total Quantity': filteredProducts.reduce((sum, p) => sum + p.totalQuantity, 0)
     };
 
@@ -169,13 +167,14 @@ const ProductReport = () => {
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Shipped</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Delivered</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Cancelled</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Abandoned</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Total</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="11" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+                  <td colSpan="12" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
                     <Package size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
                     <div>No products found</div>
                   </td>
@@ -195,6 +194,7 @@ const ProductReport = () => {
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.shipped}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '600' }}>{product.delivered}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '600' }}>{product.cancelled}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '600' }}>{product.abandoned}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#111827', fontWeight: '700' }}>{product.totalQuantity}</td>
                   </tr>
                 ))
