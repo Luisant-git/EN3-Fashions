@@ -9,6 +9,8 @@ const ProductReport = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
 
   useEffect(() => {
     fetchReport();
@@ -77,6 +79,15 @@ const ProductReport = () => {
     product.size?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sizeVariantId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, startDate, endDate, itemsPerPage]);
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>;
 
@@ -172,7 +183,7 @@ const ProductReport = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length === 0 ? (
+              {currentProducts.length === 0 ? (
                 <tr>
                   <td colSpan="12" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
                     <Package size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
@@ -180,7 +191,7 @@ const ProductReport = () => {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product, index) => (
+                currentProducts.map((product, index) => (
                   <tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '12px 16px' }}>
                       <img src={product.imageUrl} alt={product.productName} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
@@ -203,6 +214,64 @@ const ProductReport = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {filteredProducts.length > 0 && (
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', color: '#6b7280' }}>Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', cursor: 'pointer' }}
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
+            <span style={{ fontSize: '14px', color: '#6b7280' }}>entries</span>
+          </div>
+
+          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', background: currentPage === 1 ? '#f3f4f6' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '14px', color: currentPage === 1 ? '#9ca3af' : '#374151' }}
+            >
+              First
+            </button>
+            <button
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              disabled={currentPage === 1}
+              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', background: currentPage === 1 ? '#f3f4f6' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '14px', color: currentPage === 1 ? '#9ca3af' : '#374151' }}
+            >
+              Previous
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px' }}>
+              <span style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>Page {currentPage} of {totalPages}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              disabled={currentPage === totalPages}
+              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', background: currentPage === totalPages ? '#f3f4f6' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '14px', color: currentPage === totalPages ? '#9ca3af' : '#374151' }}
+            >
+              Next
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', background: currentPage === totalPages ? '#f3f4f6' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '14px', color: currentPage === totalPages ? '#9ca3af' : '#374151' }}
+            >
+              Last
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
