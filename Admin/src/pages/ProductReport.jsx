@@ -73,7 +73,8 @@ const ProductSalesReport = () => {
     product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.size?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(product.sizeVariantId || '').toLowerCase().includes(searchTerm.toLowerCase())
+    String(product.sizeVariantId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(product.totalSalesAmount || '').includes(searchTerm)
   );
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -100,7 +101,7 @@ const ProductSalesReport = () => {
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Search</label>
           <input
             type="text"
-            placeholder="Search by product, color, size, variant ID..."
+            placeholder="Search by product, color, size, variant ID, sales amount..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
