@@ -579,7 +579,7 @@ const Reports = () => {
                   <ShoppingBag size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(filteredSalesData.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0))}</h3>
+                  <h3>{formatCurrency(filteredSalesData.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0) + (parseFloat(item.discount) || 0), 0))}</h3>
                   <p>Total Base Value (Products)</p>
                 </div>
               </div>
