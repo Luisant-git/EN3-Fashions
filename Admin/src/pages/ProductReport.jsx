@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Download, X, Package, TrendingUp, Camera } from 'lucide-react';
+import { Download, X, Package, TrendingUp, Camera, ShoppingCart, Archive, CheckCircle } from 'lucide-react';
+import { Select } from 'antd';
 import { getProductReport } from '../api/order';
 import * as XLSX from 'xlsx-js-style';
 import html2canvas from 'html2canvas';
+import 'antd/dist/reset.css';
+import '../styles/pages/report.scss';
 
 const ProductSalesReport = () => {
   const [products, setProducts] = useState([]);
@@ -12,6 +15,12 @@ const ProductSalesReport = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
   const screenshotRef = useRef(null);
+  
+  // Separate filter states
+  const [productFilter, setProductFilter] = useState('');
+  const [colorFilter, setColorFilter] = useState('');
+  const [sizeFilter, setSizeFilter] = useState('');
+  const [variantFilter, setVariantFilter] = useState('');
 
   useEffect(() => {
     fetchReport();
@@ -94,34 +103,148 @@ const ProductSalesReport = () => {
     XLSX.writeFile(workbook, `product-sales-report${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const filteredProducts = products.filter(product =>
-    product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.size?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(product.sizeVariantId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(product.price || '').includes(searchTerm) ||
-    String(product.totalSalesAmount || '').includes(searchTerm)
-  );
+  // Get unique values for dropdowns
+  const uniqueProducts = [...new Set(products.map(p => p.productName))].filter(Boolean).sort();
+  const uniqueColors = [...new Set(products.map(p => p.color))].filter(Boolean).sort();
+  const uniqueSizes = [...new Set(products.map(p => p.size))].filter(Boolean).sort();
+  const uniqueVariants = [...new Set(products.map(p => p.sizeVariantId))].filter(Boolean).sort();
+
+  const filteredProducts = products.filter(product => {
+    const matchesProduct = !productFilter || product.productName === productFilter;
+    const matchesColor = !colorFilter || product.color === colorFilter;
+    const matchesSize = !sizeFilter || product.size === sizeFilter;
+    const matchesVariant = !variantFilter || String(product.sizeVariantId) === variantFilter;
+    const matchesSearch = !searchTerm || 
+      product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.size?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(product.sizeVariantId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(product.price || '').includes(searchTerm) ||
+      String(product.totalSalesAmount || '').includes(searchTerm);
+    
+    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesSearch;
+  });
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '700' }}>Product Sales Report</h1>
-        <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>View delivered product sales with stock tracking and revenue</p>
+    <div style={{ padding: '20px' }} className="reports-page">
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '700' }}>Product Sales Report</h1>
+          <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>View delivered product sales with stock tracking and revenue</p>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button
+            onClick={takeScreenshot}
+            disabled={isCapturing}
+            style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', position: 'relative', minWidth: '130px', justifyContent: 'center' }}
+          >
+            {isCapturing ? (
+              <>
+                <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+                <span>Capturing...</span>
+                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+              </>
+            ) : (
+              <>
+                <Camera size={16} /> Screenshot
+              </>
+            )}
+          </button>
+          <button
+            onClick={exportToExcel}
+            style={{ padding: '10px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Download size={16} /> Export Excel
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={{ flex: '1 1 300px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Search</label>
-          <input
-            type="text"
-            placeholder="Search by product, color, size, variant ID, price, sales amount..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ flex: '1 1 200px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Product</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Product"
+            value={productFilter || undefined}
+            onChange={(value) => setProductFilter(value || '')}
+            style={{ width: '100%' }}
+            size="large"
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueProducts.map(product => ({
+                value: product,
+                label: product
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 150px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Color</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Color"
+            value={colorFilter || undefined}
+            onChange={(value) => setColorFilter(value || '')}
+            style={{ width: '100%' }}
+            size="large"
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueColors.map(color => ({
+                value: color,
+                label: color
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 120px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Size</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Size"
+            value={sizeFilter || undefined}
+            onChange={(value) => setSizeFilter(value || '')}
+            style={{ width: '100%' }}
+            size="large"
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueSizes.map(size => ({
+                value: size,
+                label: size
+              }))
+            ]}
+          />
+        </div>
+        <div style={{ flex: '0 0 150px' }}>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374141' }}>Variant ID</label>
+          <Select
+            showSearch
+            allowClear
+            placeholder="Select Variant"
+            value={variantFilter || undefined}
+            onChange={(value) => setVariantFilter(value || '')}
+            style={{ width: '100%' }}
+            size="large"
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              ...uniqueVariants.map(variant => ({
+                value: variant,
+                label: variant
+              }))
+            ]}
           />
         </div>
         <div>
@@ -143,45 +266,88 @@ const ProductSalesReport = () => {
           />
         </div>
         <button
-          onClick={() => { setStartDate(''); setEndDate(''); }}
+          onClick={() => { 
+            setStartDate(''); 
+            setEndDate(''); 
+            setProductFilter('');
+            setColorFilter('');
+            setSizeFilter('');
+            setVariantFilter('');
+            setSearchTerm('');
+          }}
           style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
         >
-          <X size={16} /> Reset
-        </button>
-        <button
-          onClick={takeScreenshot}
-          disabled={isCapturing}
-          style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', position: 'relative', minWidth: '130px', justifyContent: 'center' }}
-        >
-          {isCapturing ? (
-            <>
-              <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-              <span>Capturing...</span>
-              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-            </>
-          ) : (
-            <>
-              <Camera size={16} /> Screenshot
-            </>
-          )}
-        </button>
-        <button
-          onClick={exportToExcel}
-          style={{ padding: '10px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <Download size={16} /> Export Excel
+          <X size={16} /> Reset All
         </button>
       </div>
 
+      {/* Summary Cards */}
+      <div className="summary-section">
+        <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
+              <ShoppingCart size={24} />
+            </div>
+            <div className="stat-content">
+              <h3>{filteredProducts.length}</h3>
+              <p>Total Products</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
+              <Archive size={24} />
+            </div>
+            <div className="stat-content">
+              <h3>{filteredProducts.reduce((sum, p) => sum + p.initialStock, 0)}</h3>
+              <p>Initial Stock</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#d1fae5', color: '#10b981' }}>
+              <CheckCircle size={24} />
+            </div>
+            <div className="stat-content">
+              <h3>{filteredProducts.reduce((sum, p) => sum + p.saleStock, 0)}</h3>
+              <p>Sale Stock</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#ef4444' }}>
+              <Package size={24} />
+            </div>
+            <div className="stat-content">
+              <h3>{filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)}</h3>
+              <p>Current Stock</p>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#ede9fe', color: '#8b5cf6' }}>
+              <TrendingUp size={24} />
+            </div>
+            <div className="stat-content">
+              <h3>₹{filteredProducts.reduce((sum, p) => sum + p.totalSalesAmount, 0).toFixed(2)}</h3>
+              <p>Total Sales Amount</p>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Screenshot Container */}
       <div ref={screenshotRef} style={{ background: 'white' }}>
         {/* Filter Info for Screenshot */}
-        {(startDate || endDate || searchTerm) && (
+        {(startDate || endDate || productFilter || colorFilter || sizeFilter || variantFilter || searchTerm) && (
           <div style={{ padding: '16px', background: '#f9fafb', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#374151' }}>Applied Filters:</h3>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: '#6b7280' }}>
               {startDate && <span><strong>From:</strong> {startDate}</span>}
               {endDate && <span><strong>To:</strong> {endDate}</span>}
+              {productFilter && <span><strong>Product:</strong> {productFilter}</span>}
+              {colorFilter && <span><strong>Color:</strong> {colorFilter}</span>}
+              {sizeFilter && <span><strong>Size:</strong> {sizeFilter}</span>}
+              {variantFilter && <span><strong>Variant ID:</strong> {variantFilter}</span>}
               {searchTerm && <span><strong>Search:</strong> {searchTerm}</span>}
             </div>
           </div>
