@@ -842,4 +842,125 @@ async getSalesReportSummary(startDate?: string, endDate?: string) {
     throw new Error('Failed to fetch sales report summary');
   }
 }
+
+// Get Product Report - Shows each product variant with purchase details by order status
+async getProductReport(startDate?: string, endDate?: string) {
+  try {
+    // Build date filter
+    const dateFilter: any = {};
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) {
+        dateFilter.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.lte = endDateTime;
+      }
+    }
+
+    // Get all orders with items
+    const orders = await this.prisma.order.findMany({
+      where: dateFilter,
+      include: {
+        items: true
+      }
+    });
+
+    // Map to store product variant data
+    const productMap = new Map<string, any>();
+
+    // Process each order
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        // Handle bundle items
+        if (item.type === 'bundle' && item.bundleItems) {
+          const bundleItems = item.bundleItems as any[];
+          bundleItems.forEach(bundleItem => {
+            const key = `${item.productId || 'N/A'}_${bundleItem.color}_${bundleItem.size}_${bundleItem.sizeVariantId || 'N/A'}`;
+            
+            if (!productMap.has(key)) {
+              productMap.set(key, {
+                productId: item.productId || null,
+                productName: item.name.split(' Bundle')[0],
+                color: bundleItem.color,
+                size: bundleItem.size,
+                sizeVariantId: bundleItem.sizeVariantId || 'N/A',
+                imageUrl: bundleItem.colorImage || item.imageUrl,
+                hsnCode: item.hsnCode || 'N/A',
+                placed: 0,
+                accepted: 0,
+                shipped: 0,
+                delivered: 0,
+                cancelled: 0,
+                abandoned: 0,
+                pending: 0,
+                totalQuantity: 0
+              });
+            }
+            
+            const product = productMap.get(key);
+            const status = order.status.toLowerCase();
+            
+            if (status === 'placed') product.placed += 1;
+            else if (status === 'accepted') product.accepted += 1;
+            else if (status === 'shipped') product.shipped += 1;
+            else if (status === 'delivered') product.delivered += 1;
+            else if (status === 'cancelled') product.cancelled += 1;
+            else if (status === 'abandoned') product.abandoned += 1;
+            else if (status === 'pending') product.pending += 1;
+            
+            product.totalQuantity += 1;
+          });
+        } else {
+          // Handle single items
+          const key = `${item.productId || 'N/A'}_${item.color}_${item.size}_${item.sizeVariantId || 'N/A'}`;
+          
+          if (!productMap.has(key)) {
+            productMap.set(key, {
+              productId: item.productId || null,
+              productName: item.name,
+              color: item.color,
+              size: item.size,
+              sizeVariantId: item.sizeVariantId || 'N/A',
+              imageUrl: item.imageUrl,
+              hsnCode: item.hsnCode || 'N/A',
+              placed: 0,
+              accepted: 0,
+              shipped: 0,
+              delivered: 0,
+              cancelled: 0,
+              abandoned: 0,
+              pending: 0,
+              totalQuantity: 0
+            });
+          }
+          
+          const product = productMap.get(key);
+          const status = order.status.toLowerCase();
+          const quantity = item.quantity || 1;
+          
+          if (status === 'placed') product.placed += quantity;
+          else if (status === 'accepted') product.accepted += quantity;
+          else if (status === 'shipped') product.shipped += quantity;
+          else if (status === 'delivered') product.delivered += quantity;
+          else if (status === 'cancelled') product.cancelled += quantity;
+          else if (status === 'abandoned') product.abandoned += quantity;
+          else if (status === 'pending') product.pending += quantity;
+          
+          product.totalQuantity += quantity;
+        }
+      });
+    });
+
+    // Convert map to array and sort by total quantity (descending)
+    const productReport = Array.from(productMap.values()).sort((a, b) => b.totalQuantity - a.totalQuantity);
+
+    return productReport;
+  } catch (error) {
+    console.error('Error fetching product report:', error);
+    throw new Error('Failed to fetch product report');
+  }
+}
 }

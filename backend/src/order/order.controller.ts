@@ -268,4 +268,19 @@ async getSalesReportSummary(@Query('startDate') startDate?: string, @Query('endD
     throw new BadRequestException(error.message);
   }
 }
+
+// Get Product Report
+@Get('reports/products')
+async getProductReport(@Query('startDate') startDate?: string, @Query('endDate') endDate?: string) {
+  try {
+    const data = await this.orderService.getProductReport(startDate, endDate);
+    return {
+      success: true,
+      data,
+      message: 'Product report fetched successfully'
+    };
+  } catch (error) {
+    throw new BadRequestException(error.message);
+  }
+}
 }

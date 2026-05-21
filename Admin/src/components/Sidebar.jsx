@@ -69,7 +69,10 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   key: 'reports',
   icon: FileText,
   label: 'Reports',
-  path: '/reports'  // Single path, not children
+  children: [
+    { key: 'sales-reports', icon: BarChart3, label: 'Sales Reports', path: '/reports' },
+    { key: 'product-report', icon: Package, label: 'Product Report', path: '/product-report' }
+  ]
 },
     {
       key: 'settings',

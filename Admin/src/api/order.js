@@ -249,6 +249,26 @@ export const pushToShiprocket = async (orderId) => {
   } catch (error) {
     throw error;
   }
+};
 
-  
+// Get Product Report
+export const getProductReport = async (startDate, endDate) => {
+  try {
+    let url = `${API_BASE_URL}/orders/reports/products`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message);
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching product report:', error);
+    throw error;
+  }
 };

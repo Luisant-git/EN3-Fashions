@@ -42,6 +42,7 @@ import AddShipping from './pages/AddShipping'
 import EditShipping from './pages/EditShipping'
 import Settings from './pages/Settings'
 import CourierPartnerList from './pages/CourierPartnerList'
+import ProductReport from './pages/ProductReport'
 // import BulkWhatsApp from './pages/BulkWhatsApps'
 
 // Import all SCSS files
@@ -154,6 +155,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/courier-partners" element={<CourierPartnerList />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/product-report" element={<ProductReport />} />
               {/* <Route path="/whatsapp-chat" element={<WhatsAppChat />} /> */}
               {/* <Route path="/bulk-whatsapp" element={<BulkWhatsApp />} /> */}
             </Routes>
