@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx-js-style';
 import html2canvas from 'html2canvas';
 import 'antd/dist/reset.css';
 import '../styles/pages/report.scss';
+import '../styles/pages/productReport.scss';
 
 const ProductSalesReport = () => {
   const [products, setProducts] = useState([]);
@@ -163,7 +164,7 @@ const ProductSalesReport = () => {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={{ flex: '1 1 200px' }}>
+        <div style={{ flex: '0 0 200px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Product</label>
           <Select
             showSearch
@@ -171,8 +172,8 @@ const ProductSalesReport = () => {
             placeholder="Select Product"
             value={productFilter || undefined}
             onChange={(value) => setProductFilter(value || '')}
-            style={{ width: '100%' }}
-            size="large"
+            style={{ width: '200px' }}
+            size="middle"
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
@@ -192,8 +193,8 @@ const ProductSalesReport = () => {
             placeholder="Select Color"
             value={colorFilter || undefined}
             onChange={(value) => setColorFilter(value || '')}
-            style={{ width: '100%' }}
-            size="large"
+            style={{ width: '150px' }}
+            size="middle"
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
@@ -213,8 +214,8 @@ const ProductSalesReport = () => {
             placeholder="Select Size"
             value={sizeFilter || undefined}
             onChange={(value) => setSizeFilter(value || '')}
-            style={{ width: '100%' }}
-            size="large"
+            style={{ width: '120px' }}
+            size="middle"
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
@@ -234,8 +235,8 @@ const ProductSalesReport = () => {
             placeholder="Select Variant"
             value={variantFilter || undefined}
             onChange={(value) => setVariantFilter(value || '')}
-            style={{ width: '100%' }}
-            size="large"
+            style={{ width: '150px' }}
+            size="middle"
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
