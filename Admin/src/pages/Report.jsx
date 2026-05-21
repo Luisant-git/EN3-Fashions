@@ -574,6 +574,15 @@ const Reports = () => {
                   <p>Shipped Value</p>
                 </div>
               </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+                  <ShoppingBag size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(filteredSalesData.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0))}</h3>
+                  <p>Total Base Value (Products)</p>
+                </div>
+              </div>
             </div>
 
           </div>
