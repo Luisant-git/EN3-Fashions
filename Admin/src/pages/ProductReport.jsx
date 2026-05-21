@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, Package } from 'lucide-react';
+import { Download, X, Package, TrendingUp } from 'lucide-react';
 import { getProductReport } from '../api/order';
 import * as XLSX from 'xlsx-js-style';
 
-const ProductReport = () => {
+const ProductSalesReport = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -36,13 +36,11 @@ const ProductReport = () => {
       'Size': product.size,
       'Variant ID': product.sizeVariantId,
       'HSN Code': product.hsnCode,
-      'Placed': product.placed,
-      'Accepted': product.accepted,
-      'Shipped': product.shipped,
-      'Delivered': product.delivered,
-      'Cancelled': product.cancelled,
-      'Abandoned': product.abandoned,
-      'Total Quantity': product.totalQuantity
+      'Initial Stock': product.initialStock,
+      'Current Stock': product.currentStock,
+      'Sale Stock': product.saleStock,
+      'Price': product.price,
+      'Total Sales Amount': product.totalSalesAmount
     }));
 
     // Add totals row
@@ -53,13 +51,11 @@ const ProductReport = () => {
       'Size': '',
       'Variant ID': '',
       'HSN Code': 'TOTAL',
-      'Placed': filteredProducts.reduce((sum, p) => sum + p.placed, 0),
-      'Accepted': filteredProducts.reduce((sum, p) => sum + p.accepted, 0),
-      'Shipped': filteredProducts.reduce((sum, p) => sum + p.shipped, 0),
-      'Delivered': filteredProducts.reduce((sum, p) => sum + p.delivered, 0),
-      'Cancelled': filteredProducts.reduce((sum, p) => sum + p.cancelled, 0),
-      'Abandoned': filteredProducts.reduce((sum, p) => sum + p.abandoned, 0),
-      'Total Quantity': filteredProducts.reduce((sum, p) => sum + p.totalQuantity, 0)
+      'Initial Stock': filteredProducts.reduce((sum, p) => sum + p.initialStock, 0),
+      'Current Stock': filteredProducts.reduce((sum, p) => sum + p.currentStock, 0),
+      'Sale Stock': filteredProducts.reduce((sum, p) => sum + p.saleStock, 0),
+      'Price': '',
+      'Total Sales Amount': filteredProducts.reduce((sum, p) => sum + p.totalSalesAmount, 0).toFixed(2)
     };
 
     excelData.push({});
@@ -67,10 +63,10 @@ const ProductReport = () => {
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Product Report');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Product Sales Report');
 
     const dateRange = startDate && endDate ? `_${startDate}_to_${endDate}` : startDate ? `_from_${startDate}` : endDate ? `_to_${endDate}` : '';
-    XLSX.writeFile(workbook, `product-report${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(workbook, `product-sales-report${dateRange}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const filteredProducts = products.filter(product =>
@@ -94,8 +90,8 @@ const ProductReport = () => {
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '700' }}>Product Report</h1>
-        <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>View product sales by variant and order status</p>
+        <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '700' }}>Product Sales Report</h1>
+        <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>View delivered product sales with stock tracking and revenue</p>
       </div>
 
       {/* Filters */}
@@ -148,17 +144,21 @@ const ProductReport = () => {
           <div style={{ fontSize: '12px', color: '#0369a1', fontWeight: '600', marginBottom: '4px' }}>Total Products</div>
           <div style={{ fontSize: '24px', fontWeight: '700', color: '#0c4a6e' }}>{filteredProducts.length}</div>
         </div>
-        <div style={{ padding: '16px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
-          <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '600', marginBottom: '4px' }}>Total Delivered</div>
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#14532d' }}>{filteredProducts.reduce((sum, p) => sum + p.delivered, 0)}</div>
-        </div>
         <div style={{ padding: '16px', background: '#fef3c7', borderRadius: '12px', border: '1px solid #fde68a' }}>
-          <div style={{ fontSize: '12px', color: '#92400e', fontWeight: '600', marginBottom: '4px' }}>Total Shipped</div>
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#78350f' }}>{filteredProducts.reduce((sum, p) => sum + p.shipped, 0)}</div>
+          <div style={{ fontSize: '12px', color: '#92400e', fontWeight: '600', marginBottom: '4px' }}>Total Initial Stock</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#78350f' }}>{filteredProducts.reduce((sum, p) => sum + p.initialStock, 0)}</div>
+        </div>
+        <div style={{ padding: '16px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '600', marginBottom: '4px' }}>Total Sale Stock</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#14532d' }}>{filteredProducts.reduce((sum, p) => sum + p.saleStock, 0)}</div>
         </div>
         <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '12px', border: '1px solid #fecaca' }}>
-          <div style={{ fontSize: '12px', color: '#991b1b', fontWeight: '600', marginBottom: '4px' }}>Total Cancelled</div>
-          <div style={{ fontSize: '24px', fontWeight: '700', color: '#7f1d1d' }}>{filteredProducts.reduce((sum, p) => sum + p.cancelled, 0)}</div>
+          <div style={{ fontSize: '12px', color: '#991b1b', fontWeight: '600', marginBottom: '4px' }}>Current Stock</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#7f1d1d' }}>{filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)}</div>
+        </div>
+        <div style={{ padding: '16px', background: '#f5f3ff', borderRadius: '12px', border: '1px solid #ddd6fe' }}>
+          <div style={{ fontSize: '12px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Total Sales Amount</div>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#581c87' }}>₹{filteredProducts.reduce((sum, p) => sum + p.totalSalesAmount, 0).toFixed(2)}</div>
         </div>
       </div>
 
@@ -173,19 +173,17 @@ const ProductReport = () => {
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Color</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Size</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Variant ID</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Placed</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Accepted</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Shipped</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Delivered</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Cancelled</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Abandoned</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Total</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Initial Stock</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Current Stock</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Sale Stock</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Price</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Total Sales</th>
               </tr>
             </thead>
             <tbody>
               {currentProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="12" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+                  <td colSpan="11" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
                     <Package size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
                     <div>No products found</div>
                   </td>
@@ -200,13 +198,11 @@ const ProductReport = () => {
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.color}</td>
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.size}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>{String(product.sizeVariantId || '')}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.placed}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.accepted}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.shipped}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '600' }}>{product.delivered}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '600' }}>{product.cancelled}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '600' }}>{product.abandoned}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#111827', fontWeight: '700' }}>{product.totalQuantity}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '600' }}>{product.initialStock}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '600' }}>{product.currentStock}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '600' }}>{product.saleStock}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>₹{product.price}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#7c3aed', fontWeight: '700' }}>₹{product.totalSalesAmount}</td>
                   </tr>
                 ))
               )}
@@ -276,4 +272,4 @@ const ProductReport = () => {
   );
 };
 
-export default ProductReport;
+export default ProductSalesReport;

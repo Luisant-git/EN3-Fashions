@@ -71,7 +71,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   label: 'Reports',
   children: [
     { key: 'sales-reports', icon: BarChart3, label: 'Sales Reports', path: '/reports' },
-    { key: 'product-report', icon: Package, label: 'Product Report', path: '/product-report' }
+    { key: 'product-report', icon: Package, label: 'Product Sales Report', path: '/product-report' }
   ]
 },
     {
