@@ -2994,13 +2994,15 @@ const resetDateRange = () => {
                                       min="0"
                                       step="0.01"
                                       value={editItems[idx]?.price || ''}
-                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], price: parseFloat(e.target.value) || 0 }; setEditItems(updated); }}
+                                      readOnly
                                       style={{ 
                                         width: '100%', 
                                         padding: '5px 8px', 
-                                        border: (editItems[idx]?.price !== '' && editItems[idx]?.price !== null && editItems[idx]?.price !== undefined && editItems[idx]?.price >= 0) ? '1px solid #ddd' : '2px solid #ef4444', 
+                                        border: '1px solid #ddd', 
                                         borderRadius: '6px', 
-                                        fontSize: '13px' 
+                                        fontSize: '13px',
+                                        backgroundColor: '#f3f4f6',
+                                        cursor: 'not-allowed'
                                       }}
                                     />
                                   </div>
