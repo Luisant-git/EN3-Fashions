@@ -77,7 +77,7 @@ const ProductReport = () => {
     product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.size?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sizeVariantId?.toLowerCase().includes(searchTerm.toLowerCase())
+    String(product.sizeVariantId || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -199,7 +199,7 @@ const ProductReport = () => {
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#111827', fontWeight: '500' }}>{product.productName}</td>
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.color}</td>
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.size}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>{product.sizeVariantId}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>{String(product.sizeVariantId || '')}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.placed}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.accepted}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>{product.shipped}</td>
