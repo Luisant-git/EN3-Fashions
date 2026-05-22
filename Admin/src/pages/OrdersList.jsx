@@ -296,7 +296,7 @@ const [orderStats, setOrderStats] = useState({
     setShowViewModal(true);
   };
 
-const handleEditOrder = (order) => {
+  const handleEditOrder = (order) => {
   setSelectedOrder(order);
   setNewStatus(order.status);
   setCourierName(order.courierName === "not provided" ? "" : (order.courierName || ""));
@@ -305,16 +305,28 @@ const handleEditOrder = (order) => {
   setCancelRemarks(order.cancelRemarks || "");
   setCodReturnRemarks(order.codReturnRemarks || "");
   
+  // Calculate commission based on payment method
   const isOnline = order.paymentMethod?.toLowerCase() !== 'cod';
-  if (order.status === 'Delivered' && isOnline && !order.codCharge) {
-    const calculatedCharge = (parseFloat(order.total || 0) * 0.0236).toFixed(2);
-    setCodCharge(calculatedCharge);
+  const isCOD = order.paymentMethod?.toLowerCase() === 'cod';
+  
+  if (order.status === 'Delivered') {
+    if (isOnline && !order.codCharge) {
+      // Online payment: 2.36% commission (2% + 18% GST)
+      const calculatedCharge = (parseFloat(order.total || 0) * 0.0236).toFixed(2);
+      setCodCharge(calculatedCharge);
+    } else if (isCOD && !order.codCharge) {
+      // COD payment: 1.6% commission
+      const calculatedCharge = (parseFloat(order.total || 0) * 0.016).toFixed(2);
+      setCodCharge(calculatedCharge);
+    } else {
+      setCodCharge(order.codCharge || "");
+    }
   } else {
     setCodCharge(order.codCharge || "");
   }
 
   setCourierCharge(order.courierCharge || "");
-  setChargedWeight(order.chargedWeight || "");  // NEW: for shipped orders
+  setChargedWeight(order.chargedWeight || "");
   setShowEditModal(true);
 };
 
@@ -2245,14 +2257,17 @@ const resetDateRange = () => {
     <div
       className="stat-card summary-stat-card"
       style={{ flex: '1 1 0', cursor: 'pointer' }}
-      onClick={() => setStatusFilter("abandoned")}
+      onClick={() => setStatusFilter("codreturn")}
     >
-      <div className="stat-icon abandoned">
-        <X size={24} />
+      <div
+        className="stat-icon"
+        style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}
+      >
+        <Package size={24} />
       </div>
       <div className="stat-content">
-        <h3>{statusCounts.abandoned}</h3>
-        <p>Abandoned</p>
+        <h3>{statusCounts.codreturn}</h3>
+        <p>COD Return</p>
       </div>
     </div>
   </div>
@@ -3134,8 +3149,15 @@ const resetDateRange = () => {
         setNewStatus(status);
         if (status === 'Delivered') {
           const isOnline = selectedOrder.paymentMethod?.toLowerCase() !== 'cod';
+          const isCOD = selectedOrder.paymentMethod?.toLowerCase() === 'cod';
+          
           if (isOnline) {
+            // Online payment: 2.36% commission (2% + 18% GST)
             const calculatedCharge = (parseFloat(selectedOrder.total || 0) * 0.0236).toFixed(2);
+            setCodCharge(calculatedCharge);
+          } else if (isCOD) {
+            // COD payment: 1.6% commission
+            const calculatedCharge = (parseFloat(selectedOrder.total || 0) * 0.016).toFixed(2);
             setCodCharge(calculatedCharge);
           }
         }
