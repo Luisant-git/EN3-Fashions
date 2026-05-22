@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateOrderStatusDto {
-  @ApiProperty({ example: 'Processing', enum: ['Pending', 'Processing', 'Accepted', 'Shipped', 'Delivered', 'Cancelled'] })
+  @ApiProperty({ example: 'Processing', enum: ['Pending', 'Processing', 'Accepted', 'Shipped', 'Delivered', 'Cancelled', 'CODReturn'] })
   @IsString()
   status: string;
 
@@ -35,6 +35,11 @@ export class UpdateOrderStatusDto {
   @IsOptional()
   @IsString()
   cancelRemarks?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  codReturnRemarks?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

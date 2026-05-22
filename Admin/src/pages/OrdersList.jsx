@@ -52,6 +52,7 @@ const OrdersList = () => {
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [courierPartners, setCourierPartners] = useState([]);
   const [cancelRemarks, setCancelRemarks] = useState("");
+  const [codReturnRemarks, setCodReturnRemarks] = useState("");
   const [codCharge, setCodCharge] = useState("");
   const [courierCharge, setCourierCharge] = useState("");
   const modalRef = useRef(null);
@@ -302,6 +303,7 @@ const handleEditOrder = (order) => {
   setTrackingId(order.trackingId === "not provided" ? "" : (order.trackingId || ""));
   setTrackingLink(order.trackingLink === "not provided" ? "" : (order.trackingLink || ""));
   setCancelRemarks(order.cancelRemarks || "");
+  setCodReturnRemarks(order.codReturnRemarks || "");
   
   const isOnline = order.paymentMethod?.toLowerCase() !== 'cod';
   if (order.status === 'Delivered' && isOnline && !order.codCharge) {
@@ -633,6 +635,12 @@ const handleUpdateStatus = async () => {
       return;
     }
 
+    if (newStatus === 'CODReturn' && !codReturnRemarks.trim()) {
+      toast.error('Please enter COD return reason');
+      setUploading(false);
+      return;
+    }
+
     let invoiceUrl = null;
     let packageSlipUrl = null;
 
@@ -688,6 +696,7 @@ const handleUpdateStatus = async () => {
   trackingId || "not provided",
   trackingLink || "not provided",
   newStatus === 'Cancelled' ? cancelRemarks : null,
+  newStatus === 'CODReturn' ? codReturnRemarks : null,
   newStatus === 'Shipped' ? chargedWeight || null : null,  // chargedWeight for Shipped
   newStatus === 'Shipped' ? courierCharge || null : (newStatus === 'Delivered' ? courierCharge || null : null),  // courierCharge for both
   newStatus === 'Delivered' ? codCharge || null : null     // codCharge only for Delivered
@@ -1994,6 +2003,7 @@ const resetDateRange = () => {
     delivered: filteredOrders.filter((o) => o.status === "Delivered").length,
     cancelled: filteredOrders.filter((o) => o.status === "Cancelled").length,
     abandoned: filteredOrders.filter((o) => o.status === "Abandoned").length,
+    codreturn: filteredOrders.filter((o) => o.status === "CODReturn").length,
   };
 };
 
@@ -2366,7 +2376,7 @@ const resetDateRange = () => {
     </div>
   </div>
 
-  {/* Second Row: 4 Cards */}
+  {/* Second Row: 5 Cards */}
   <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
@@ -2407,9 +2417,16 @@ const resetDateRange = () => {
         <p>Total Cancelled</p>
       </div>
     </div>
-    
-    {/* Optional: Add an empty div or adjust flex to keep cards same width as row 1 if needed */}
-    <div style={{ flex: '1 1 0', visibility: 'hidden' }}></div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
+        <Package size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{statusCounts.codreturn}</h3>
+        <p>COD Return</p>
+      </div>
+    </div>
   </div>
     </div>
   </div>
@@ -2450,6 +2467,12 @@ const resetDateRange = () => {
           onClick={() => setStatusFilter("cancelled")}
         >
           Cancelled
+        </button>
+        <button
+          className={statusFilter === "codreturn" ? "tab active" : "tab"}
+          onClick={() => setStatusFilter("codreturn")}
+        >
+          COD Return ({statusCounts.codreturn})
         </button>
         <button
           className={statusFilter === "abandoned" ? "tab active" : "tab"}
@@ -2609,6 +2632,34 @@ const resetDateRange = () => {
     <span style={{ fontSize: '12px', color: '#991b1b', fontWeight: '500', whiteSpace: 'nowrap' }}>Reason:</span>
     <span style={{ fontSize: '13px', color: '#7f1d1d', flex: 1, wordBreak: 'break-word' }}>
       {selectedOrder.cancelRemarks}
+    </span>
+  </div>
+)}
+
+{/* COD Return Reason - Full width below header */}
+{selectedOrder.status === 'CODReturn' && selectedOrder.codReturnRemarks && (
+  <div style={{
+    margin: '0 0 20px 0',
+    padding: '12px 16px',
+    backgroundColor: '#fef3c7',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    border: '1px solid #fde68a',
+  }}>
+    <span style={{
+      backgroundColor: '#f59e0b',
+      color: 'white',
+      padding: '4px 12px',
+      borderRadius: '20px',
+      fontSize: '11px',
+      fontWeight: '600',
+      whiteSpace: 'nowrap',
+    }}>COD RETURN</span>
+    <span style={{ fontSize: '12px', color: '#92400e', fontWeight: '500', whiteSpace: 'nowrap' }}>Reason:</span>
+    <span style={{ fontSize: '13px', color: '#78350f', flex: 1, wordBreak: 'break-word' }}>
+      {selectedOrder.codReturnRemarks}
     </span>
   </div>
 )}
@@ -3096,6 +3147,9 @@ const resetDateRange = () => {
       <option value="Shipped">Shipped</option>
       <option value="Delivered">Delivered</option>
       <option value="Cancelled">Cancelled</option>
+      {selectedOrder.paymentMethod?.toLowerCase() === 'cod' && (
+        <option value="CODReturn">COD Return</option>
+      )}
     </select>
   </div>
 
@@ -3292,6 +3346,59 @@ const resetDateRange = () => {
         />
       </div>
     </div>
+  </div>
+)}
+
+{/* COD Return block */}
+{newStatus === 'CODReturn' && (
+  <div
+    style={{
+      flex: '1',
+      padding: '20px',
+      backgroundColor: '#fef3c7',
+      borderRadius: '8px',
+      border: '1px solid #fde68a',
+    }}
+  >
+    <p
+      style={{
+        margin: '0 0 12px 0',
+        fontSize: '13px',
+        color: '#78350f',
+        fontStyle: 'italic',
+      }}
+    >
+      This order will be marked as <strong>COD Return</strong>. Please enter the reason for the return.
+    </p>
+
+    <label
+      style={{
+        display: 'block',
+        marginBottom: '8px',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#92400e',
+      }}
+    >
+      COD Return Reason
+    </label>
+    <textarea
+      value={codReturnRemarks}
+      onChange={(e) => setCodReturnRemarks(e.target.value)}
+      style={{
+        width: '100%',
+        minHeight: '110px',
+        padding: '10px',
+        border: '1px solid #fde68a',
+        borderRadius: '6px',
+        fontSize: '14px',
+        boxSizing: 'border-box',
+        outline: 'none',
+        resize: 'vertical',
+        backgroundColor: '#fffbeb',
+        color: '#111827',
+      }}
+    />
   </div>
 )}
 

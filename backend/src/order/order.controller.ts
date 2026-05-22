@@ -100,6 +100,7 @@ async getOrderStats(
         updateOrderStatusDto.trackingId,
         updateOrderStatusDto.trackingLink,
         updateOrderStatusDto.cancelRemarks,
+        updateOrderStatusDto.codReturnRemarks,
         updateOrderStatusDto.chargedWeight,
         updateOrderStatusDto.courierCharge,
         updateOrderStatusDto.codCharge,

@@ -222,7 +222,8 @@ model Order {
   trackingId      String?
   trackingLink    String?
   items           OrderItem[]
-  cancelRemarks   String?   
+  cancelRemarks   String?
+  codReturnRemarks String?
   codCharge       Float?    @default(0)
   courierCharge   Float?    @default(0)
   chargedWeight   Float?    @default(0)

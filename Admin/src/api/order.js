@@ -52,7 +52,7 @@ export const getOrderStats = async (startDate = '', endDate = '') => {
   }
 };
 
-export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink, cancelRemarks, chargedWeight, courierCharge, codCharge) => {
+export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlipUrl, courierName, trackingId, trackingLink, cancelRemarks, codReturnRemarks, chargedWeight, courierCharge, codCharge) => {
   try {
     const body = { status };
     if (invoiceUrl) body.invoiceUrl = invoiceUrl;
@@ -61,6 +61,7 @@ export const updateOrderStatus = async (orderId, status, invoiceUrl, packageSlip
     if (trackingId) body.trackingId = trackingId;
     if (trackingLink) body.trackingLink = trackingLink;
     if (cancelRemarks !== undefined) body.cancelRemarks = cancelRemarks;
+    if (codReturnRemarks !== undefined) body.codReturnRemarks = codReturnRemarks;
     if (chargedWeight) body.chargedWeight = parseFloat(chargedWeight);
     if (courierCharge) body.courierCharge = parseFloat(courierCharge);
     if (codCharge) body.codCharge = parseFloat(codCharge);

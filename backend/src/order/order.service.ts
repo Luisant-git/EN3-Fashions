@@ -255,7 +255,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
   courierName?: string, 
   trackingId?: string, 
   trackingLink?: string, 
-  cancelRemarks?: string, 
+  cancelRemarks?: string,
+  codReturnRemarks?: string,
   chargedWeight?: number,    // For Shipped status
   courierCharge?: number,
   codCharge?: number         // For Delivered status
@@ -281,9 +282,14 @@ async getOrderStats(startDate?: string, endDate?: string) {
 
   if (status === 'Cancelled') {
     updateData.cancelRemarks = cancelRemarks || null;
-  } else if (status) {
-    // if we are changing away from Cancelled, clear remarks
+    updateData.codReturnRemarks = null;
+  } else if (status === 'CODReturn') {
+    updateData.codReturnRemarks = codReturnRemarks || null;
     updateData.cancelRemarks = null;
+  } else if (status) {
+    // if we are changing away from Cancelled or CODReturn, clear remarks
+    updateData.cancelRemarks = null;
+    updateData.codReturnRemarks = null;
   }
   
   const existingOrder = await this.prisma.order.findUnique({
