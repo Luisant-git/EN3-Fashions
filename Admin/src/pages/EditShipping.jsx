@@ -25,8 +25,15 @@ const EditShipping = () => {
       const data = await getShippingRules()
       const rule = data.find(r => r.id === parseInt(id))
       if (rule) {
+        // Convert database format (TAMIL_NADU) to display format (Tamil Nadu)
+        const stateDisplay = rule.state
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ')
+          .replace(/And/g, 'and')
+        
         setFormData({
-          state: rule.state,
+          state: stateDisplay,
           flatShippingRate: rule.flatShippingRate
         })
       }
@@ -45,8 +52,14 @@ const EditShipping = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      // Convert display format (Tamil Nadu) back to database format (TAMIL_NADU)
+      const stateEnum = formData.state
+        .toUpperCase()
+        .replace(/ /g, '_')
+        .replace(/AND/g, 'AND')
+      
       await updateShippingRule(id, {
-        state: formData.state,
+        state: stateEnum,
         flatShippingRate: parseFloat(formData.flatShippingRate)
       })
       toast.success('Shipping updated successfully!')
