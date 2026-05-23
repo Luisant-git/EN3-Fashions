@@ -64,8 +64,10 @@ const [orderStats, setOrderStats] = useState({
   totalCustomers: 0,
   totalQuantity: 0,
   totalValue: 0,
-  totalShippingValue: 0,  // Add this
-  totalCodValue: 0        // Add this
+  totalShippingValue: 0,
+  totalCodValue: 0,
+  totalCommission: 0,
+  totalSettlement: 0
 });
   useEffect(() => {
     fetchOrders();
@@ -2418,7 +2420,7 @@ const resetDateRange = () => {
       </div>
     </div>
 
-    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+    {/* <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
         <Clock size={24} />
       </div>
@@ -2435,6 +2437,26 @@ const resetDateRange = () => {
       <div className="stat-content">
         <h3>{statusCounts.cancelled}</h3>
         <p>Total Cancelled</p>
+      </div>
+    </div> */}
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
+        <CreditCard size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalCommission?.toFixed(2) || '0.00'}</h3>
+        <p>Total Commission</p>
+      </div>
+    </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
+        <Receipt size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalSettlement?.toFixed(2) || '0.00'}</h3>
+        <p>Total Settlement</p>
       </div>
     </div>
 

@@ -43,7 +43,9 @@ const Reports = () => {
     totalQuantity: 0,
     totalValue: 0,
     totalShippingValue: 0,
-    totalCodValue: 0
+    totalCodValue: 0,
+    totalCodCharge: 0,
+    totalSettlement: 0
   });
   const [shippingSummary, setShippingSummary] = useState({
     totalShipments: 0,
@@ -510,7 +512,7 @@ const Reports = () => {
                 <ImageIcon size={16} /> Download
               </button>
             </div>
-            <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
                   <Users size={24} />
@@ -572,6 +574,24 @@ const Reports = () => {
                 <div className="stat-content">
                   <h3>{formatCurrency(salesSummary.totalShippingValue)}</h3>
                   <p>Shipped Value</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
+                  <CreditCard size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(salesSummary.totalCodCharge)}</h3>
+                  <p>Total Commission</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
+                  <Receipt size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(salesSummary.totalSettlement)}</h3>
+                  <p>Total Settlement</p>
                 </div>
               </div>
               <div className="stat-card">

@@ -194,6 +194,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalValue = 0;
     let totalShippingValue = 0;
     let totalCodValue = 0;
+    let totalCommission = 0;
+    let totalSettlement = 0;
 
     // Statuses to include in main calculations
     const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
@@ -221,6 +223,14 @@ async getOrderStats(startDate?: string, endDate?: string) {
         
         // Total Value (sum of all order totals from Accepted, Shipped, Delivered)
         totalValue += parseFloat(order.total) || 0;
+        
+        // Total Commission (sum of codCharge from Accepted, Shipped, Delivered orders)
+        totalCommission += parseFloat(order.codCharge as any) || 0;
+        
+        // Total Settlement (Total Value - Total Commission)
+        const orderTotal = parseFloat(order.total) || 0;
+        const orderCommission = parseFloat(order.codCharge as any) || 0;
+        totalSettlement += (orderTotal - orderCommission);
       }
       
       // TOTAL SHIPPING VALUE: Sum of delivery fees from orders with status 'Accepted', 'Shipped', or 'Delivered'
@@ -240,7 +250,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalQuantity,
       totalValue,
       totalShippingValue,
-      totalCodValue
+      totalCodValue,
+      totalCommission,
+      totalSettlement
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);
