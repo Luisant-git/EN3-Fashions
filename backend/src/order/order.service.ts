@@ -209,6 +209,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalValue = 0;
     let totalShippingValue = 0;
     let totalCodValue = 0;
+    let totalOnlineValue = 0;
+    let totalCodReturnValue = 0;
     let totalCommission = 0;
     let totalSettlement = 0;
     let totalCodBills = 0;
@@ -229,132 +231,99 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalOnlineDiscount = 0;
     let totalCodReturnBills = 0;
     let totalCodReturnQuantity = 0;
+    let totalCodReturnBaseValue = 0;
+    let totalCodReturnDiscount = 0;
+    let totalCodReturnShipping = 0;
+    let totalCodReturnCommission = 0;
+    let totalCodReturnSettlement = 0;
 
-    // Statuses to include in main calculations (now includes CODReturn)
-    const includeStatuses = ['Accepted', 'Shipped', 'Delivered', 'CODReturn'];
+    // Statuses to include in main calculations (excludes CODReturn)
+    const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
 
     orders.forEach(order => {
-      // Include Accepted, Shipped, Delivered, CODReturn orders for main stats
+      // Calculate order base value and quantity first
+      let orderBaseValue = 0;
+      let orderQuantity = 0;
+      order.items?.forEach(item => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          const bundleItems = item.bundleItems as any[];
+          orderQuantity += bundleItems.length;
+          bundleItems.forEach(bItem => {
+            orderBaseValue += parseFloat(bItem.originalPrice) || 0;
+          });
+        } else {
+          orderQuantity += item.quantity || 0;
+          orderBaseValue += (parseFloat(item.price) || 0) * (item.quantity || 1);
+        }
+      });
+
+      const orderTotal = parseFloat(order.total) || 0;
+      const orderDiscount = parseFloat(order.discount || '0') || 0;
+      const orderCommission = parseFloat(order.codCharge as any) || 0;
+
+      // 1. Process active/successful sales metrics
       if (includeStatuses.includes(order.status)) {
-        // Total Sales (count of orders)
         totalSales += 1;
-        
-        // Count COD vs Online bills (exclude CODReturn from COD count)
-        if (order.status === 'CODReturn') {
-          // CODReturn is counted separately, not in COD or Online
-        } else if (order.paymentMethod === 'cod') {
+        totalQuantity += orderQuantity;
+        totalBaseValue += orderBaseValue;
+        totalValue += orderTotal;
+        totalDiscount += orderDiscount;
+        totalCommission += orderCommission;
+
+        const settlement = orderTotal - orderCommission;
+        totalSettlement += settlement;
+
+        if (order.paymentMethod === 'cod') {
           totalCodBills += 1;
+          totalCodQuantity += orderQuantity;
+          totalCodBaseValue += orderBaseValue;
+          totalCodValue += orderTotal;
+          totalCodDiscount += orderDiscount;
+          totalCodCommission += orderCommission;
+          totalCodSettlement += settlement;
         } else {
           totalOnlineBills += 1;
+          totalOnlineQuantity += orderQuantity;
+          totalOnlineBaseValue += orderBaseValue;
+          totalOnlineValue += orderTotal;
+          totalOnlineDiscount += orderDiscount;
+          totalOnlineCommission += orderCommission;
+          totalOnlineSettlement += settlement;
         }
-        
-        // Total Customers (unique users)
+
         if (order.userId) {
           uniqueCustomers.add(order.userId);
         }
-        
-        // Calculate base value from order items (actual product prices)
-        let orderBaseValue = 0;
-        let orderQuantity = 0;
-        order.items?.forEach(item => {
-          if (item.type === 'bundle' && item.bundleItems) {
-            const bundleItems = item.bundleItems as any[];
-            orderQuantity += bundleItems.length;
-            bundleItems.forEach(bItem => {
-              orderBaseValue += parseFloat(bItem.originalPrice) || 0;
-            });
-          } else {
-            orderQuantity += item.quantity || 0;
-            orderBaseValue += (parseFloat(item.price) || 0) * (item.quantity || 1);
-          }
-        });
-        totalQuantity += orderQuantity;
-        totalBaseValue += orderBaseValue;
-        
-        // Count COD vs Online quantity and base value (exclude CODReturn from COD count)
-        if (order.status === 'CODReturn') {
-          // CODReturn quantity is counted separately
-        } else if (order.paymentMethod === 'cod') {
-          totalCodQuantity += orderQuantity;
-          totalCodBaseValue += orderBaseValue;
-        } else {
-          totalOnlineQuantity += orderQuantity;
-          totalOnlineBaseValue += orderBaseValue;
-        }
-        
-        // Total Value (sum of all order totals from Accepted, Shipped, Delivered, CODReturn)
-        totalValue += parseFloat(order.total) || 0;
-        
-        // Total Discount
-        const orderDiscount = parseFloat(order.discount || '0') || 0;
-        totalDiscount += orderDiscount;
-        
-        if (order.status === 'CODReturn') {
-          // CODReturn discount counted separately
-        } else if (order.paymentMethod === 'cod') {
-          totalCodDiscount += orderDiscount;
-        } else {
-          totalOnlineDiscount += orderDiscount;
-        }
-        
-        // Total Commission (sum of codCharge from Accepted, Shipped, Delivered, CODReturn orders)
-        const orderCommission = parseFloat(order.codCharge as any) || 0;
-        totalCommission += orderCommission;
-        
-        if (order.status === 'CODReturn') {
-          // CODReturn commission counted separately
-        } else if (order.paymentMethod === 'cod') {
-          totalCodCommission += orderCommission;
-        } else {
-          totalOnlineCommission += orderCommission;
-        }
-        
-        // Total Settlement (Total Value - Total Commission)
-        const orderTotal = parseFloat(order.total) || 0;
-        const settlement = orderTotal - orderCommission;
-        totalSettlement += settlement;
-        
-        if (order.status === 'CODReturn') {
-          // CODReturn settlement counted separately
-        } else if (order.paymentMethod === 'cod') {
-          totalCodSettlement += settlement;
-        } else {
-          totalOnlineSettlement += settlement;
-        }
       }
       
-      // TOTAL SHIPPING VALUE: Sum of courier charges from orders with status 'Accepted', 'Shipped', 'Delivered', or 'CODReturn'
-      if (includeStatuses.includes(order.status)) {
+      // 2. Process COD Return (RTO) metrics separately
+      if (order.status === 'CODReturn') {
+        totalCodReturnBills += 1;
+        totalCodReturnQuantity += orderQuantity;
+        totalCodReturnBaseValue += orderBaseValue;
+        totalCodReturnValue += orderTotal;
+        totalCodReturnDiscount += orderDiscount;
+        totalCodReturnCommission += orderCommission;
+        // RTO settlement is 0 since no cash is collected
+        totalCodReturnSettlement += 0;
+
+        if (order.userId) {
+          uniqueCustomers.add(order.userId);
+        }
+      }
+
+      // 3. Process Shipping Expenses (include CODReturn since shipping is still paid)
+      if ([...includeStatuses, 'CODReturn'].includes(order.status)) {
         const shippingCharge = parseFloat(order.courierCharge as any) || 0;
         totalShippingValue += shippingCharge;
         
         if (order.status === 'CODReturn') {
-          // CODReturn shipping counted separately
+          totalCodReturnShipping += shippingCharge;
         } else if (order.paymentMethod === 'cod') {
           totalCodShipping += shippingCharge;
         } else {
           totalOnlineShipping += shippingCharge;
         }
-      }
-      
-      // TOTAL COD VALUE: Sum of order totals from COD orders with status 'Accepted', 'Shipped', or 'Delivered'
-      if (order.paymentMethod === 'cod' && ['Accepted', 'Shipped', 'Delivered'].includes(order.status)) {
-        totalCodValue += parseFloat(order.total) || 0;
-      }
-      
-      // COD RETURN: Track separately for display
-      if (order.status === 'CODReturn') {
-        totalCodReturnBills += 1;
-        let codReturnQuantity = 0;
-        order.items?.forEach(item => {
-          if (item.type === 'bundle' && item.bundleItems) {
-            const bundleItems = item.bundleItems as any[];
-            codReturnQuantity += bundleItems.length;
-          } else {
-            codReturnQuantity += item.quantity || 0;
-          }
-        });
-        totalCodReturnQuantity += codReturnQuantity;
       }
     });
 
@@ -365,6 +334,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalValue,
       totalShippingValue,
       totalCodValue,
+      totalOnlineValue,
+      totalCodReturnValue,
       totalCommission,
       totalSettlement,
       totalCodBills,
@@ -384,7 +355,12 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalCodDiscount,
       totalOnlineDiscount,
       totalCodReturnBills,
-      totalCodReturnQuantity
+      totalCodReturnQuantity,
+      totalCodReturnBaseValue,
+      totalCodReturnDiscount,
+      totalCodReturnShipping,
+      totalCodReturnCommission,
+      totalCodReturnSettlement
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);

@@ -71,6 +71,8 @@ const Dashboard = () => {
     totalValue: 0,
     totalShippingValue: 0,
     totalCodValue: 0,
+    totalOnlineValue: 0,
+    totalCodReturnValue: 0,
     totalCommission: 0,
     totalSettlement: 0,
     totalCodBills: 0,
@@ -85,10 +87,17 @@ const Dashboard = () => {
     totalOnlineSettlement: 0,
     totalBaseValue: 0,
     totalCodBaseValue: 0,
+    totalOnlineBaseValue: 0,
     totalDiscount: 0,
     totalCodDiscount: 0,
+    totalOnlineDiscount: 0,
     totalCodReturnBills: 0,
-    totalCodReturnQuantity: 0
+    totalCodReturnQuantity: 0,
+    totalCodReturnBaseValue: 0,
+    totalCodReturnDiscount: 0,
+    totalCodReturnShipping: 0,
+    totalCodReturnCommission: 0,
+    totalCodReturnSettlement: 0
   });
 
   const scrollProducts = (direction) => {
@@ -359,9 +368,11 @@ const Dashboard = () => {
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalBaseValue || 0).toFixed(2)}</h3>
               <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
                 <span>COD: ₹{(orderStats.totalCodBaseValue || 0).toFixed(2)}</span>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <span>Online: ₹{(orderStats.totalOnlineBaseValue || 0).toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
-                <span>Online: ₹{((orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0)).toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{(orderStats.totalCodReturnBaseValue || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -375,9 +386,11 @@ const Dashboard = () => {
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalValue || 0).toFixed(2)}</h3>
               <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
                 <span>COD: ₹{(orderStats.totalCodValue || 0).toFixed(2)}</span>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <span>Online: ₹{(orderStats.totalOnlineValue || 0).toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
-                <span>Online: ₹{((orderStats.totalValue || 0) - (orderStats.totalCodValue || 0)).toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{(orderStats.totalCodReturnValue || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -394,9 +407,11 @@ const Dashboard = () => {
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalShippingValue || 0).toFixed(2)}</h3>
               <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
                 <span>COD: ₹{(orderStats.totalCodShipping || 0).toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(orderStats.totalOnlineShipping || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{(orderStats.totalCodReturnShipping || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -410,9 +425,11 @@ const Dashboard = () => {
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{Math.round(orderStats.totalCommission || 0)}</h3>
               <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
                 <span>COD: ₹{Math.round(orderStats.totalCodCommission || 0)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{Math.round(orderStats.totalOnlineCommission || 0)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{Math.round(orderStats.totalCodReturnCommission || 0)}</span>
               </div>
             </div>
 
@@ -426,9 +443,11 @@ const Dashboard = () => {
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{Math.round(orderStats.totalSettlement || 0)}</h3>
               <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
                 <span>COD: ₹{Math.round(orderStats.totalCodSettlement || 0)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{Math.round(orderStats.totalOnlineSettlement || 0)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{Math.round(orderStats.totalCodReturnSettlement || 0)}</span>
               </div>
             </div>
 
@@ -440,6 +459,14 @@ const Dashboard = () => {
                 <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Discount</p>
               </div>
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalDiscount || 0).toFixed(2)}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{(orderStats.totalCodDiscount || 0).toFixed(2)}</span>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <span>Online: ₹{(orderStats.totalOnlineDiscount || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{(orderStats.totalCodReturnDiscount || 0).toFixed(2)}</span>
+              </div>
             </div>
 
             <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -458,15 +485,16 @@ const Dashboard = () => {
                   const codProfit = ((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
                   return Math.round(codProfit);
                 })()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(() => {
-                  const onlineSettlement = (orderStats.totalOnlineSettlement || 0);
-                  const onlineShipping = (orderStats.totalOnlineShipping || 0);
-                  const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
-                  const onlineDiscount = (orderStats.totalDiscount || 0) - (orderStats.totalCodDiscount || 0);
-                  const onlineProfit = (onlineSettlement - onlineShipping) - (onlineBaseValue - onlineDiscount);
+                  const onlineProfit = ((orderStats.totalOnlineSettlement || 0) - (orderStats.totalOnlineShipping || 0)) - ((orderStats.totalOnlineBaseValue || 0) - (orderStats.totalOnlineDiscount || 0));
                   return Math.round(onlineProfit);
+                })()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{(() => {
+                  const returnProfit = (orderStats.totalCodReturnSettlement || 0) - (orderStats.totalCodReturnShipping || 0);
+                  return Math.round(returnProfit);
                 })()}</span>
               </div>
             </div>
