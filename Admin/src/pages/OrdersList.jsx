@@ -1981,7 +1981,7 @@ const resetDateRange = () => {
   setEndDate("");
 };
 
- const filteredOrders = orders.filter((order) => {
+ const ordersBeforeStatusFilter = orders.filter((order) => {
   const matchesSearch =
     order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1993,10 +1993,6 @@ const resetDateRange = () => {
     order.courierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     `ORD-${order.id}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (order.paymentMethod || 'online').toLowerCase().includes(searchTerm.toLowerCase());
-  
-  const matchesStatus =
-    statusFilter === "all" ||
-    order.status.toLowerCase() === statusFilter.toLowerCase();
 
   const matchesCoupon = 
     !couponFilter ? true :
@@ -2019,23 +2015,28 @@ const resetDateRange = () => {
     }
   }
 
-  return matchesSearch && matchesStatus && matchesDate && matchesCoupon;
+  return matchesSearch && matchesDate && matchesCoupon;
 });
 
- const getStatusCounts = () => {
+const filteredOrders = ordersBeforeStatusFilter.filter((order) => {
+  return statusFilter === "all" || order.status.toLowerCase() === statusFilter.toLowerCase();
+});
+
+const getStatusCounts = () => {
   return {
-    pending: filteredOrders.filter((o) => o.status === "pending").length,
-    placed: filteredOrders.filter((o) => o.status === "Placed").length,
-    accepted: filteredOrders.filter((o) => o.status === "Accepted").length,
-    shipped: filteredOrders.filter((o) => o.status === "Shipped").length,
-    delivered: filteredOrders.filter((o) => o.status === "Delivered").length,
-    cancelled: filteredOrders.filter((o) => o.status === "Cancelled").length,
-    abandoned: filteredOrders.filter((o) => o.status === "Abandoned").length,
-    codreturn: filteredOrders.filter((o) => o.status === "CODReturn").length,
+    all: ordersBeforeStatusFilter.length,
+    pending: ordersBeforeStatusFilter.filter((o) => o.status === "pending").length,
+    placed: ordersBeforeStatusFilter.filter((o) => o.status === "Placed").length,
+    accepted: ordersBeforeStatusFilter.filter((o) => o.status === "Accepted").length,
+    shipped: ordersBeforeStatusFilter.filter((o) => o.status === "Shipped").length,
+    delivered: ordersBeforeStatusFilter.filter((o) => o.status === "Delivered").length,
+    cancelled: ordersBeforeStatusFilter.filter((o) => o.status === "Cancelled").length,
+    abandoned: ordersBeforeStatusFilter.filter((o) => o.status === "Abandoned").length,
+    codreturn: ordersBeforeStatusFilter.filter((o) => o.status === "CODReturn").length,
   };
 };
 
-  const statusCounts = getStatusCounts();
+const statusCounts = getStatusCounts();
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -2537,37 +2538,37 @@ const resetDateRange = () => {
           className={statusFilter === "all" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("all")}
         >
-          All
+          All ({statusCounts.all})
         </button>
         <button
           className={statusFilter === "placed" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("placed")}
         >
-          Placed
+          Placed ({statusCounts.placed})
         </button>
         <button
           className={statusFilter === "accepted" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("accepted")}
         >
-          Accepted
+          Accepted ({statusCounts.accepted})
         </button>
         <button
           className={statusFilter === "shipped" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("shipped")}
         >
-          Shipped
+          Shipped ({statusCounts.shipped})
         </button>
         <button
           className={statusFilter === "delivered" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("delivered")}
         >
-          Delivered
+          Delivered ({statusCounts.delivered})
         </button>
         <button
           className={statusFilter === "cancelled" ? "tab active" : "tab"}
           onClick={() => setStatusFilter("cancelled")}
         >
-          Cancelled
+          Cancelled ({statusCounts.cancelled})
         </button>
         <button
           className={statusFilter === "codreturn" ? "tab active" : "tab"}
