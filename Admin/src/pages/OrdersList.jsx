@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Users,
   CreditCard,
+  TrendingUp,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
@@ -2450,26 +2451,6 @@ const resetDateRange = () => {
       </div>
     </div>
 
-    {/* <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-      <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
-        <Clock size={24} />
-      </div>
-      <div className="stat-content">
-        <h3>{statusCounts.abandoned}</h3>
-        <p>Total Abandoned</p>
-      </div>
-    </div>
-
-    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}>
-        <X size={24} />
-      </div>
-      <div className="stat-content">
-        <h3>{statusCounts.cancelled}</h3>
-        <p>Total Cancelled</p>
-      </div>
-    </div> */}
-
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
         <CreditCard size={24} />
@@ -2501,12 +2482,33 @@ const resetDateRange = () => {
     </div>
 
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-      <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
-        <Package size={24} />
+      <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+        <TrendingUp size={24} />
       </div>
       <div className="stat-content">
-        <h3>{statusCounts.codreturn}</h3>
-        <p>COD Return</p>
+        <h3>₹{(() => {
+          const settlementRate = (orderStats.totalValue || 0) - (orderStats.totalCommission || 0);
+          const amount = settlementRate - (orderStats.totalShippingValue || 0);
+          const profitLoss = amount - (orderStats.totalValue || 0);
+          return profitLoss.toFixed(2);
+        })()}</h3>
+        <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{(() => {
+            const codSettlement = (orderStats.totalCodSettlement || 0);
+            const codAmount = codSettlement - (orderStats.totalCodShipping || 0);
+            const codProfit = codAmount - (orderStats.totalCodValue || 0);
+            return codProfit.toFixed(2);
+          })()}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{(() => {
+            const onlineSettlement = (orderStats.totalOnlineSettlement || 0);
+            const onlineAmount = onlineSettlement - (orderStats.totalOnlineShipping || 0);
+            const onlineValue = (orderStats.totalValue || 0) - (orderStats.totalCodValue || 0);
+            const onlineProfit = onlineAmount - onlineValue;
+            return onlineProfit.toFixed(2);
+          })()}</span>
+        </div>
       </div>
     </div>
   </div>

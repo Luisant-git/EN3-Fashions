@@ -593,6 +593,36 @@ const Reports = () => {
                 </div>
               </div>
               <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#e8f5e9', color: '#2e7d32' }}>
+                  <TrendingUp size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency((() => {
+                    const settlementRate = (salesSummary.totalValue || 0) - (salesSummary.totalCodCharge || 0);
+                    const amount = settlementRate - (salesSummary.totalShippingValue || 0);
+                    const profitLoss = amount - (salesSummary.totalValue || 0);
+                    return profitLoss;
+                  })())}</h3>
+                  <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency((() => {
+                      const codSettlement = (salesSummary.totalCodSettlement || 0);
+                      const codAmount = codSettlement - (salesSummary.totalCodShipping || 0);
+                      const codProfit = codAmount - (salesSummary.totalCodValue || 0);
+                      return codProfit;
+                    })())}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency((() => {
+                      const onlineSettlement = (salesSummary.totalOnlineSettlement || 0);
+                      const onlineAmount = onlineSettlement - (salesSummary.totalOnlineShipping || 0);
+                      const onlineValue = (salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0);
+                      const onlineProfit = onlineAmount - onlineValue;
+                      return onlineProfit;
+                    })())}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#f0fdfa', color: '#0d9488' }}>
                   <CreditCard size={24} />
                 </div>
