@@ -33,6 +33,7 @@ const CheckoutPage = () => {
     const [paymentMethod, setPaymentMethod] = useState('online');
     const [deliveryAvailable, setDeliveryAvailable] = useState(true);
     const [codAvailable, setCodAvailable] = useState(true);
+    const [showCodModal, setShowCodModal] = useState(false);
     const [formData, setFormData] = useState({
         fullName: '',
         addressLine1: '',
@@ -96,8 +97,8 @@ const CheckoutPage = () => {
                     getAppSettings()
                 ]);
                 setShippingRules(rules);
-                if (settings.codShippingCharge) {
-                    setCodShippingFee(settings.codShippingCharge);
+                if (settings && settings.codShippingCharge !== undefined) {
+                    setCodShippingFee(Number(settings.codShippingCharge) || 0);
                 }
             } catch (error) {
                 console.error('Failed to fetch data:', error);
@@ -165,6 +166,15 @@ const CheckoutPage = () => {
     const igst = !isSameState ? gstAmount : 0;
     
     const finalTotal = subtotalAfterDiscount + deliveryFee;
+
+    const handleSelectPaymentMethod = (method) => {
+        if (method === 'cod') {
+            if (paymentMethod === 'cod') return; // already selected
+            setShowCodModal(true);
+        } else {
+            setPaymentMethod('online');
+        }
+    };
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
@@ -429,13 +439,13 @@ const CheckoutPage = () => {
                             <div className="payment-methods">
                                 <div 
                                     className={`payment-method-card ${paymentMethod === 'online' ? 'selected' : ''}`}
-                                    onClick={() => setPaymentMethod('online')}
+                                    onClick={() => handleSelectPaymentMethod('online')}
                                 >
                                     <input 
                                         type="radio" 
                                         name="paymentMethod" 
                                         checked={paymentMethod === 'online'} 
-                                        onChange={() => setPaymentMethod('online')}
+                                        onChange={() => handleSelectPaymentMethod('online')}
                                     />
                                     <div className="payment-method-icon">
                                         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -450,13 +460,13 @@ const CheckoutPage = () => {
                                 {codAvailable ? (
                                     <div 
                                         className={`payment-method-card ${paymentMethod === 'cod' ? 'selected' : ''}`}
-                                        onClick={() => setPaymentMethod('cod')}
+                                        onClick={() => handleSelectPaymentMethod('cod')}
                                     >
                                         <input 
                                             type="radio" 
                                             name="paymentMethod" 
                                             checked={paymentMethod === 'cod'} 
-                                            onChange={() => setPaymentMethod('cod')}
+                                            onChange={() => handleSelectPaymentMethod('cod')}
                                         />
                                         <div className="payment-method-icon">
                                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -569,6 +579,36 @@ const CheckoutPage = () => {
                     </div>
                 </div>
             </div>
+
+            {showCodModal && (
+                <div className="cod-modal-overlay">
+                    <div className="cod-modal">
+                        <div className="cod-modal-header">
+                            <h3>Confirm Cash on Delivery</h3>
+                            <button type="button" className="cod-modal-close" onClick={() => setShowCodModal(false)}>&times;</button>
+                        </div>
+                        <div className="cod-modal-body">
+                            <p>Cash on Delivery (COD) has an additional handling fee of <strong>₹{codShippingFee}</strong>.</p>
+                        </div>
+                        <div className="cod-modal-footer">
+                            <button type="button" className="cod-modal-cancel-btn" onClick={() => setShowCodModal(false)}>
+                                Keep Online Payment
+                            </button>
+                            <button 
+                                type="button" 
+                                className="cod-modal-confirm-btn" 
+                                onClick={() => {
+                                    setPaymentMethod('cod');
+                                    setShowCodModal(false);
+                                    toast.success(`Switched to COD! Extra ₹${codShippingFee} charge applied.`);
+                                }}
+                            >
+                                Confirm COD (+₹{codShippingFee})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
