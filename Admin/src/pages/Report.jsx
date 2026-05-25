@@ -19,7 +19,8 @@ import {
   getSalesReport, 
   getSalesReportSummary,
   getShippingReport,
-  getShippingReportSummary 
+  getShippingReportSummary,
+  getOrderStats
 } from "../api/order";
 import * as XLSX from 'xlsx-js-style';
 
@@ -38,14 +39,30 @@ const Reports = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [salesStatusFilter, setSalesStatusFilter] = useState("all");
   const [salesSummary, setSalesSummary] = useState({
-    totalOrders: 0,
+    totalSales: 0,
     totalCustomers: 0,
     totalQuantity: 0,
     totalValue: 0,
     totalShippingValue: 0,
     totalCodValue: 0,
-    totalCodCharge: 0,
-    totalSettlement: 0
+    totalCommission: 0,
+    totalSettlement: 0,
+    totalCodBills: 0,
+    totalOnlineBills: 0,
+    totalCodQuantity: 0,
+    totalOnlineQuantity: 0,
+    totalCodShipping: 0,
+    totalOnlineShipping: 0,
+    totalCodCommission: 0,
+    totalOnlineCommission: 0,
+    totalCodSettlement: 0,
+    totalOnlineSettlement: 0,
+    totalBaseValue: 0,
+    totalCodBaseValue: 0,
+    totalOnlineBaseValue: 0,
+    totalDiscount: 0,
+    totalCodDiscount: 0,
+    totalOnlineDiscount: 0
   });
   const [shippingSummary, setShippingSummary] = useState({
     totalShipments: 0,
@@ -84,8 +101,7 @@ const Reports = () => {
   // Fetch Sales Summary
   const fetchSalesSummary = async () => {
     try {
-      const response = await getSalesReportSummary(startDate || undefined, endDate || undefined);
-      const data = response.data || response;
+      const data = await getOrderStats(startDate || undefined, endDate || undefined);
       setSalesSummary(data);
     } catch (error) {
       console.error("Error fetching sales summary:", error);
@@ -527,7 +543,7 @@ const Reports = () => {
                   <Package size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{salesSummary.totalOrders}</h3>
+                  <h3>{salesSummary.totalSales}</h3>
                   <p style={{ marginBottom: '4px' }}>Total Bills</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
                     <span>COD: {salesSummary.totalCodBills || 0}</span>
@@ -555,54 +571,29 @@ const Reports = () => {
                   <ShoppingBag size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled').reduce((sum, item) => {
-                    // Calculate base product value from items (price × quantity) - excluding cancelled orders
-                    const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                      if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                        return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                          bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                      }
-                      return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                    }, 0) || 0;
-                    return sum + itemsValue;
-                  }, 0))}</h3>
+                  <h3>₹{(() => {
+                    const baseValue = salesSummary.totalBaseValue || 0;
+                    return baseValue.toFixed(2);
+                  })()}</h3>
                   <p style={{ marginBottom: '4px' }}>Total Base Value (Products)</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod === 'cod').reduce((sum, item) => {
-                      const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                        if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                          return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                            bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                        }
-                        return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                      }, 0) || 0;
-                      return sum + itemsValue;
-                    }, 0))}</span>
+                    <span>COD: ₹{(salesSummary.totalCodBaseValue || 0).toFixed(2)}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod !== 'cod').reduce((sum, item) => {
-                      const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                        if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                          return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                            bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                        }
-                        return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                      }, 0) || 0;
-                      return sum + itemsValue;
-                    }, 0))}</span>
+                    <span>Online: ₹{((salesSummary.totalBaseValue || 0) - (salesSummary.totalCodBaseValue || 0)).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
-                  <DollarSign size={24} />
+                  <Receipt size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalValue)}</h3>
+                  <h3>₹{salesSummary.totalValue?.toFixed(2) || '0.00'}</h3>
                   <p style={{ marginBottom: '4px' }}>Total Value</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency(salesSummary.totalCodValue)}</span>
+                    <span>COD: ₹{salesSummary.totalCodValue?.toFixed(2) || '0.00'}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency(salesSummary.totalValue - salesSummary.totalCodValue)}</span>
+                    <span>Online: ₹{((salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0))?.toFixed(2) || '0.00'}</span>
                   </div>
                 </div>
               </div>
@@ -611,12 +602,12 @@ const Reports = () => {
                   <Truck size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalShippingValue)}</h3>
+                  <h3>₹{salesSummary.totalShippingValue?.toFixed(2) || '0.00'}</h3>
                   <p style={{ marginBottom: '4px' }}>Shipped Value</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency(salesSummary.totalCodShipping || 0)}</span>
+                    <span>COD: ₹{salesSummary.totalCodShipping?.toFixed(2) || '0.00'}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency(salesSummary.totalOnlineShipping || 0)}</span>
+                    <span>Online: ₹{salesSummary.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
                   </div>
                 </div>
               </div>
@@ -625,7 +616,7 @@ const Reports = () => {
                   <CreditCard size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>₹{Math.round(salesSummary.totalCodCharge || 0)}</h3>
+                  <h3>₹{Math.round(salesSummary.totalCommission || 0)}</h3>
                   <p style={{ marginBottom: '4px' }}>Total Commission</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
                     <span>COD: ₹{Math.round(salesSummary.totalCodCommission || 0)}</span>
@@ -639,12 +630,12 @@ const Reports = () => {
                   <Receipt size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalSettlement)}</h3>
+                  <h3>₹{Math.round(salesSummary.totalSettlement || 0)}</h3>
                   <p style={{ marginBottom: '4px' }}>Total Settlement</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency(salesSummary.totalCodSettlement || 0)}</span>
+                    <span>COD: ₹{Math.round(salesSummary.totalCodSettlement || 0)}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency(salesSummary.totalOnlineSettlement || 0)}</span>
+                    <span>Online: ₹{Math.round(salesSummary.totalOnlineSettlement || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -653,7 +644,7 @@ const Reports = () => {
                   <Receipt size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalDiscount || 0)}</h3>
+                  <h3>₹{salesSummary.totalDiscount?.toFixed(2) || '0.00'}</h3>
                   <p>Total Discount</p>
                 </div>
               </div>
@@ -662,53 +653,24 @@ const Reports = () => {
                   <TrendingUp size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency((() => {
-                    const baseValue = filteredSalesData.filter(item => item.status !== 'Cancelled').reduce((sum, item) => {
-                      const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                        if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                          return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                            bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                        }
-                        return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                      }, 0) || 0;
-                      return sum + itemsValue;
-                    }, 0);
-                    const profitLoss = (salesSummary.totalValue || 0) - baseValue - Math.round(salesSummary.totalCodCharge || 0) - (salesSummary.totalShippingValue || 0) - (salesSummary.totalDiscount || 0);
-                    return profitLoss;
-                  })())}</h3>
+                  <h3>₹{(() => {
+                    const profitLoss = (salesSummary.totalBaseValue || 0) + (salesSummary.totalDiscount || 0) - (salesSummary.totalValue || 0) - Math.round(salesSummary.totalCommission || 0);
+                    return Math.round(profitLoss);
+                  })()}</h3>
                   <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency((() => {
-                      const codBaseValue = filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod === 'cod').reduce((sum, item) => {
-                        const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                          if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                            return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                              bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                          }
-                          return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                        }, 0) || 0;
-                        return sum + itemsValue;
-                      }, 0);
-                      const codProfit = (salesSummary.totalCodValue || 0) - codBaseValue - Math.round(salesSummary.totalCodCommission || 0) - (salesSummary.totalCodShipping || 0) - (salesSummary.totalCodDiscount || 0);
-                      return codProfit;
-                    })())}</span>
+                    <span>COD: ₹{(() => {
+                      const codProfit = (salesSummary.totalCodBaseValue || 0) + (salesSummary.totalCodDiscount || 0) - (salesSummary.totalCodValue || 0) - Math.round(salesSummary.totalCodCommission || 0);
+                      return Math.round(codProfit);
+                    })()}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency((() => {
-                      const onlineBaseValue = filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod !== 'cod').reduce((sum, item) => {
-                        const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                          if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                            return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                              bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                          }
-                          return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                        }, 0) || 0;
-                        return sum + itemsValue;
-                      }, 0);
+                    <span>Online: ₹{(() => {
                       const onlineValue = (salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0);
+                      const onlineBaseValue = (salesSummary.totalBaseValue || 0) - (salesSummary.totalCodBaseValue || 0);
                       const onlineDiscount = (salesSummary.totalDiscount || 0) - (salesSummary.totalCodDiscount || 0);
-                      const onlineProfit = onlineValue - onlineBaseValue - Math.round(salesSummary.totalOnlineCommission || 0) - (salesSummary.totalOnlineShipping || 0) - onlineDiscount;
-                      return onlineProfit;
-                    })())}</span>
+                      const onlineProfit = onlineBaseValue + onlineDiscount - onlineValue - Math.round(salesSummary.totalOnlineCommission || 0);
+                      return Math.round(onlineProfit);
+                    })()}</span>
                   </div>
                 </div>
               </div>
