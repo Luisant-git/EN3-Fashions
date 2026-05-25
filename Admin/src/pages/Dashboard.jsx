@@ -371,9 +371,6 @@ const Dashboard = () => {
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(orderStats.totalOnlineBaseValue || 0).toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{(orderStats.totalCodReturnBaseValue || 0).toFixed(2)}</span>
-              </div>
             </div>
 
             <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -388,9 +385,6 @@ const Dashboard = () => {
                 <span>COD: ₹{(orderStats.totalCodValue || 0).toFixed(2)}</span>
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(orderStats.totalOnlineValue || 0).toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{(orderStats.totalCodReturnValue || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -410,9 +404,6 @@ const Dashboard = () => {
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(orderStats.totalOnlineShipping || 0).toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{(orderStats.totalCodReturnShipping || 0).toFixed(2)}</span>
-              </div>
             </div>
 
             <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -427,9 +418,6 @@ const Dashboard = () => {
                 <span>COD: ₹{Math.round(orderStats.totalCodCommission || 0)}</span>
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{Math.round(orderStats.totalOnlineCommission || 0)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{Math.round(orderStats.totalCodReturnCommission || 0)}</span>
               </div>
             </div>
 
@@ -446,9 +434,6 @@ const Dashboard = () => {
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{Math.round(orderStats.totalOnlineSettlement || 0)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{Math.round(orderStats.totalCodReturnSettlement || 0)}</span>
-              </div>
             </div>
 
             <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -463,9 +448,6 @@ const Dashboard = () => {
                 <span>COD: ₹{(orderStats.totalCodDiscount || 0).toFixed(2)}</span>
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(orderStats.totalOnlineDiscount || 0).toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{(orderStats.totalCodReturnDiscount || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -489,12 +471,6 @@ const Dashboard = () => {
                 <span>Online: ₹{(() => {
                   const onlineProfit = ((orderStats.totalOnlineSettlement || 0) - (orderStats.totalOnlineShipping || 0)) - ((orderStats.totalOnlineBaseValue || 0) - (orderStats.totalOnlineDiscount || 0));
                   return Math.round(onlineProfit);
-                })()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
-                <span>COD Return: ₹{(() => {
-                  const returnProfit = (orderStats.totalCodReturnSettlement || 0) - (orderStats.totalCodReturnShipping || 0);
-                  return Math.round(returnProfit);
                 })()}</span>
               </div>
             </div>
