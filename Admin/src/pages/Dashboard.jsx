@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Calendar,
@@ -13,7 +13,12 @@ import {
   ArrowLeft,
   ArrowRight,
   Package,
-  Clock
+  Clock,
+  Receipt,
+  TrendingUp,
+  ShoppingBag,
+  CreditCard,
+  ImageIcon
 } from 'lucide-react';
 
 // Import child components
@@ -21,6 +26,8 @@ import SalesAnalytics from '../components/SalesAnalytics';
 import TopSellingProducts from '../components/TopSellingProducts';
 import { getDashboardStats, getSalesAnalytics, getTopProducts, getCurrentOffers, getRecentOrders } from '../api/dashboardApi';
 import { getProducts } from '../api/productApi';
+import { getOrderStats } from '../api/order';
+import html2canvas from 'html2canvas';
 import './Dashboard.scss'
 
 // You can create a separate component for this, but for simplicity, it's here
@@ -56,6 +63,33 @@ const Dashboard = () => {
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const productsScrollRef = React.useRef(null);
+  const statsRef = useRef(null);
+  const [orderStats, setOrderStats] = useState({
+    totalSales: 0,
+    totalCustomers: 0,
+    totalQuantity: 0,
+    totalValue: 0,
+    totalShippingValue: 0,
+    totalCodValue: 0,
+    totalCommission: 0,
+    totalSettlement: 0,
+    totalCodBills: 0,
+    totalOnlineBills: 0,
+    totalCodQuantity: 0,
+    totalOnlineQuantity: 0,
+    totalCodShipping: 0,
+    totalOnlineShipping: 0,
+    totalCodCommission: 0,
+    totalOnlineCommission: 0,
+    totalCodSettlement: 0,
+    totalOnlineSettlement: 0,
+    totalBaseValue: 0,
+    totalCodBaseValue: 0,
+    totalDiscount: 0,
+    totalCodDiscount: 0,
+    totalCodReturnBills: 0,
+    totalCodReturnQuantity: 0
+  });
 
   const scrollProducts = (direction) => {
     if (productsScrollRef.current) {
@@ -69,6 +103,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchOrderStats();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -132,6 +167,60 @@ const Dashboard = () => {
     }
   };
 
+  const fetchOrderStats = async () => {
+    try {
+      const stats = await getOrderStats();
+      setOrderStats(stats);
+    } catch (error) {
+      console.error('Error fetching order stats:', error);
+    }
+  };
+
+  const downloadStatsAsImage = async () => {
+    try {
+      const clone = statsRef.current.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '400px';
+
+      const cardsContainer = clone.querySelector('[data-summary-cards]');
+      if (cardsContainer) {
+        cardsContainer.style.flexDirection = 'column';
+        cardsContainer.style.width = '100%';
+        Array.from(cardsContainer.querySelectorAll('.stat-card')).forEach(c => {
+          c.style.flex = 'none';
+          c.style.minWidth = 'unset';
+          c.style.width = '100%';
+          const h3 = c.querySelector('h3');
+          if (h3) h3.style.whiteSpace = 'nowrap';
+        });
+      }
+
+      document.body.appendChild(clone);
+      await new Promise(resolve => setTimeout(resolve, 80));
+
+      const canvas = await html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: 400,
+        windowHeight: clone.scrollHeight,
+      });
+
+      document.body.removeChild(clone);
+
+      const link = document.createElement('a');
+      link.download = `sales-summary-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading stats image:', error);
+      alert('Failed to download stats image');
+    }
+  };
+
   const todayDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
   if (loading) {
@@ -140,7 +229,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
+ 
       <header className="dashboard-header">
         <h1 className="header-title">Dashboard</h1>
         <div className="header-actions">
@@ -148,27 +237,250 @@ const Dashboard = () => {
             <Search size={20} className="search-icon" />
             <input type="text" placeholder="Search..." />
           </div>
-          {/* <button className="icon-btn date-btn">
-            <Calendar size={20} />
-            <span>{todayDate}</span>
-          </button>
-          <button className="icon-btn">
-            <Bell size={20} />
-          </button>
-          <button className="icon-btn">
-            <UserCircle size={24} />
-          </button> */}
         </div>
       </header>
 
-      {/* Main Content Grid */}
-      <main className="dashboard-grid">
-        {/* Stats Cards */}
+      {/* Sales Summary Card */}
+      <div
+        ref={statsRef}
+        style={{
+          marginTop: '20px',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          backgroundColor: '#f9fafb',
+          border: '1px solid #e5e7eb',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#111827',
+            }}
+          >
+            Sales Summary
+          </h3>
+
+          <button
+            type="button"
+            onClick={downloadStatsAsImage}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: '#10b981',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+            title="Download summary as image"
+          >
+            <ImageIcon size={16} />
+            <span>Download</span>
+          </button>
+        </div>
+
+        <div
+          data-summary-cards
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          {/* First Row: 5 Cards */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#ecfdf5', borderRadius: '8px', color: '#10b981' }}>
+                  <Users size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Customers</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalCustomers}</h3>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
+                  <Package size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Bills</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalSales}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: {orderStats.totalCodBills || 0}</span>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <span>Online: {orderStats.totalOnlineBills || 0}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: {orderStats.totalCodReturnBills || 0}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#f59e0b' }}>
+                  <Package size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Quantity</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalQuantity}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: {orderStats.totalCodQuantity || 0}</span>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <span>Online: {orderStats.totalOnlineQuantity || 0}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: {orderStats.totalCodReturnQuantity || 0}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#f3e8ff', borderRadius: '8px', color: '#9333ea' }}>
+                  <ShoppingBag size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Base Value</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalBaseValue || 0).toFixed(2)}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{(orderStats.totalCodBaseValue || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span>Online: ₹{((orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0)).toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#f0fdf4', borderRadius: '8px', color: '#22c55e' }}>
+                  <Receipt size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Value</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalValue || 0).toFixed(2)}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{(orderStats.totalCodValue || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span>Online: ₹{((orderStats.totalValue || 0) - (orderStats.totalCodValue || 0)).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Second Row: 5 Cards */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#e0e7ff', borderRadius: '8px', color: '#4f46e5' }}>
+                  <Truck size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Shipped Value</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalShippingValue || 0).toFixed(2)}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{(orderStats.totalCodShipping || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span>Online: ₹{(orderStats.totalOnlineShipping || 0).toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fee2e2', borderRadius: '8px', color: '#dc2626' }}>
+                  <CreditCard size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Commission</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{Math.round(orderStats.totalCommission || 0)}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{Math.round(orderStats.totalCodCommission || 0)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span>Online: ₹{Math.round(orderStats.totalOnlineCommission || 0)}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#d1fae5', borderRadius: '8px', color: '#059669' }}>
+                  <Receipt size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Settlement</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{Math.round(orderStats.totalSettlement || 0)}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{Math.round(orderStats.totalCodSettlement || 0)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span>Online: ₹{Math.round(orderStats.totalOnlineSettlement || 0)}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <Receipt size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Discount</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalDiscount || 0).toFixed(2)}</h3>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#e8f5e9', borderRadius: '8px', color: '#2e7d32' }}>
+                  <TrendingUp size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Profit/Loss</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(() => {
+                const profitLoss = ((orderStats.totalSettlement || 0) - (orderStats.totalShippingValue || 0)) - ((orderStats.totalBaseValue || 0) - (orderStats.totalDiscount || 0));
+                return Math.round(profitLoss);
+              })()}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{(() => {
+                  const codProfit = ((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
+                  return Math.round(codProfit);
+                })()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '2px' }}>
+                <span>Online: ₹{(() => {
+                  const onlineSettlement = (orderStats.totalOnlineSettlement || 0);
+                  const onlineShipping = (orderStats.totalOnlineShipping || 0);
+                  const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
+                  const onlineDiscount = (orderStats.totalDiscount || 0) - (orderStats.totalCodDiscount || 0);
+                  const onlineProfit = (onlineSettlement - onlineShipping) - (onlineBaseValue - onlineDiscount);
+                  return Math.round(onlineProfit);
+                })()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* <main className="dashboard-grid">
+       
         {statsData.length > 0 && statsData.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
 
-        {/* Recent Orders */}
+     
         <div className="card recent-orders">
           <div className="card-header">
             <h3>Recent Orders</h3>
@@ -216,7 +528,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Low Stock Products */}
+     
         <div className="card low-stock-products">
           <div className="card-header">
             <h3>Low Stock Alert</h3>
@@ -248,12 +560,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Sales Analytics */}
+   
         <div className="card sales-analytics">
           <SalesAnalytics />
         </div>
 
-        {/* Top Selling Products */}
+     
         <div className="card top-products">
           <div className="card-header">
             <h3>Top Selling Products</h3>
@@ -265,7 +577,7 @@ const Dashboard = () => {
           <TopSellingProducts scrollRef={productsScrollRef} />
         </div>
 
-        {/* Current Offer */}
+        
         <div className="card current-offers">
           <div className="card-header">
             <h3>Current Offer</h3>
@@ -285,7 +597,7 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-      </main>
+      </main> */}
     </div>
   );
 };
