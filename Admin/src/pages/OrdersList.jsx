@@ -2496,21 +2496,22 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{(() => {
-          const profitLoss = (orderStats.totalBaseValue || 0) + (orderStats.totalDiscount || 0) - (orderStats.totalValue || 0) - Math.round(orderStats.totalCommission || 0);
+          const profitLoss = ((orderStats.totalSettlement || 0) - (orderStats.totalShippingValue || 0)) - ((orderStats.totalBaseValue || 0) - (orderStats.totalDiscount || 0));
           return Math.round(profitLoss);
         })()}</h3>
         <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
           <span>COD: ₹{(() => {
-            const codProfit = (orderStats.totalCodBaseValue || 0) + (orderStats.totalCodDiscount || 0) - (orderStats.totalCodValue || 0) - Math.round(orderStats.totalCodCommission || 0);
+            const codProfit = ((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
             return Math.round(codProfit);
           })()}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: ₹{(() => {
-            const onlineValue = (orderStats.totalValue || 0) - (orderStats.totalCodValue || 0);
+            const onlineSettlement = (orderStats.totalOnlineSettlement || 0);
+            const onlineShipping = (orderStats.totalOnlineShipping || 0);
             const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
             const onlineDiscount = (orderStats.totalDiscount || 0) - (orderStats.totalCodDiscount || 0);
-            const onlineProfit = onlineBaseValue + onlineDiscount - onlineValue - Math.round(orderStats.totalOnlineCommission || 0);
+            const onlineProfit = (onlineSettlement - onlineShipping) - (onlineBaseValue - onlineDiscount);
             return Math.round(onlineProfit);
           })()}</span>
         </div>

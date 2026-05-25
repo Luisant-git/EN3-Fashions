@@ -654,21 +654,22 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>₹{(() => {
-                    const profitLoss = (salesSummary.totalBaseValue || 0) + (salesSummary.totalDiscount || 0) - (salesSummary.totalValue || 0) - Math.round(salesSummary.totalCommission || 0);
+                    const profitLoss = ((salesSummary.totalSettlement || 0) - (salesSummary.totalShippingValue || 0)) - ((salesSummary.totalBaseValue || 0) - (salesSummary.totalDiscount || 0));
                     return Math.round(profitLoss);
                   })()}</h3>
                   <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
                     <span>COD: ₹{(() => {
-                      const codProfit = (salesSummary.totalCodBaseValue || 0) + (salesSummary.totalCodDiscount || 0) - (salesSummary.totalCodValue || 0) - Math.round(salesSummary.totalCodCommission || 0);
+                      const codProfit = ((salesSummary.totalCodSettlement || 0) - (salesSummary.totalCodShipping || 0)) - ((salesSummary.totalCodBaseValue || 0) - (salesSummary.totalCodDiscount || 0));
                       return Math.round(codProfit);
                     })()}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
                     <span>Online: ₹{(() => {
-                      const onlineValue = (salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0);
+                      const onlineSettlement = (salesSummary.totalOnlineSettlement || 0);
+                      const onlineShipping = (salesSummary.totalOnlineShipping || 0);
                       const onlineBaseValue = (salesSummary.totalBaseValue || 0) - (salesSummary.totalCodBaseValue || 0);
                       const onlineDiscount = (salesSummary.totalDiscount || 0) - (salesSummary.totalCodDiscount || 0);
-                      const onlineProfit = onlineBaseValue + onlineDiscount - onlineValue - Math.round(salesSummary.totalOnlineCommission || 0);
+                      const onlineProfit = (onlineSettlement - onlineShipping) - (onlineBaseValue - onlineDiscount);
                       return Math.round(onlineProfit);
                     })()}</span>
                   </div>
