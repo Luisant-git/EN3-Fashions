@@ -233,9 +233,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
         totalSettlement += (orderTotal - orderCommission);
       }
       
-      // TOTAL SHIPPING VALUE: Sum of delivery fees from orders with status 'Accepted', 'Shipped', or 'Delivered'
+      // TOTAL SHIPPING VALUE: Sum of courier charges from orders with status 'Accepted', 'Shipped', or 'Delivered'
       if (includeStatuses.includes(order.status)) {
-        totalShippingValue += parseFloat(order.deliveryFee) || 0;
+        totalShippingValue += parseFloat(order.courierCharge as any) || 0;
       }
       
       // TOTAL COD VALUE: Sum of order totals from COD orders with status 'Accepted', 'Shipped', or 'Delivered'
