@@ -550,6 +550,9 @@ const Reports = () => {
                     <span style={{ color: '#d1d5db' }}>|</span>
                     <span>Online: {salesSummary.totalOnlineBills || 0}</span>
                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
+                    <span>COD Return: {salesSummary.totalCodReturnBills || 0}</span>
+                  </div>
                 </div>
               </div>
               <div className="stat-card">
@@ -563,6 +566,9 @@ const Reports = () => {
                     <span>COD: {salesSummary.totalCodQuantity || 0}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
                     <span>Online: {salesSummary.totalOnlineQuantity || 0}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
+                    <span>COD Return: {salesSummary.totalCodReturnQuantity || 0}</span>
                   </div>
                 </div>
               </div>

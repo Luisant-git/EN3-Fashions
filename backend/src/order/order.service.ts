@@ -227,18 +227,22 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalDiscount = 0;
     let totalCodDiscount = 0;
     let totalOnlineDiscount = 0;
+    let totalCodReturnBills = 0;
+    let totalCodReturnQuantity = 0;
 
-    // Statuses to include in main calculations
-    const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
+    // Statuses to include in main calculations (now includes CODReturn)
+    const includeStatuses = ['Accepted', 'Shipped', 'Delivered', 'CODReturn'];
 
     orders.forEach(order => {
-      // Only include Accepted, Shipped, Delivered orders for main stats
+      // Include Accepted, Shipped, Delivered, CODReturn orders for main stats
       if (includeStatuses.includes(order.status)) {
         // Total Sales (count of orders)
         totalSales += 1;
         
-        // Count COD vs Online bills
-        if (order.paymentMethod === 'cod') {
+        // Count COD vs Online bills (exclude CODReturn from COD count)
+        if (order.status === 'CODReturn') {
+          // CODReturn is counted separately, not in COD or Online
+        } else if (order.paymentMethod === 'cod') {
           totalCodBills += 1;
         } else {
           totalOnlineBills += 1;
@@ -267,8 +271,10 @@ async getOrderStats(startDate?: string, endDate?: string) {
         totalQuantity += orderQuantity;
         totalBaseValue += orderBaseValue;
         
-        // Count COD vs Online quantity and base value
-        if (order.paymentMethod === 'cod') {
+        // Count COD vs Online quantity and base value (exclude CODReturn from COD count)
+        if (order.status === 'CODReturn') {
+          // CODReturn quantity is counted separately
+        } else if (order.paymentMethod === 'cod') {
           totalCodQuantity += orderQuantity;
           totalCodBaseValue += orderBaseValue;
         } else {
@@ -276,24 +282,28 @@ async getOrderStats(startDate?: string, endDate?: string) {
           totalOnlineBaseValue += orderBaseValue;
         }
         
-        // Total Value (sum of all order totals from Accepted, Shipped, Delivered)
+        // Total Value (sum of all order totals from Accepted, Shipped, Delivered, CODReturn)
         totalValue += parseFloat(order.total) || 0;
         
         // Total Discount
         const orderDiscount = parseFloat(order.discount || '0') || 0;
         totalDiscount += orderDiscount;
         
-        if (order.paymentMethod === 'cod') {
+        if (order.status === 'CODReturn') {
+          // CODReturn discount counted separately
+        } else if (order.paymentMethod === 'cod') {
           totalCodDiscount += orderDiscount;
         } else {
           totalOnlineDiscount += orderDiscount;
         }
         
-        // Total Commission (sum of codCharge from Accepted, Shipped, Delivered orders)
+        // Total Commission (sum of codCharge from Accepted, Shipped, Delivered, CODReturn orders)
         const orderCommission = parseFloat(order.codCharge as any) || 0;
         totalCommission += orderCommission;
         
-        if (order.paymentMethod === 'cod') {
+        if (order.status === 'CODReturn') {
+          // CODReturn commission counted separately
+        } else if (order.paymentMethod === 'cod') {
           totalCodCommission += orderCommission;
         } else {
           totalOnlineCommission += orderCommission;
@@ -304,7 +314,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
         const settlement = orderTotal - orderCommission;
         totalSettlement += settlement;
         
-        if (order.paymentMethod === 'cod') {
+        if (order.status === 'CODReturn') {
+          // CODReturn settlement counted separately
+        } else if (order.paymentMethod === 'cod') {
           totalCodSettlement += settlement;
         } else {
           totalOnlineSettlement += settlement;
@@ -312,11 +324,13 @@ async getOrderStats(startDate?: string, endDate?: string) {
       }
       
       // TOTAL SHIPPING VALUE: Sum of courier charges from orders with status 'Accepted', 'Shipped', 'Delivered', or 'CODReturn'
-      if (includeStatuses.includes(order.status) || order.status === 'CODReturn') {
+      if (includeStatuses.includes(order.status)) {
         const shippingCharge = parseFloat(order.courierCharge as any) || 0;
         totalShippingValue += shippingCharge;
         
-        if (order.paymentMethod === 'cod') {
+        if (order.status === 'CODReturn') {
+          // CODReturn shipping counted separately
+        } else if (order.paymentMethod === 'cod') {
           totalCodShipping += shippingCharge;
         } else {
           totalOnlineShipping += shippingCharge;
@@ -326,6 +340,21 @@ async getOrderStats(startDate?: string, endDate?: string) {
       // TOTAL COD VALUE: Sum of order totals from COD orders with status 'Accepted', 'Shipped', or 'Delivered'
       if (order.paymentMethod === 'cod' && ['Accepted', 'Shipped', 'Delivered'].includes(order.status)) {
         totalCodValue += parseFloat(order.total) || 0;
+      }
+      
+      // COD RETURN: Track separately for display
+      if (order.status === 'CODReturn') {
+        totalCodReturnBills += 1;
+        let codReturnQuantity = 0;
+        order.items?.forEach(item => {
+          if (item.type === 'bundle' && item.bundleItems) {
+            const bundleItems = item.bundleItems as any[];
+            codReturnQuantity += bundleItems.length;
+          } else {
+            codReturnQuantity += item.quantity || 0;
+          }
+        });
+        totalCodReturnQuantity += codReturnQuantity;
       }
     });
 
@@ -353,7 +382,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalOnlineBaseValue,
       totalDiscount,
       totalCodDiscount,
-      totalOnlineDiscount
+      totalOnlineDiscount,
+      totalCodReturnBills,
+      totalCodReturnQuantity
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);

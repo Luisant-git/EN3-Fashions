@@ -79,7 +79,9 @@ const [orderStats, setOrderStats] = useState({
   totalCodCommission: 0,
   totalOnlineCommission: 0,
   totalCodSettlement: 0,
-  totalOnlineSettlement: 0
+  totalOnlineSettlement: 0,
+  totalCodReturnBills: 0,
+  totalCodReturnQuantity: 0
 });
   useEffect(() => {
     fetchOrders();
@@ -2381,6 +2383,9 @@ const resetDateRange = () => {
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: {orderStats.totalOnlineBills || 0}</span>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
+          <span>COD Return: {orderStats.totalCodReturnBills || 0}</span>
+        </div>
       </div>
     </div>
 
@@ -2395,6 +2400,9 @@ const resetDateRange = () => {
           <span>COD: {orderStats.totalCodQuantity || 0}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: {orderStats.totalOnlineQuantity || 0}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
+          <span>COD Return: {orderStats.totalCodReturnQuantity || 0}</span>
         </div>
       </div>
     </div>
