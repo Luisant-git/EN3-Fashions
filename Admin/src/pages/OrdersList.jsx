@@ -2455,12 +2455,12 @@ const resetDateRange = () => {
         <CreditCard size={24} />
       </div>
       <div className="stat-content">
-        <h3>₹{orderStats.totalCommission?.toFixed(2) || '0.00'}</h3>
+        <h3>₹{Math.round(orderStats.totalCommission || 0)}</h3>
         <p style={{ marginBottom: '4px' }}>Total Commission</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-          <span>COD: ₹{orderStats.totalCodCommission?.toFixed(2) || '0.00'}</span>
+          <span>COD: ₹{Math.round(orderStats.totalCodCommission || 0)}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
-          <span>Online: ₹{orderStats.totalOnlineCommission?.toFixed(2) || '0.00'}</span>
+          <span>Online: ₹{Math.round(orderStats.totalOnlineCommission || 0)}</span>
         </div>
       </div>
     </div>
@@ -2496,13 +2496,13 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{(() => {
-          const profitLoss = (orderStats.totalValue || 0) - (orderStats.totalBaseValue || 0) - (orderStats.totalCommission || 0) - (orderStats.totalShippingValue || 0) - (orderStats.totalDiscount || 0);
+          const profitLoss = (orderStats.totalValue || 0) - (orderStats.totalBaseValue || 0) - Math.round(orderStats.totalCommission || 0) - (orderStats.totalShippingValue || 0) - (orderStats.totalDiscount || 0);
           return profitLoss.toFixed(2);
         })()}</h3>
         <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
           <span>COD: ₹{(() => {
-            const codProfit = (orderStats.totalCodValue || 0) - (orderStats.totalCodBaseValue || 0) - (orderStats.totalCodCommission || 0) - (orderStats.totalCodShipping || 0) - (orderStats.totalCodDiscount || 0);
+            const codProfit = (orderStats.totalCodValue || 0) - (orderStats.totalCodBaseValue || 0) - Math.round(orderStats.totalCodCommission || 0) - (orderStats.totalCodShipping || 0) - (orderStats.totalCodDiscount || 0);
             return codProfit.toFixed(2);
           })()}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
@@ -2510,7 +2510,7 @@ const resetDateRange = () => {
             const onlineValue = (orderStats.totalValue || 0) - (orderStats.totalCodValue || 0);
             const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
             const onlineDiscount = (orderStats.totalDiscount || 0) - (orderStats.totalCodDiscount || 0);
-            const onlineProfit = onlineValue - onlineBaseValue - (orderStats.totalOnlineCommission || 0) - (orderStats.totalOnlineShipping || 0) - onlineDiscount;
+            const onlineProfit = onlineValue - onlineBaseValue - Math.round(orderStats.totalOnlineCommission || 0) - (orderStats.totalOnlineShipping || 0) - onlineDiscount;
             return onlineProfit.toFixed(2);
           })()}</span>
         </div>

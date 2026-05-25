@@ -625,12 +625,12 @@ const Reports = () => {
                   <CreditCard size={24} />
                 </div>
                 <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalCodCharge)}</h3>
+                  <h3>₹{Math.round(salesSummary.totalCodCharge || 0)}</h3>
                   <p style={{ marginBottom: '4px' }}>Total Commission</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency(salesSummary.totalCodCommission || 0)}</span>
+                    <span>COD: ₹{Math.round(salesSummary.totalCodCommission || 0)}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency(salesSummary.totalOnlineCommission || 0)}</span>
+                    <span>Online: ₹{Math.round(salesSummary.totalOnlineCommission || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -663,26 +663,50 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{formatCurrency((() => {
-                    const settlementRate = (salesSummary.totalValue || 0) - (salesSummary.totalCodCharge || 0);
-                    const amount = settlementRate - (salesSummary.totalShippingValue || 0);
-                    const profitLoss = amount - (salesSummary.totalValue || 0) - (salesSummary.totalDiscount || 0);
+                    const baseValue = filteredSalesData.filter(item => item.status !== 'Cancelled').reduce((sum, item) => {
+                      const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                        if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                          return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                            bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                        }
+                        return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                      }, 0) || 0;
+                      return sum + itemsValue;
+                    }, 0);
+                    const profitLoss = (salesSummary.totalValue || 0) - baseValue - Math.round(salesSummary.totalCodCharge || 0) - (salesSummary.totalShippingValue || 0) - (salesSummary.totalDiscount || 0);
                     return profitLoss;
                   })())}</h3>
                   <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
                     <span>COD: {formatCurrency((() => {
-                      const codSettlement = (salesSummary.totalCodSettlement || 0);
-                      const codAmount = codSettlement - (salesSummary.totalCodShipping || 0);
-                      const codProfit = codAmount - (salesSummary.totalCodValue || 0) - (salesSummary.totalCodDiscount || 0);
+                      const codBaseValue = filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod === 'cod').reduce((sum, item) => {
+                        const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                          if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                            return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                              bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                          }
+                          return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                        }, 0) || 0;
+                        return sum + itemsValue;
+                      }, 0);
+                      const codProfit = (salesSummary.totalCodValue || 0) - codBaseValue - Math.round(salesSummary.totalCodCommission || 0) - (salesSummary.totalCodShipping || 0) - (salesSummary.totalCodDiscount || 0);
                       return codProfit;
                     })())}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
                     <span>Online: {formatCurrency((() => {
-                      const onlineSettlement = (salesSummary.totalOnlineSettlement || 0);
-                      const onlineAmount = onlineSettlement - (salesSummary.totalOnlineShipping || 0);
+                      const onlineBaseValue = filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod !== 'cod').reduce((sum, item) => {
+                        const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                          if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                            return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                              bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                          }
+                          return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                        }, 0) || 0;
+                        return sum + itemsValue;
+                      }, 0);
                       const onlineValue = (salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0);
                       const onlineDiscount = (salesSummary.totalDiscount || 0) - (salesSummary.totalCodDiscount || 0);
-                      const onlineProfit = onlineAmount - onlineValue - onlineDiscount;
+                      const onlineProfit = onlineValue - onlineBaseValue - Math.round(salesSummary.totalOnlineCommission || 0) - (salesSummary.totalOnlineShipping || 0) - onlineDiscount;
                       return onlineProfit;
                     })())}</span>
                   </div>
