@@ -2487,25 +2487,20 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{(() => {
-          const settlementRate = (orderStats.totalValue || 0) - (orderStats.totalCommission || 0);
-          const amount = settlementRate - (orderStats.totalShippingValue || 0);
-          const profitLoss = amount - (orderStats.totalValue || 0);
+          const profitLoss = (orderStats.totalValue || 0) - (orderStats.totalBaseValue || 0) - (orderStats.totalCommission || 0) - (orderStats.totalShippingValue || 0);
           return profitLoss.toFixed(2);
         })()}</h3>
         <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
           <span>COD: ₹{(() => {
-            const codSettlement = (orderStats.totalCodSettlement || 0);
-            const codAmount = codSettlement - (orderStats.totalCodShipping || 0);
-            const codProfit = codAmount - (orderStats.totalCodValue || 0);
+            const codProfit = (orderStats.totalCodValue || 0) - (orderStats.totalCodBaseValue || 0) - (orderStats.totalCodCommission || 0) - (orderStats.totalCodShipping || 0);
             return codProfit.toFixed(2);
           })()}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: ₹{(() => {
-            const onlineSettlement = (orderStats.totalOnlineSettlement || 0);
-            const onlineAmount = onlineSettlement - (orderStats.totalOnlineShipping || 0);
             const onlineValue = (orderStats.totalValue || 0) - (orderStats.totalCodValue || 0);
-            const onlineProfit = onlineAmount - onlineValue;
+            const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
+            const onlineProfit = onlineValue - onlineBaseValue - (orderStats.totalOnlineCommission || 0) - (orderStats.totalOnlineShipping || 0);
             return onlineProfit.toFixed(2);
           })()}</span>
         </div>

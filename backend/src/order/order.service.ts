@@ -221,6 +221,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalOnlineCommission = 0;
     let totalCodSettlement = 0;
     let totalOnlineSettlement = 0;
+    let totalBaseValue = 0;
+    let totalCodBaseValue = 0;
+    let totalOnlineBaseValue = 0;
 
     // Statuses to include in main calculations
     const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
@@ -243,23 +246,31 @@ async getOrderStats(startDate?: string, endDate?: string) {
           uniqueCustomers.add(order.userId);
         }
         
-        // Total Quantity (sum of all items quantity)
+        // Calculate base value from order items (actual product prices)
+        let orderBaseValue = 0;
         let orderQuantity = 0;
         order.items?.forEach(item => {
           if (item.type === 'bundle' && item.bundleItems) {
             const bundleItems = item.bundleItems as any[];
             orderQuantity += bundleItems.length;
+            bundleItems.forEach(bItem => {
+              orderBaseValue += parseFloat(bItem.originalPrice) || 0;
+            });
           } else {
             orderQuantity += item.quantity || 0;
+            orderBaseValue += (parseFloat(item.price) || 0) * (item.quantity || 1);
           }
         });
         totalQuantity += orderQuantity;
+        totalBaseValue += orderBaseValue;
         
-        // Count COD vs Online quantity
+        // Count COD vs Online quantity and base value
         if (order.paymentMethod === 'cod') {
           totalCodQuantity += orderQuantity;
+          totalCodBaseValue += orderBaseValue;
         } else {
           totalOnlineQuantity += orderQuantity;
+          totalOnlineBaseValue += orderBaseValue;
         }
         
         // Total Value (sum of all order totals from Accepted, Shipped, Delivered)
@@ -323,7 +334,10 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalCodCommission,
       totalOnlineCommission,
       totalCodSettlement,
-      totalOnlineSettlement
+      totalOnlineSettlement,
+      totalBaseValue,
+      totalCodBaseValue,
+      totalOnlineBaseValue
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);
