@@ -669,7 +669,7 @@ const Reports = () => {
                   <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
                     <span>COD: ₹{(() => {
-                      const codProfit = ((salesSummary.totalCodSettlement || 0) - (salesSummary.totalCodShipping || 0)) - ((salesSummary.totalCodBaseValue || 0) - (salesSummary.totalCodDiscount || 0));
+                      const codProfit = (salesSummary.totalCodSettlement || 0) - ((salesSummary.totalCodShipping || 0) + (salesSummary.totalCodReturnShipping || 0)) - ((salesSummary.totalCodBaseValue || 0) - (salesSummary.totalCodDiscount || 0));
                       return Math.round(codProfit);
                     })()}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>

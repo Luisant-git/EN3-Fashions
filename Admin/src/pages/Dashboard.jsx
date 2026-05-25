@@ -467,12 +467,16 @@ const Dashboard = () => {
               })()}</h3>
               <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
                 <span>COD: ₹{(() => {
-                  const codProfit = ((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
+                  const codProfit = (orderStats.totalCodSettlement || 0) - ((orderStats.totalCodShipping || 0) + (orderStats.totalCodReturnShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
                   return Math.round(codProfit);
                 })()}</span>
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(() => {
-                  const onlineProfit = ((orderStats.totalOnlineSettlement || 0) - (orderStats.totalOnlineShipping || 0)) - ((orderStats.totalOnlineBaseValue || 0) - (orderStats.totalOnlineDiscount || 0));
+                  const onlineSettlement = (orderStats.totalOnlineSettlement || 0);
+                  const onlineShipping = (orderStats.totalOnlineShipping || 0);
+                  const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
+                  const onlineDiscount = (orderStats.totalDiscount || 0) - (orderStats.totalCodDiscount || 0);
+                  const onlineProfit = (onlineSettlement - onlineShipping) - (onlineBaseValue - onlineDiscount);
                   return Math.round(onlineProfit);
                 })()}</span>
               </div>

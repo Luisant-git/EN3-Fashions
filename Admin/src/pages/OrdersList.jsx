@@ -2514,7 +2514,7 @@ const statusCounts = getStatusCounts();
         <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
           <span>COD: ₹{(() => {
-            const codProfit = ((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
+            const codProfit = (orderStats.totalCodSettlement || 0) - ((orderStats.totalCodShipping || 0) + (orderStats.totalCodReturnShipping || 0)) - ((orderStats.totalCodBaseValue || 0) - (orderStats.totalCodDiscount || 0));
             return Math.round(codProfit);
           })()}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
