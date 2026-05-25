@@ -319,6 +319,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
         
         if (order.status === 'CODReturn') {
           totalCodReturnShipping += shippingCharge;
+          totalCodShipping += shippingCharge;
         } else if (order.paymentMethod === 'cod') {
           totalCodShipping += shippingCharge;
         } else {

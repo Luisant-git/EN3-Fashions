@@ -404,6 +404,9 @@ const Dashboard = () => {
                 <span style={{ color: '#d1d5db' }}>|</span>
                 <span>Online: ₹{(orderStats.totalOnlineShipping || 0).toFixed(2)}</span>
               </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '4px', fontSize: '10px', color: '#ef4444', fontWeight: 600, marginTop: '4px' }}>
+                <span>COD Return: ₹{(orderStats.totalCodReturnShipping || 0).toFixed(2)}</span>
+              </div>
             </div>
 
             <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
