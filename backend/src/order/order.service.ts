@@ -211,6 +211,16 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalCodValue = 0;
     let totalCommission = 0;
     let totalSettlement = 0;
+    let totalCodBills = 0;
+    let totalOnlineBills = 0;
+    let totalCodQuantity = 0;
+    let totalOnlineQuantity = 0;
+    let totalCodShipping = 0;
+    let totalOnlineShipping = 0;
+    let totalCodCommission = 0;
+    let totalOnlineCommission = 0;
+    let totalCodSettlement = 0;
+    let totalOnlineSettlement = 0;
 
     // Statuses to include in main calculations
     const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
@@ -221,36 +231,72 @@ async getOrderStats(startDate?: string, endDate?: string) {
         // Total Sales (count of orders)
         totalSales += 1;
         
+        // Count COD vs Online bills
+        if (order.paymentMethod === 'cod') {
+          totalCodBills += 1;
+        } else {
+          totalOnlineBills += 1;
+        }
+        
         // Total Customers (unique users)
         if (order.userId) {
           uniqueCustomers.add(order.userId);
         }
         
         // Total Quantity (sum of all items quantity)
+        let orderQuantity = 0;
         order.items?.forEach(item => {
           if (item.type === 'bundle' && item.bundleItems) {
             const bundleItems = item.bundleItems as any[];
-            totalQuantity += bundleItems.length;
+            orderQuantity += bundleItems.length;
           } else {
-            totalQuantity += item.quantity || 0;
+            orderQuantity += item.quantity || 0;
           }
         });
+        totalQuantity += orderQuantity;
+        
+        // Count COD vs Online quantity
+        if (order.paymentMethod === 'cod') {
+          totalCodQuantity += orderQuantity;
+        } else {
+          totalOnlineQuantity += orderQuantity;
+        }
         
         // Total Value (sum of all order totals from Accepted, Shipped, Delivered)
         totalValue += parseFloat(order.total) || 0;
         
         // Total Commission (sum of codCharge from Accepted, Shipped, Delivered orders)
-        totalCommission += parseFloat(order.codCharge as any) || 0;
+        const orderCommission = parseFloat(order.codCharge as any) || 0;
+        totalCommission += orderCommission;
+        
+        if (order.paymentMethod === 'cod') {
+          totalCodCommission += orderCommission;
+        } else {
+          totalOnlineCommission += orderCommission;
+        }
         
         // Total Settlement (Total Value - Total Commission)
         const orderTotal = parseFloat(order.total) || 0;
-        const orderCommission = parseFloat(order.codCharge as any) || 0;
-        totalSettlement += (orderTotal - orderCommission);
+        const settlement = orderTotal - orderCommission;
+        totalSettlement += settlement;
+        
+        if (order.paymentMethod === 'cod') {
+          totalCodSettlement += settlement;
+        } else {
+          totalOnlineSettlement += settlement;
+        }
       }
       
       // TOTAL SHIPPING VALUE: Sum of courier charges from orders with status 'Accepted', 'Shipped', or 'Delivered'
       if (includeStatuses.includes(order.status)) {
-        totalShippingValue += parseFloat(order.courierCharge as any) || 0;
+        const shippingCharge = parseFloat(order.courierCharge as any) || 0;
+        totalShippingValue += shippingCharge;
+        
+        if (order.paymentMethod === 'cod') {
+          totalCodShipping += shippingCharge;
+        } else {
+          totalOnlineShipping += shippingCharge;
+        }
       }
       
       // TOTAL COD VALUE: Sum of order totals from COD orders with status 'Accepted', 'Shipped', or 'Delivered'
@@ -267,7 +313,17 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalShippingValue,
       totalCodValue,
       totalCommission,
-      totalSettlement
+      totalSettlement,
+      totalCodBills,
+      totalOnlineBills,
+      totalCodQuantity,
+      totalOnlineQuantity,
+      totalCodShipping,
+      totalOnlineShipping,
+      totalCodCommission,
+      totalOnlineCommission,
+      totalCodSettlement,
+      totalOnlineSettlement
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);
@@ -861,14 +917,26 @@ async getSalesReportSummary(startDate?: string, endDate?: string) {
       totalCustomers: new Set(activeOrders.map(item => item.phone)).size,
       totalQuantity: activeOrders.reduce((sum, item) => sum + item.quantity, 0),
       totalValue: activeOrders.reduce((sum, item) => sum + item.total, 0),
-      totalShippingValue: activeOrders.reduce((sum, item) => sum + (item.deliveryFee || 0), 0),
+      totalShippingValue: activeOrders.reduce((sum, item) => sum + (item.courierCharge || 0), 0),
       totalCodValue: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.total, 0),
       totalDiscount: activeOrders.reduce((sum, item) => sum + item.discount, 0),
       totalDeliveryFee: activeOrders.reduce((sum, item) => sum + item.deliveryFee, 0),
       totalCodFee: activeOrders.reduce((sum, item) => sum + item.codFee, 0),
       totalCodCharge: activeOrders.reduce((sum, item) => sum + item.codCharge, 0),
       totalCourierCharge: activeOrders.reduce((sum, item) => sum + item.courierCharge, 0),
-      totalSettlement: activeOrders.reduce((sum, item) => sum + item.settlementAmt, 0)
+      totalSettlement: activeOrders.reduce((sum, item) => sum + item.settlementAmt, 0),
+      
+      // Breakdown by payment method
+      totalCodBills: activeOrders.filter(item => item.paymentMethod === 'cod').length,
+      totalOnlineBills: activeOrders.filter(item => item.paymentMethod !== 'cod').length,
+      totalCodQuantity: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.quantity, 0),
+      totalOnlineQuantity: activeOrders.filter(item => item.paymentMethod !== 'cod').reduce((sum, item) => sum + item.quantity, 0),
+      totalCodShipping: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.courierCharge, 0),
+      totalOnlineShipping: activeOrders.filter(item => item.paymentMethod !== 'cod').reduce((sum, item) => sum + item.courierCharge, 0),
+      totalCodCommission: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.codCharge, 0),
+      totalOnlineCommission: activeOrders.filter(item => item.paymentMethod !== 'cod').reduce((sum, item) => sum + item.codCharge, 0),
+      totalCodSettlement: activeOrders.filter(item => item.paymentMethod === 'cod').reduce((sum, item) => sum + item.settlementAmt, 0),
+      totalOnlineSettlement: activeOrders.filter(item => item.paymentMethod !== 'cod').reduce((sum, item) => sum + item.settlementAmt, 0)
     };
   } catch (error) {
     console.error('Error fetching sales report summary:', error);

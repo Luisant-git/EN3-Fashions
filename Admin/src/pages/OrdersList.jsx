@@ -67,7 +67,17 @@ const [orderStats, setOrderStats] = useState({
   totalShippingValue: 0,
   totalCodValue: 0,
   totalCommission: 0,
-  totalSettlement: 0
+  totalSettlement: 0,
+  totalCodBills: 0,
+  totalOnlineBills: 0,
+  totalCodQuantity: 0,
+  totalOnlineQuantity: 0,
+  totalCodShipping: 0,
+  totalOnlineShipping: 0,
+  totalCodCommission: 0,
+  totalOnlineCommission: 0,
+  totalCodSettlement: 0,
+  totalOnlineSettlement: 0
 });
   useEffect(() => {
     fetchOrders();
@@ -2363,7 +2373,12 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>{orderStats.totalSales}</h3>
-        <p>Total Bills</p>
+        <p style={{ marginBottom: '4px' }}>Total Bills</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: {orderStats.totalCodBills || 0}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: {orderStats.totalOnlineBills || 0}</span>
+        </div>
       </div>
     </div>
 
@@ -2373,7 +2388,12 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>{orderStats.totalQuantity}</h3>
-        <p>Total Quantity</p>
+        <p style={{ marginBottom: '4px' }}>Total Quantity</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: {orderStats.totalCodQuantity || 0}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: {orderStats.totalOnlineQuantity || 0}</span>
+        </div>
       </div>
     </div>
 
@@ -2406,7 +2426,12 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{orderStats.totalValue?.toFixed(2) || '0.00'}</h3>
-        <p>Total Value</p>
+        <p style={{ marginBottom: '4px' }}>Total Value</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{orderStats.totalCodValue?.toFixed(2) || '0.00'}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{((orderStats.totalValue || 0) - (orderStats.totalCodValue || 0))?.toFixed(2) || '0.00'}</span>
+        </div>
       </div>
     </div>
 
@@ -2416,7 +2441,12 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
-        <p>Shipping Value</p>
+        <p style={{ marginBottom: '4px' }}>Shipping Value</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{orderStats.totalCodShipping?.toFixed(2) || '0.00'}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{orderStats.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
+        </div>
       </div>
     </div>
 
@@ -2446,7 +2476,12 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{orderStats.totalCommission?.toFixed(2) || '0.00'}</h3>
-        <p>Total Commission</p>
+        <p style={{ marginBottom: '4px' }}>Total Commission</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{orderStats.totalCodCommission?.toFixed(2) || '0.00'}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{orderStats.totalOnlineCommission?.toFixed(2) || '0.00'}</span>
+        </div>
       </div>
     </div>
 
@@ -2456,7 +2491,12 @@ const resetDateRange = () => {
       </div>
       <div className="stat-content">
         <h3>₹{orderStats.totalSettlement?.toFixed(2) || '0.00'}</h3>
-        <p>Total Settlement</p>
+        <p style={{ marginBottom: '4px' }}>Total Settlement</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{orderStats.totalCodSettlement?.toFixed(2) || '0.00'}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{orderStats.totalOnlineSettlement?.toFixed(2) || '0.00'}</span>
+        </div>
       </div>
     </div>
 

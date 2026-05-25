@@ -528,7 +528,12 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{salesSummary.totalOrders}</h3>
-                  <p>Total Bills</p>
+                  <p style={{ marginBottom: '4px' }}>Total Bills</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {salesSummary.totalCodBills || 0}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {salesSummary.totalOnlineBills || 0}</span>
+                  </div>
                 </div>
               </div>
               <div className="stat-card">
@@ -537,7 +542,54 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{salesSummary.totalQuantity}</h3>
-                  <p>Total Quantity</p>
+                  <p style={{ marginBottom: '4px' }}>Total Quantity</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {salesSummary.totalCodQuantity || 0}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {salesSummary.totalOnlineQuantity || 0}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+                  <ShoppingBag size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled').reduce((sum, item) => {
+                    // Calculate base product value from items (price × quantity) - excluding cancelled orders
+                    const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                      if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                        return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                          bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                      }
+                      return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                    }, 0) || 0;
+                    return sum + itemsValue;
+                  }, 0))}</h3>
+                  <p style={{ marginBottom: '4px' }}>Total Base Value (Products)</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod === 'cod').reduce((sum, item) => {
+                      const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                        if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                          return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                            bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                        }
+                        return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                      }, 0) || 0;
+                      return sum + itemsValue;
+                    }, 0))}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled' && item.paymentMethod !== 'cod').reduce((sum, item) => {
+                      const itemsValue = item.items?.reduce((itemSum, orderItem) => {
+                        if (orderItem.type === 'bundle' && orderItem.bundleItems) {
+                          return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
+                            bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
+                        }
+                        return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
+                      }, 0) || 0;
+                      return sum + itemsValue;
+                    }, 0))}</span>
+                  </div>
                 </div>
               </div>
               <div className="stat-card">
@@ -564,7 +616,12 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{formatCurrency(salesSummary.totalValue)}</h3>
-                  <p>Total Value</p>
+                  <p style={{ marginBottom: '4px' }}>Total Value</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency(salesSummary.totalCodValue)}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency(salesSummary.totalValue - salesSummary.totalCodValue)}</span>
+                  </div>
                 </div>
               </div>
               <div className="stat-card">
@@ -573,7 +630,12 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{formatCurrency(salesSummary.totalShippingValue)}</h3>
-                  <p>Shipped Value</p>
+                  <p style={{ marginBottom: '4px' }}>Shipped Value</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency(salesSummary.totalCodShipping || 0)}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency(salesSummary.totalOnlineShipping || 0)}</span>
+                  </div>
                 </div>
               </div>
               <div className="stat-card">
@@ -582,7 +644,12 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{formatCurrency(salesSummary.totalCodCharge)}</h3>
-                  <p>Total Commission</p>
+                  <p style={{ marginBottom: '4px' }}>Total Commission</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency(salesSummary.totalCodCommission || 0)}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency(salesSummary.totalOnlineCommission || 0)}</span>
+                  </div>
                 </div>
               </div>
               <div className="stat-card">
@@ -591,26 +658,12 @@ const Reports = () => {
                 </div>
                 <div className="stat-content">
                   <h3>{formatCurrency(salesSummary.totalSettlement)}</h3>
-                  <p>Total Settlement</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
-                  <ShoppingBag size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>{formatCurrency(filteredSalesData.filter(item => item.status !== 'Cancelled').reduce((sum, item) => {
-                    // Calculate base product value from items (price × quantity) - excluding cancelled orders
-                    const itemsValue = item.items?.reduce((itemSum, orderItem) => {
-                      if (orderItem.type === 'bundle' && orderItem.bundleItems) {
-                        return itemSum + orderItem.bundleItems.reduce((bundleSum, bundleItem) => 
-                          bundleSum + (parseFloat(bundleItem.originalPrice) || 0), 0);
-                      }
-                      return itemSum + (parseFloat(orderItem.price) || 0) * (orderItem.quantity || 1);
-                    }, 0) || 0;
-                    return sum + itemsValue;
-                  }, 0))}</h3>
-                  <p>Total Base Value (Products)</p>
+                  <p style={{ marginBottom: '4px' }}>Total Settlement</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency(salesSummary.totalCodSettlement || 0)}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency(salesSummary.totalOnlineSettlement || 0)}</span>
+                  </div>
                 </div>
               </div>
             </div>
