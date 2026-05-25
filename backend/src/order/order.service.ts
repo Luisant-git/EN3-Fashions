@@ -224,6 +224,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
     let totalBaseValue = 0;
     let totalCodBaseValue = 0;
     let totalOnlineBaseValue = 0;
+    let totalDiscount = 0;
+    let totalCodDiscount = 0;
+    let totalOnlineDiscount = 0;
 
     // Statuses to include in main calculations
     const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
@@ -276,6 +279,16 @@ async getOrderStats(startDate?: string, endDate?: string) {
         // Total Value (sum of all order totals from Accepted, Shipped, Delivered)
         totalValue += parseFloat(order.total) || 0;
         
+        // Total Discount
+        const orderDiscount = parseFloat(order.discount || '0') || 0;
+        totalDiscount += orderDiscount;
+        
+        if (order.paymentMethod === 'cod') {
+          totalCodDiscount += orderDiscount;
+        } else {
+          totalOnlineDiscount += orderDiscount;
+        }
+        
         // Total Commission (sum of codCharge from Accepted, Shipped, Delivered orders)
         const orderCommission = parseFloat(order.codCharge as any) || 0;
         totalCommission += orderCommission;
@@ -298,8 +311,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
         }
       }
       
-      // TOTAL SHIPPING VALUE: Sum of courier charges from orders with status 'Accepted', 'Shipped', or 'Delivered'
-      if (includeStatuses.includes(order.status)) {
+      // TOTAL SHIPPING VALUE: Sum of courier charges from orders with status 'Accepted', 'Shipped', 'Delivered', or 'CODReturn'
+      if (includeStatuses.includes(order.status) || order.status === 'CODReturn') {
         const shippingCharge = parseFloat(order.courierCharge as any) || 0;
         totalShippingValue += shippingCharge;
         
@@ -337,7 +350,10 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalOnlineSettlement,
       totalBaseValue,
       totalCodBaseValue,
-      totalOnlineBaseValue
+      totalOnlineBaseValue,
+      totalDiscount,
+      totalCodDiscount,
+      totalOnlineDiscount
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);
@@ -692,7 +708,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
   }
 
 
-// Sales Report - Get orders with status 'Accepted', 'Shipped', 'Delivered', or 'Cancelled'
+// Sales Report - Get orders with status 'Accepted', 'Shipped', 'Delivered', 'CODReturn', or 'Cancelled'
 // For cancelled orders, all financial values will be 0
 async getSalesReport(startDate?: string, endDate?: string) {
   try {
@@ -713,7 +729,7 @@ async getSalesReport(startDate?: string, endDate?: string) {
     const orders = await this.prisma.order.findMany({
       where: {
         status: {
-          in: ['Accepted', 'Shipped', 'Delivered', 'Cancelled']
+          in: ['Accepted', 'Shipped', 'Delivered', 'CODReturn', 'Cancelled']
         },
         ...dateFilter
       },

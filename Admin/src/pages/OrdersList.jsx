@@ -16,6 +16,7 @@ import {
   Users,
   CreditCard,
   TrendingUp,
+  ShoppingBag,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
@@ -2399,28 +2400,23 @@ const resetDateRange = () => {
     </div>
 
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-      <div className="stat-icon" style={{ backgroundColor: '#f0fdfa', color: '#0d9488' }}>
-        <CreditCard size={24} />
+      <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+        <ShoppingBag size={24} />
       </div>
       <div className="stat-content">
-        <h3>₹{(orderStats.totalValue - orderStats.totalCodValue)?.toFixed(2) || '0.00'}</h3>
-        <p>Online Value</p>
+        <h3>₹{(() => {
+          const baseValue = orderStats.totalBaseValue || 0;
+          return baseValue.toFixed(2);
+        })()}</h3>
+        <p style={{ marginBottom: '4px' }}>Total Base Value (Products)</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{(orderStats.totalCodBaseValue || 0).toFixed(2)}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{((orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0)).toFixed(2)}</span>
+        </div>
       </div>
     </div>
 
-    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-      <div className="stat-icon" style={{ backgroundColor: '#fce7f3', color: '#db2777' }}>
-        <Receipt size={24} />
-      </div>
-      <div className="stat-content">
-        <h3>₹{orderStats.totalCodValue?.toFixed(2) || '0.00'}</h3>
-        <p>COD Value</p>
-      </div>
-    </div>
-  </div>
-
-  {/* Second Row: 5 Cards */}
-  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
         <Receipt size={24} />
@@ -2435,14 +2431,17 @@ const resetDateRange = () => {
         </div>
       </div>
     </div>
+  </div>
 
+  {/* Second Row: 5 Cards */}
+  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
         <Truck size={24} />
       </div>
       <div className="stat-content">
         <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
-        <p style={{ marginBottom: '4px' }}>Shipping Value</p>
+        <p style={{ marginBottom: '4px' }}>Shipped Value</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
           <span>COD: ₹{orderStats.totalCodShipping?.toFixed(2) || '0.00'}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
@@ -2482,25 +2481,36 @@ const resetDateRange = () => {
     </div>
 
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-      <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <Receipt size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalDiscount?.toFixed(2) || '0.00'}</h3>
+        <p>Total Discount</p>
+      </div>
+    </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#e8f5e9', color: '#2e7d32' }}>
         <TrendingUp size={24} />
       </div>
       <div className="stat-content">
         <h3>₹{(() => {
-          const profitLoss = (orderStats.totalValue || 0) - (orderStats.totalBaseValue || 0) - (orderStats.totalCommission || 0) - (orderStats.totalShippingValue || 0);
+          const profitLoss = (orderStats.totalValue || 0) - (orderStats.totalBaseValue || 0) - (orderStats.totalCommission || 0) - (orderStats.totalShippingValue || 0) - (orderStats.totalDiscount || 0);
           return profitLoss.toFixed(2);
         })()}</h3>
         <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
           <span>COD: ₹{(() => {
-            const codProfit = (orderStats.totalCodValue || 0) - (orderStats.totalCodBaseValue || 0) - (orderStats.totalCodCommission || 0) - (orderStats.totalCodShipping || 0);
+            const codProfit = (orderStats.totalCodValue || 0) - (orderStats.totalCodBaseValue || 0) - (orderStats.totalCodCommission || 0) - (orderStats.totalCodShipping || 0) - (orderStats.totalCodDiscount || 0);
             return codProfit.toFixed(2);
           })()}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: ₹{(() => {
             const onlineValue = (orderStats.totalValue || 0) - (orderStats.totalCodValue || 0);
             const onlineBaseValue = (orderStats.totalBaseValue || 0) - (orderStats.totalCodBaseValue || 0);
-            const onlineProfit = onlineValue - onlineBaseValue - (orderStats.totalOnlineCommission || 0) - (orderStats.totalOnlineShipping || 0);
+            const onlineDiscount = (orderStats.totalDiscount || 0) - (orderStats.totalCodDiscount || 0);
+            const onlineProfit = onlineValue - onlineBaseValue - (orderStats.totalOnlineCommission || 0) - (orderStats.totalOnlineShipping || 0) - onlineDiscount;
             return onlineProfit.toFixed(2);
           })()}</span>
         </div>

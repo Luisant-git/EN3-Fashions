@@ -593,54 +593,6 @@ const Reports = () => {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#e8f5e9', color: '#2e7d32' }}>
-                  <TrendingUp size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>{formatCurrency((() => {
-                    const settlementRate = (salesSummary.totalValue || 0) - (salesSummary.totalCodCharge || 0);
-                    const amount = settlementRate - (salesSummary.totalShippingValue || 0);
-                    const profitLoss = amount - (salesSummary.totalValue || 0);
-                    return profitLoss;
-                  })())}</h3>
-                  <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: {formatCurrency((() => {
-                      const codSettlement = (salesSummary.totalCodSettlement || 0);
-                      const codAmount = codSettlement - (salesSummary.totalCodShipping || 0);
-                      const codProfit = codAmount - (salesSummary.totalCodValue || 0);
-                      return codProfit;
-                    })())}</span>
-                    <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: {formatCurrency((() => {
-                      const onlineSettlement = (salesSummary.totalOnlineSettlement || 0);
-                      const onlineAmount = onlineSettlement - (salesSummary.totalOnlineShipping || 0);
-                      const onlineValue = (salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0);
-                      const onlineProfit = onlineAmount - onlineValue;
-                      return onlineProfit;
-                    })())}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#f0fdfa', color: '#0d9488' }}>
-                  <CreditCard size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalValue - salesSummary.totalCodValue)}</h3>
-                  <p>Online Value</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#fce7f3', color: '#db2777' }}>
-                  <Receipt size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>{formatCurrency(salesSummary.totalCodValue)}</h3>
-                  <p>COD Value</p>
-                </div>
-              </div>
-              <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#22c55e' }}>
                   <DollarSign size={24} />
                 </div>
@@ -693,6 +645,46 @@ const Reports = () => {
                     <span>COD: {formatCurrency(salesSummary.totalCodSettlement || 0)}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
                     <span>Online: {formatCurrency(salesSummary.totalOnlineSettlement || 0)}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+                  <Receipt size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency(salesSummary.totalDiscount || 0)}</h3>
+                  <p>Total Discount</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#e8f5e9', color: '#2e7d32' }}>
+                  <TrendingUp size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>{formatCurrency((() => {
+                    const settlementRate = (salesSummary.totalValue || 0) - (salesSummary.totalCodCharge || 0);
+                    const amount = settlementRate - (salesSummary.totalShippingValue || 0);
+                    const profitLoss = amount - (salesSummary.totalValue || 0) - (salesSummary.totalDiscount || 0);
+                    return profitLoss;
+                  })())}</h3>
+                  <p style={{ marginBottom: '4px' }}>Profit/Loss</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: {formatCurrency((() => {
+                      const codSettlement = (salesSummary.totalCodSettlement || 0);
+                      const codAmount = codSettlement - (salesSummary.totalCodShipping || 0);
+                      const codProfit = codAmount - (salesSummary.totalCodValue || 0) - (salesSummary.totalCodDiscount || 0);
+                      return codProfit;
+                    })())}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: {formatCurrency((() => {
+                      const onlineSettlement = (salesSummary.totalOnlineSettlement || 0);
+                      const onlineAmount = onlineSettlement - (salesSummary.totalOnlineShipping || 0);
+                      const onlineValue = (salesSummary.totalValue || 0) - (salesSummary.totalCodValue || 0);
+                      const onlineDiscount = (salesSummary.totalDiscount || 0) - (salesSummary.totalCodDiscount || 0);
+                      const onlineProfit = onlineAmount - onlineValue - onlineDiscount;
+                      return onlineProfit;
+                    })())}</span>
                   </div>
                 </div>
               </div>
