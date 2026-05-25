@@ -12,22 +12,24 @@ export class ShippingController {
   }
 
   @Post()
-  create(@Body() createShippingDto: { state: string; flatShippingRate: number }) {
+  create(@Body() createShippingDto: { state: string; flatShippingRate: number; codAvailable?: boolean }) {
     return this.prisma.shippingRule.create({
       data: {
         state: createShippingDto.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_') as IndianState,
-        flatShippingRate: createShippingDto.flatShippingRate
+        flatShippingRate: createShippingDto.flatShippingRate,
+        codAvailable: createShippingDto.codAvailable ?? true
       }
     })
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateShippingDto: { state: string; flatShippingRate: number }) {
+  update(@Param('id') id: string, @Body() updateShippingDto: { state: string; flatShippingRate: number; codAvailable?: boolean }) {
     return this.prisma.shippingRule.update({
       where: { id: +id },
       data: {
         state: updateShippingDto.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_') as IndianState,
-        flatShippingRate: updateShippingDto.flatShippingRate
+        flatShippingRate: updateShippingDto.flatShippingRate,
+        codAvailable: updateShippingDto.codAvailable ?? true
       }
     })
   }

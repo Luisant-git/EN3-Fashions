@@ -32,6 +32,7 @@ const CheckoutPage = () => {
     const [codShippingFee, setCodShippingFee] = useState(0);
     const [paymentMethod, setPaymentMethod] = useState('online');
     const [deliveryAvailable, setDeliveryAvailable] = useState(true);
+    const [codAvailable, setCodAvailable] = useState(true);
     const [formData, setFormData] = useState({
         fullName: '',
         addressLine1: '',
@@ -117,9 +118,15 @@ const CheckoutPage = () => {
             if (rule) {
                 setBaseDeliveryFee(rule.flatShippingRate);
                 setDeliveryAvailable(true);
+                setCodAvailable(rule.codAvailable !== false); // Check COD availability
+                // If COD is not available and currently selected, switch to online
+                if (rule.codAvailable === false && paymentMethod === 'cod') {
+                    setPaymentMethod('online');
+                }
             } else {
                 setBaseDeliveryFee(0);
                 setDeliveryAvailable(false);
+                setCodAvailable(false);
             }
         }
     }, [selectedState, shippingRules]);
@@ -440,32 +447,53 @@ const CheckoutPage = () => {
                                         <span className="payment-method-desc">Secure payment via Razorpay, UPI, Card, NetBanking</span>
                                     </div>
                                 </div>
-                                <div 
-                                    className={`payment-method-card ${paymentMethod === 'cod' ? 'selected' : ''}`}
-                                    onClick={() => setPaymentMethod('cod')}
-                                >
-                                    <input 
-                                        type="radio" 
-                                        name="paymentMethod" 
-                                        checked={paymentMethod === 'cod'} 
-                                        onChange={() => setPaymentMethod('cod')}
-                                    />
-                                    <div className="payment-method-icon">
-                                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="1" y="3" width="15" height="13"></rect>
-                                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                                        </svg>
+                                {codAvailable ? (
+                                    <div 
+                                        className={`payment-method-card ${paymentMethod === 'cod' ? 'selected' : ''}`}
+                                        onClick={() => setPaymentMethod('cod')}
+                                    >
+                                        <input 
+                                            type="radio" 
+                                            name="paymentMethod" 
+                                            checked={paymentMethod === 'cod'} 
+                                            onChange={() => setPaymentMethod('cod')}
+                                        />
+                                        <div className="payment-method-icon">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="1" y="3" width="15" height="13"></rect>
+                                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                            </svg>
+                                        </div>
+                                        <div className="payment-method-info">
+                                            <span className="payment-method-name">
+                                                Cash on Delivery 
+                                                {codShippingFee > 0 && <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>+ ₹{codShippingFee} Charge</span>}
+                                            </span>
+                                            <span className="payment-method-desc">Pay in cash upon delivery at your doorstep</span>
+                                        </div>
                                     </div>
-                                    <div className="payment-method-info">
-                                        <span className="payment-method-name">
-                                            Cash on Delivery 
-                                            {codShippingFee > 0 && <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>+ ₹{codShippingFee} Charge</span>}
-                                        </span>
-                                        <span className="payment-method-desc">Pay in cash upon delivery at your doorstep</span>
+                                ) : (
+                                    <div className="payment-method-card disabled" style={{ opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#f9fafb' }}>
+                                        <div className="payment-method-icon">
+                                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="1" y="3" width="15" height="13"></rect>
+                                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                            </svg>
+                                        </div>
+                                        <div className="payment-method-info">
+                                            <span className="payment-method-name" style={{ color: '#6b7280' }}>
+                                                Cash on Delivery
+                                            </span>
+                                            <span className="payment-method-desc" style={{ color: '#ef4444', fontWeight: '500' }}>
+                                                Not available for {selectedState?.value || 'this state'}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </section>
                         <button type="submit" className="confirm-pay-btn" style={{ marginTop: '30px' }} disabled={isPlacingOrder}>

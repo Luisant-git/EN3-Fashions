@@ -356,6 +356,7 @@ model ShippingRule {
   id               Int      @id @default(autoincrement())
   state            IndianState @unique
   flatShippingRate Float
+  codAvailable     Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

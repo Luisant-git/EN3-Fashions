@@ -50,12 +50,27 @@ export class OrderService {
 
     // Validate COD if selected
     if (createOrderDto.paymentMethod === 'cod') {
+      const shippingAddress = createOrderDto.shippingAddress;
+      
+      // First check pincode-level COD availability
       const pincode = await this.prisma.pincode.findUnique({
-        where: { pincode: createOrderDto.shippingAddress.pincode }
+        where: { pincode: shippingAddress.pincode }
       });
       
       if (pincode && pincode.codAvailable === false) {
         throw new Error('Cash on Delivery is not available for this pincode');
+      }
+
+      // Then check state-level COD availability from ShippingRule
+      if (shippingAddress.state) {
+        const stateEnum = shippingAddress.state.toUpperCase().replace(/ /g, '_').replace(/and/g, '').replace(/__/g, '_');
+        const shippingRule = await this.prisma.shippingRule.findUnique({
+          where: { state: stateEnum as any }
+        });
+        
+        if (shippingRule && shippingRule.codAvailable === false) {
+          throw new Error(`Cash on Delivery is not available for ${shippingAddress.state}`);
+        }
       }
     }
   

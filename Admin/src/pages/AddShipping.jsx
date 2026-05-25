@@ -8,7 +8,8 @@ const AddShipping = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     state: '',
-    flatShippingRate: ''
+    flatShippingRate: '',
+    codAvailable: true
   })
 
   const indianStates = [
@@ -27,7 +28,8 @@ const AddShipping = () => {
     try {
       await createShippingRule({
         state: formData.state,
-        flatShippingRate: parseFloat(formData.flatShippingRate)
+        flatShippingRate: parseFloat(formData.flatShippingRate),
+        codAvailable: formData.codAvailable
       })
       toast.success('Shipping created successfully!')
       navigate('/shipping-settings')
@@ -84,6 +86,21 @@ const AddShipping = () => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.codAvailable}
+                  onChange={(e) => handleInputChange('codAvailable', e.target.checked)}
+                  style={{ width: 'auto', cursor: 'pointer' }}
+                />
+                COD Available for this State
+              </label>
+              <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                Uncheck this to disable Cash on Delivery for all orders to this state
+              </p>
             </div>
           </div>
         </div>

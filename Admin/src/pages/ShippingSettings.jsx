@@ -56,6 +56,22 @@ const ShippingSettings = () => {
       render: (value) => `₹${value}`
     },
     {
+      key: 'codAvailable',
+      label: 'COD Available',
+      render: (value) => (
+        <span style={{
+          padding: '4px 12px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: '600',
+          backgroundColor: value ? '#d1fae5' : '#fee2e2',
+          color: value ? '#065f46' : '#991b1b'
+        }}>
+          {value ? 'Yes' : 'No'}
+        </span>
+      )
+    },
+    {
       key: 'actions',
       label: 'Actions',
       render: (_, row) => (
