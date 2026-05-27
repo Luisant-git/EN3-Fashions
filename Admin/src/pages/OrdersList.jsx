@@ -81,7 +81,11 @@ const [orderStats, setOrderStats] = useState({
   totalCodSettlement: 0,
   totalOnlineSettlement: 0,
   totalCodReturnBills: 0,
-  totalCodReturnQuantity: 0
+  totalCodReturnQuantity: 0,
+  totalCodReturnCustomers: 0,
+  totalCodReturnBaseValue: 0,
+  totalCodReturnValue: 0,
+  totalCodReturnShipping: 0
 });
   useEffect(() => {
     fetchOrders();
@@ -2527,6 +2531,90 @@ const statusCounts = getStatusCounts();
             return Math.round(onlineProfit);
           })()}</span>
         </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Return Summary Section */}
+  <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '24px 0 16px 0' }} />
+
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+    <h3
+      style={{
+        margin: 0,
+        fontSize: '14px',
+        fontWeight: 600,
+        color: '#111827',
+      }}
+    >
+      Return Summary
+    </h3>
+  </div>
+
+  <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+    {/* Card 1: Total Return Customers */}
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <Users size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{orderStats.totalCodReturnCustomers || 0}</h3>
+        <p>Total Return Customers</p>
+      </div>
+    </div>
+
+    {/* Card 2: Total Return Bills */}
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <Package size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{orderStats.totalCodReturnBills || 0}</h3>
+        <p>Total Return Bills</p>
+      </div>
+    </div>
+
+    {/* Card 3: Total Return Quantity */}
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <Package size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>{orderStats.totalCodReturnQuantity || 0}</h3>
+        <p>Total Return Quantity</p>
+      </div>
+    </div>
+
+    {/* Card 4: Total Return Base Value */}
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <ShoppingBag size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{(orderStats.totalCodReturnBaseValue || 0).toFixed(2)}</h3>
+        <p>Total Return Base Value</p>
+      </div>
+    </div>
+
+    {/* Card 5: Total Return Value */}
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <Receipt size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{(orderStats.totalCodReturnValue || 0).toFixed(2)}</h3>
+        <p>Total Return Value</p>
+      </div>
+    </div>
+
+    {/* Card 6: Return Shipped Value */}
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+        <Truck size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{(orderStats.totalCodReturnShipping || 0).toFixed(2)}</h3>
+        <p>Return Shipped Value</p>
       </div>
     </div>
   </div>

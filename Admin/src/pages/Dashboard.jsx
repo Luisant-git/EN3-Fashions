@@ -97,7 +97,8 @@ const Dashboard = () => {
     totalCodReturnDiscount: 0,
     totalCodReturnShipping: 0,
     totalCodReturnCommission: 0,
-    totalCodReturnSettlement: 0
+    totalCodReturnSettlement: 0,
+    totalCodReturnCustomers: 0
   });
 
   const scrollProducts = (direction) => {
@@ -480,6 +481,90 @@ const Dashboard = () => {
                   return Math.round(onlineProfit);
                 })()}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Return Summary Section */}
+          <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '24px 0 16px 0' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: '16px',
+                fontWeight: 600,
+                color: '#111827',
+              }}
+            >
+              Return Summary
+            </h3>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+            {/* Card 1: Total Return Customers */}
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <Users size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Return Customers</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalCodReturnCustomers || 0}</h3>
+            </div>
+
+            {/* Card 2: Total Return Bills */}
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <Package size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Return Bills</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalCodReturnBills || 0}</h3>
+            </div>
+
+            {/* Card 3: Total Return Quantity */}
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <Package size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Return Quantity</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalCodReturnQuantity || 0}</h3>
+            </div>
+
+            {/* Card 4: Total Return Base Value */}
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <ShoppingBag size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Return Base Value</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalCodReturnBaseValue || 0).toFixed(2)}</h3>
+            </div>
+
+            {/* Card 5: Total Return Value */}
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <Receipt size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Return Value</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalCodReturnValue || 0).toFixed(2)}</h3>
+            </div>
+
+            {/* Card 6: Return Shipped Value */}
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                  <Truck size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Return Shipped Value</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalCodReturnShipping || 0).toFixed(2)}</h3>
             </div>
           </div>
         </div>

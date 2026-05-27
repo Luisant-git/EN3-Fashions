@@ -205,6 +205,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
 
     let totalSales = 0;
     const uniqueCustomers = new Set<number>();
+    const uniqueReturnCustomers = new Set<number>();
     let totalQuantity = 0;
     let totalValue = 0;
     let totalShippingValue = 0;
@@ -309,6 +310,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
 
         if (order.userId) {
           uniqueCustomers.add(order.userId);
+          uniqueReturnCustomers.add(order.userId);
         }
       }
 
@@ -360,7 +362,8 @@ async getOrderStats(startDate?: string, endDate?: string) {
       totalCodReturnDiscount,
       totalCodReturnShipping,
       totalCodReturnCommission,
-      totalCodReturnSettlement
+      totalCodReturnSettlement,
+      totalCodReturnCustomers: uniqueReturnCustomers.size
     };
   } catch (error) {
     console.error('Error fetching order stats:', error);
