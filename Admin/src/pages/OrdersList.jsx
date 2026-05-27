@@ -59,6 +59,7 @@ const OrdersList = () => {
   const [courierCharge, setCourierCharge] = useState("");
   const modalRef = useRef(null);
   const statsRef = useRef(null);
+  const returnSummaryRef = useRef(null);
   const [chargedWeight, setChargedWeight] = useState("");
 
 const [orderStats, setOrderStats] = useState({
@@ -1979,6 +1980,33 @@ const exportAllOrdersExcel = () => {
   }
 };
 
+const downloadReturnSummaryAsImage = async () => {
+  try {
+    const clone = returnSummaryRef.current.cloneNode(true);
+    clone.style.position = 'fixed';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.width = '400px';
+    document.body.appendChild(clone);
+    await new Promise(resolve => setTimeout(resolve, 80));
+    const canvas = await html2canvas(clone, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      windowWidth: 400,
+      windowHeight: clone.scrollHeight,
+    });
+    document.body.removeChild(clone);
+    const link = document.createElement('a');
+    link.download = `return-summary-stats-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (error) {
+    console.error('Error downloading return summary image:', error);
+  }
+};
+
 
 const resetDateRange = () => {
   setStartDate("");
@@ -2524,22 +2552,63 @@ const statusCounts = getStatusCounts();
         </div>
       </div>
     </div>
+    </div>
   </div>
+</div>
 
-  {/* Return Summary Section */}
-  <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '24px 0 16px 0' }} />
+{/* Return Summary Section */}
+<div
+  ref={returnSummaryRef}
+  style={{
+    marginTop: '4px',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    backgroundColor: '#f9fafb',
+    border: '1px solid #e5e7eb',
+  }}
+>
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '12px',
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <h3
+        style={{
+          margin: 0,
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#111827',
+        }}
+      >
+        Return Summary
+      </h3>
+    </div>
 
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-    <h3
+    <button
+      type="button"
+      onClick={downloadReturnSummaryAsImage}
       style={{
-        margin: 0,
-        fontSize: '14px',
-        fontWeight: 600,
-        color: '#111827',
+        padding: '6px 10px',
+        borderRadius: '999px',
+        border: 'none',
+        backgroundColor: '#10b981',
+        color: 'white',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontSize: '12px',
+        fontWeight: 500,
       }}
+      title="Download return summary as image"
     >
-      Return Summary
-    </h3>
+      <ImageIcon size={14} />
+      <span>Download</span>
+    </button>
   </div>
 
   <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
@@ -2611,7 +2680,6 @@ const statusCounts = getStatusCounts();
   </div>
     </div>
   </div>
-</div>
       <div className="status-tabs">
         <button
           className={statusFilter === "all" ? "tab active" : "tab"}

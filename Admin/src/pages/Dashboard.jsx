@@ -18,7 +18,11 @@ import {
   TrendingUp,
   ShoppingBag,
   CreditCard,
-  ImageIcon
+  ImageIcon,
+  Archive,
+  CheckCircle,
+  AlertCircle,
+  UserCheck
 } from 'lucide-react';
 
 // Import child components
@@ -26,7 +30,8 @@ import SalesAnalytics from '../components/SalesAnalytics';
 import TopSellingProducts from '../components/TopSellingProducts';
 import { getDashboardStats, getSalesAnalytics, getTopProducts, getCurrentOffers, getRecentOrders } from '../api/dashboardApi';
 import { getProducts } from '../api/productApi';
-import { getOrderStats } from '../api/order';
+import { getOrderStats, getProductReport } from '../api/order';
+import { getCustomerStats } from '../api/customerApi';
 import html2canvas from 'html2canvas';
 import './Dashboard.scss'
 
@@ -64,6 +69,23 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const productsScrollRef = React.useRef(null);
   const statsRef = useRef(null);
+  const returnSummaryRef = useRef(null);
+  const productStatsRef = useRef(null);
+  const customerStatsRef = useRef(null);
+  const [productStats, setProductStats] = useState({
+    totalProducts: 0,
+    totalInitialStock: 0,
+    totalSaleStock: 0,
+    totalCurrentStock: 0,
+    totalSalesAmount: 0,
+  });
+  const [customerStats, setCustomerStats] = useState({
+    totalCustomers: 0,
+    loginCustomers: 0,
+    orderedCustomers: 0,
+    cancelledCustomers: 0,
+    abandonedCustomers: 0,
+  });
   const [orderStats, setOrderStats] = useState({
     totalSales: 0,
     totalCustomers: 0,
@@ -114,6 +136,8 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
     fetchOrderStats();
+    fetchProductStats();
+    fetchCustomerStatsData();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -186,6 +210,86 @@ const Dashboard = () => {
     }
   };
 
+  const fetchProductStats = async () => {
+    try {
+      const data = await getProductReport();
+      if (Array.isArray(data)) {
+        setProductStats({
+          totalProducts: data.length,
+          totalInitialStock: data.reduce((sum, p) => sum + (p.initialStock || 0), 0),
+          totalSaleStock: data.reduce((sum, p) => sum + (p.saleStock || 0), 0),
+          totalCurrentStock: data.reduce((sum, p) => sum + (p.currentStock || 0), 0),
+          totalSalesAmount: data.reduce((sum, p) => sum + (p.totalSalesAmount || 0), 0),
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching product stats:', error);
+    }
+  };
+
+  const fetchCustomerStatsData = async () => {
+    try {
+      const stats = await getCustomerStats();
+      setCustomerStats(stats);
+    } catch (error) {
+      console.error('Error fetching customer stats:', error);
+    }
+  };
+
+  const downloadProductStatsAsImage = async () => {
+    try {
+      const clone = productStatsRef.current.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '400px';
+      document.body.appendChild(clone);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      const canvas = await html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: 400,
+        windowHeight: clone.scrollHeight,
+      });
+      document.body.removeChild(clone);
+      const link = document.createElement('a');
+      link.download = `product-sales-summary-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading product stats image:', error);
+    }
+  };
+
+  const downloadCustomerStatsAsImage = async () => {
+    try {
+      const clone = customerStatsRef.current.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '400px';
+      document.body.appendChild(clone);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      const canvas = await html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: 400,
+        windowHeight: clone.scrollHeight,
+      });
+      document.body.removeChild(clone);
+      const link = document.createElement('a');
+      link.download = `customers-summary-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading customer stats image:', error);
+    }
+  };
+
   const downloadStatsAsImage = async () => {
     try {
       const clone = statsRef.current.cloneNode(true);
@@ -228,6 +332,33 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error downloading stats image:', error);
       alert('Failed to download stats image');
+    }
+  };
+
+  const downloadReturnSummaryAsImage = async () => {
+    try {
+      const clone = returnSummaryRef.current.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '400px';
+      document.body.appendChild(clone);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      const canvas = await html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: 400,
+        windowHeight: clone.scrollHeight,
+      });
+      document.body.removeChild(clone);
+      const link = document.createElement('a');
+      link.download = `return-summary-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading return summary image:', error);
     }
   };
 
@@ -474,30 +605,52 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Return Summary Section */}
-          <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '24px 0 16px 0' }} />
+      {/* Return Summary */}
+      <div
+        ref={returnSummaryRef}
+        style={{
+          marginTop: '20px',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          backgroundColor: '#f9fafb',
+          border: '1px solid #e5e7eb',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#111827' }}>Return Summary</h3>
+          <button
+            type="button"
+            onClick={downloadReturnSummaryAsImage}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: '#10b981',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+            title="Download return summary as image"
+          >
+            <ImageIcon size={16} />
+            <span>Download</span>
+          </button>
+        </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '16px',
-                fontWeight: 600,
-                color: '#111827',
-              }}
-            >
-              Return Summary
-            </h3>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-            {/* Card 1: Total Return Customers */}
-            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
-                  <Users size={20} />
-                </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+          {/* Card 1: Total Return Customers */}
+          <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
+                <Users size={20} />
+              </div>
                 <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Return Customers</p>
               </div>
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{orderStats.totalCodReturnCustomers || 0}</h3>
@@ -557,6 +710,173 @@ const Dashboard = () => {
               </div>
               <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{(orderStats.totalCodReturnShipping || 0).toFixed(2)}</h3>
             </div>
+          </div>
+        </div>
+
+      {/* Product Sales Summary */}
+      <div
+        ref={productStatsRef}
+        style={{
+          marginTop: '20px',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          backgroundColor: '#f9fafb',
+          border: '1px solid #e5e7eb',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#111827' }}>Product Sales Summary</h3>
+          <button
+            type="button"
+            onClick={downloadProductStatsAsImage}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: '#10b981',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+            title="Download product summary as image"
+          >
+            <ImageIcon size={16} />
+            <span>Download</span>
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
+                <ShoppingCart size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Products</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalProducts}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#f59e0b' }}>
+                <Archive size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Initial Stock</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalInitialStock}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#d1fae5', borderRadius: '8px', color: '#10b981' }}>
+                <CheckCircle size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Sale Stock</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalSaleStock}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fee2e2', borderRadius: '8px', color: '#ef4444' }}>
+                <Package size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Current Stock</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalCurrentStock}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#ede9fe', borderRadius: '8px', color: '#8b5cf6' }}>
+                <TrendingUp size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Sales Amount</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{productStats.totalSalesAmount.toFixed(2)}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Customers Summary */}
+      <div
+        ref={customerStatsRef}
+        style={{
+          marginTop: '20px',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          backgroundColor: '#f9fafb',
+          border: '1px solid #e5e7eb',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#111827' }}>Customers Summary</h3>
+          <button
+            type="button"
+            onClick={downloadCustomerStatsAsImage}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: '#10b981',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+            title="Download customer summary as image"
+          >
+            <ImageIcon size={16} />
+            <span>Download</span>
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
+                <Users size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Logged Customers</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{customerStats.totalCustomers}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#ecfdf5', borderRadius: '8px', color: '#10b981' }}>
+                <UserCheck size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Non Order Customers</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{customerStats.loginCustomers}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#f59e0b' }}>
+                <ShoppingBag size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Ordered Customers</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{customerStats.orderedCustomers}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#dc2626' }}>
+                <AlertCircle size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Cancelled Customers</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{customerStats.cancelledCustomers}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fff7ed', borderRadius: '8px', color: '#f97316' }}>
+                <AlertCircle size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Abandoned Customers</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{customerStats.abandonedCustomers}</h3>
           </div>
         </div>
       </div>
