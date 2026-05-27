@@ -24,6 +24,7 @@ const ProductSalesReport = () => {
   const [variantFilter, setVariantFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState('');
   const [subcategoryFilter, setSubcategoryFilter] = useState('');
+  const [saleTypeFilter, setSaleTypeFilter] = useState('all'); // 'all', 'single', 'bundle'
 
   const [selectedProductSales, setSelectedProductSales] = useState(null);
   const [showSalesModal, setShowSalesModal] = useState(false);
@@ -142,8 +143,16 @@ const ProductSalesReport = () => {
       String(product.sizeVariantId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(product.price || '').includes(searchTerm) ||
       String(product.totalSalesAmount || '').includes(searchTerm);
+
+    // Sale Type filter: check if product's sales contain any of the requested type
+    let matchesSaleType = true;
+    if (saleTypeFilter === 'bundle') {
+      matchesSaleType = product.sales?.some(s => s.saleType === 'Bundle') ?? false;
+    } else if (saleTypeFilter === 'single') {
+      matchesSaleType = product.sales?.some(s => s.saleType === 'Single') ?? false;
+    }
     
-    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesPrice && matchesSubcategory && matchesSearch;
+    return matchesProduct && matchesColor && matchesSize && matchesVariant && matchesPrice && matchesSubcategory && matchesSearch && matchesSaleType;
   });
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>;
@@ -157,8 +166,8 @@ const ProductSalesReport = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      {/* Filters - Row 1: Dropdowns */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'nowrap', alignItems: 'flex-end', overflowX: 'auto' }}>
         <div style={{ flex: '0 0 200px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Category Name</label>
           <Select
@@ -264,7 +273,6 @@ const ProductSalesReport = () => {
             ]}
           />
         </div>
-
         <div style={{ flex: '0 0 120px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Price</label>
           <Select
@@ -286,6 +294,10 @@ const ProductSalesReport = () => {
             ]}
           />
         </div>
+      </div>
+
+      {/* Filters - Row 2: Date, Sale Type, Actions */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'nowrap', alignItems: 'flex-end', overflowX: 'auto' }}>
         <div>
           <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>From</label>
           <input
@@ -304,45 +316,79 @@ const ProductSalesReport = () => {
             style={{ padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
           />
         </div>
-        <button
-          onClick={() => { 
-            setStartDate(''); 
-            setEndDate(''); 
-            setProductFilter('');
-            setColorFilter('');
-            setSizeFilter('');
-            setVariantFilter('');
-            setPriceFilter('');
-            setSubcategoryFilter('');
-            setSearchTerm('');
-          }}
-          style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <X size={16} /> Reset All
-        </button>
-        <button
-          onClick={takeScreenshot}
-          disabled={isCapturing}
-          style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', minWidth: '130px', justifyContent: 'center' }}
-        >
-          {isCapturing ? (
-            <>
-              <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-              <span>Capturing...</span>
-              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-            </>
-          ) : (
-            <>
-              <Camera size={16} /> Screenshot
-            </>
-          )}
-        </button>
-        <button
-          onClick={exportToExcel}
-          style={{ padding: '10px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <Download size={16} /> Export Excel
-        </button>
+        <div>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500', color: '#374151' }}>Sale Type</label>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {[['all', 'All'], ['single', 'Single'], ['bundle', 'Bundle']].map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => setSaleTypeFilter(value)}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  border: '1px solid',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  borderColor: saleTypeFilter === value ? '#4169E1' : '#d1d5db',
+                  background: saleTypeFilter === value ? '#4169E1' : 'white',
+                  color: saleTypeFilter === value ? 'white' : '#6b7280',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', visibility: 'hidden' }}>&#8203;</label>
+          <button
+            onClick={() => { 
+              setStartDate(''); 
+              setEndDate(''); 
+              setProductFilter('');
+              setColorFilter('');
+              setSizeFilter('');
+              setVariantFilter('');
+              setPriceFilter('');
+              setSubcategoryFilter('');
+              setSearchTerm('');
+              setSaleTypeFilter('all');
+            }}
+            style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <X size={16} /> Reset All
+          </button>
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', visibility: 'hidden' }}>&#8203;</label>
+          <button
+            onClick={takeScreenshot}
+            disabled={isCapturing}
+            style={{ padding: '10px 16px', background: isCapturing ? '#93c5fd' : '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: isCapturing ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', minWidth: '130px', justifyContent: 'center' }}
+          >
+            {isCapturing ? (
+              <>
+                <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+                <span>Capturing...</span>
+                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+              </>
+            ) : (
+              <>
+                <Camera size={16} /> Screenshot
+              </>
+            )}
+          </button>
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', visibility: 'hidden' }}>&#8203;</label>
+          <button
+            onClick={exportToExcel}
+            style={{ padding: '10px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Download size={16} /> Export Excel
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -431,6 +477,7 @@ const ProductSalesReport = () => {
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Color</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Size</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Variant ID</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Sale Type</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Initial Stock</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Sale Stock</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Current Stock</th>
@@ -441,7 +488,7 @@ const ProductSalesReport = () => {
             <tbody>
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="11" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+                <td colSpan="12" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
                     <Package size={48} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
                     <div>No products found</div>
                   </td>
@@ -457,6 +504,21 @@ const ProductSalesReport = () => {
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.color}</td>
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.size}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>{String(product.sizeVariantId || '')}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      {(() => {
+                        const hasBundle = product.sales?.some(s => s.saleType === 'Bundle');
+                        const hasSingle = product.sales?.some(s => s.saleType === 'Single');
+                        if (hasBundle && hasSingle) return (
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>Bundle</span>
+                            <span style={{ background: '#f3f4f6', color: '#4b5563', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>Single</span>
+                          </div>
+                        );
+                        if (hasBundle) return <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>Bundle</span>;
+                        if (hasSingle) return <span style={{ background: '#f3f4f6', color: '#4b5563', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>Single</span>;
+                        return <span style={{ color: '#d1d5db', fontSize: '12px' }}>—</span>;
+                      })()}
+                    </td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '600' }}>{product.initialStock}</td>
                     <td 
                       onClick={() => handleViewSalesDetail(product)}
@@ -500,6 +562,7 @@ const ProductSalesReport = () => {
                   <td style={{ padding: '12px 16px' }}></td>
                   <td style={{ padding: '12px 16px' }}></td>
                   <td style={{ padding: '12px 16px' }}></td>
+                  <td style={{ padding: '12px 16px' }}></td>{/* Sale Type column */}
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.initialStock, 0)}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.saleStock, 0)}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '700' }}>{filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)}</td>
