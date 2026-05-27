@@ -1001,7 +1001,15 @@ async getProductReport(startDate?: string, endDate?: string) {
         ...dateFilter
       },
       include: {
-        items: true
+        items: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true
+          }
+        }
       }
     });
 
@@ -1034,13 +1042,24 @@ async getProductReport(startDate?: string, endDate?: string) {
                 imageUrl: bundleItem.colorImage || item.imageUrl,
                 hsnCode: item.hsnCode || 'N/A',
                 deliveredQty: 0,
-                totalSalesAmount: 0
+                totalSalesAmount: 0,
+                sales: []
               });
             }
             
             const product = productMap.get(key);
             product.deliveredQty += 1;
-            product.totalSalesAmount += parseFloat(bundleItem.originalPrice || '0');
+            const itemPrice = parseFloat(bundleItem.originalPrice || '0');
+            product.totalSalesAmount += itemPrice;
+            product.sales.push({
+              orderId: order.id,
+              customer: order.user?.name || (order.shippingAddress as any)?.fullName || 'N/A',
+              phone: order.user?.phone || (order.shippingAddress as any)?.mobile || 'N/A',
+              quantity: 1,
+              price: itemPrice,
+              date: order.createdAt,
+              status: order.status
+            });
           });
         } else {
           // Handle single items
@@ -1056,7 +1075,8 @@ async getProductReport(startDate?: string, endDate?: string) {
               imageUrl: item.imageUrl,
               hsnCode: item.hsnCode || 'N/A',
               deliveredQty: 0,
-              totalSalesAmount: 0
+              totalSalesAmount: 0,
+              sales: []
             });
           }
           
@@ -1065,6 +1085,15 @@ async getProductReport(startDate?: string, endDate?: string) {
           const itemPrice = parseFloat(item.price || '0');
           product.deliveredQty += quantity;
           product.totalSalesAmount += itemPrice * quantity;
+          product.sales.push({
+            orderId: order.id,
+            customer: order.user?.name || (order.shippingAddress as any)?.fullName || 'N/A',
+            phone: order.user?.phone || (order.shippingAddress as any)?.mobile || 'N/A',
+            quantity: quantity,
+            price: itemPrice,
+            date: order.createdAt,
+            status: order.status
+          });
         }
       });
     });

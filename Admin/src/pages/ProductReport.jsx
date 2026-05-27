@@ -25,6 +25,15 @@ const ProductSalesReport = () => {
   const [priceFilter, setPriceFilter] = useState('');
   const [subcategoryFilter, setSubcategoryFilter] = useState('');
 
+  const [selectedProductSales, setSelectedProductSales] = useState(null);
+  const [showSalesModal, setShowSalesModal] = useState(false);
+
+  const handleViewSalesDetail = (product) => {
+    if (!product.sales || product.sales.length === 0) return;
+    setSelectedProductSales(product);
+    setShowSalesModal(true);
+  };
+
   useEffect(() => {
     fetchReport();
   }, [startDate, endDate]);
@@ -449,10 +458,36 @@ const ProductSalesReport = () => {
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>{product.size}</td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>{String(product.sizeVariantId || '')}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#f59e0b', fontWeight: '600' }}>{product.initialStock}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#10b981', fontWeight: '600' }}>{product.saleStock}</td>
+                    <td 
+                      onClick={() => handleViewSalesDetail(product)}
+                      style={{ 
+                        padding: '12px 16px', 
+                        textAlign: 'center', 
+                        fontSize: '14px', 
+                        color: product.saleStock > 0 ? '#10b981' : '#6b7280', 
+                        fontWeight: '600',
+                        cursor: product.saleStock > 0 ? 'pointer' : 'default',
+                        textDecoration: product.saleStock > 0 ? 'underline' : 'none' 
+                      }}
+                    >
+                      {product.saleStock}
+                    </td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#ef4444', fontWeight: '600' }}>{product.currentStock}</td>
                     <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>₹{product.price}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontSize: '14px', color: '#7c3aed', fontWeight: '700' }}>₹{product.totalSalesAmount}</td>
+                    <td 
+                      onClick={() => handleViewSalesDetail(product)}
+                      style={{ 
+                        padding: '12px 16px', 
+                        textAlign: 'center', 
+                        fontSize: '14px', 
+                        color: product.saleStock > 0 ? '#7c3aed' : '#6b7280', 
+                        fontWeight: '700',
+                        cursor: product.saleStock > 0 ? 'pointer' : 'default',
+                        textDecoration: product.saleStock > 0 ? 'underline' : 'none' 
+                      }}
+                    >
+                      ₹{product.totalSalesAmount}
+                    </td>
                   </tr>
                 ))
               )}
@@ -477,6 +512,82 @@ const ProductSalesReport = () => {
         </div>
       </div>
       </div>
+
+      {/* Sales Invoices Modal */}
+      {showSalesModal && selectedProductSales && (
+        <div className="modal-overlay" onClick={() => setShowSalesModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+            <div className="modal-header">
+              <h2 style={{ margin: 0 }}>Sales Invoices - {selectedProductSales.productName}</h2>
+              <button onClick={() => setShowSalesModal(false)} className="close-btn">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px' }}>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', background: '#f9fafb', padding: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <img 
+                  src={selectedProductSales.imageUrl} 
+                  alt={selectedProductSales.productName} 
+                  style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} 
+                />
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '600' }}>{selectedProductSales.productName}</h4>
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '13px', color: '#4b5563' }}>
+                    <span><strong>Color:</strong> {selectedProductSales.color}</span>
+                    <span><strong>Size:</strong> {selectedProductSales.size}</span>
+                    <span><strong>Variant ID:</strong> <code style={{ background: '#f3f4f6', padding: '2px 4px', borderRadius: '4px' }}>{selectedProductSales.sizeVariantId}</code></span>
+                    <span><strong>HSN Code:</strong> {selectedProductSales.hsnCode}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '13px' }}>
+                    <span style={{ color: '#10b981', fontWeight: '600' }}>Total Sold Qty: {selectedProductSales.saleStock}</span>
+                    <span style={{ color: '#7c3aed', fontWeight: '700' }}>Total Sales Amount: ₹{selectedProductSales.totalSalesAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                      <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>S.No</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Order ID</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Date</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Customer</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Price</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Qty</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Total</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedProductSales.sales?.map((sale, index) => (
+                      <tr key={index} style={{ borderBottom: '1px solid #f3f4f6', background: index % 2 === 0 ? 'white' : '#f9fafb' }}>
+                        <td style={{ padding: '10px 12px', color: '#6b7280' }}>{index + 1}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: '600', color: '#3b82f6' }}>ORD-{sale.orderId}</td>
+                        <td style={{ padding: '10px 12px', color: '#6b7280' }}>
+                          {new Date(sale.date).toLocaleDateString('en-GB')}
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <div style={{ fontWeight: '500', color: '#111827' }}>{sale.customer}</div>
+                          <div style={{ fontSize: '11px', color: '#6b7280' }}>{sale.phone}</div>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>₹{parseFloat(sale.price).toFixed(2)}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600' }}>{sale.quantity}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '700', color: '#7c3aed' }}>₹{(sale.price * sale.quantity).toFixed(2)}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          <span className={`status-badge ${sale.status?.toLowerCase()}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
+                            {sale.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
