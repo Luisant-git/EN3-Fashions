@@ -27,8 +27,8 @@ export class CouponController {
   @ApiBody({ schema: { properties: { code: { type: 'string' }, subtotal: { type: 'number' }, deliveryFee: { type: 'number' }, codFee: { type: 'number' } } } })
   @ApiResponse({ status: 200, description: 'Coupon validated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid coupon' })
-  validate(@Request() req, @Body() body: { code: string; subtotal: number; deliveryFee?: number; codFee?: number }) {
-    return this.couponService.validateCoupon(body.code, req.user.userId, body.subtotal, body.deliveryFee || 0, body.codFee || 0);
+  validate(@Request() req, @Body() body: { code: string; subtotal: number; deliveryFee?: number; codFee?: number; cartItems?: Array<{ productId?: number; price: number; quantity: number }> }) {
+    return this.couponService.validateCoupon(body.code, req.user.userId, body.subtotal, body.deliveryFee || 0, body.codFee || 0, body.cartItems);
   }
 
   @Post()

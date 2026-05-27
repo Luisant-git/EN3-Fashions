@@ -279,6 +279,7 @@ model Coupon {
   expiryDate      DateTime?
   isHiddenFromUser Boolean @default(false)
   applyTo         String[] @default(["subtotal"])
+  excludeOfferProducts Boolean @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

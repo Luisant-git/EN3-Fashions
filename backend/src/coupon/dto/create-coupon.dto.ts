@@ -36,4 +36,7 @@ export class CreateCouponDto {
 
   @ApiPropertyOptional({ example: ['subtotal', 'delivery'], enum: ['subtotal', 'delivery', 'cod'], isArray: true, description: 'Target categories for discount' })
   applyTo?: string[];
+
+  @ApiPropertyOptional({ example: false, description: 'Exclude offer products from coupon discount' })
+  excludeOfferProducts?: boolean;
 }

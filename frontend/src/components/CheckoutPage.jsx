@@ -136,12 +136,18 @@ const CheckoutPage = () => {
         if (appliedCoupon) {
             const revalidate = async () => {
                 try {
+                    const cartItemsPayload = Array.isArray(cart) ? cart.map(item => ({
+                        productId: item.productId,
+                        price: item.price,
+                        quantity: item.quantity,
+                    })) : [];
                     const result = await validateCoupon(
                         appliedCoupon.code, 
                         subtotal, 
                         baseDeliveryFee, 
                         paymentMethod === 'cod' ? codShippingFee : 0, 
-                        token
+                        token,
+                        cartItemsPayload
                     );
                     setDiscount(result.discount);
                 } catch (e) {
@@ -405,12 +411,18 @@ const CheckoutPage = () => {
                                             if (!couponCode.trim()) return;
                                             setIsValidatingCoupon(true);
                                             try {
+                                                const cartItemsPayload = Array.isArray(cart) ? cart.map(item => ({
+                                                        productId: item.productId,
+                                                        price: item.price,
+                                                        quantity: item.quantity,
+                                                    })) : [];
                                                 const result = await validateCoupon(
                                                     couponCode, 
                                                     subtotal, 
                                                     baseDeliveryFee, 
                                                     paymentMethod === 'cod' ? codShippingFee : 0, 
-                                                    token
+                                                    token,
+                                                    cartItemsPayload
                                                 );
                                                 setAppliedCoupon(result.coupon);
                                                 setDiscount(result.discount);

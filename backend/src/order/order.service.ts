@@ -38,7 +38,12 @@ export class OrderService {
           userId,
           parseFloat(createOrderDto.subtotal),
           parseFloat(createOrderDto.deliveryFee || '0'),
-          parseFloat(createOrderDto.codFee || '0')
+          parseFloat(createOrderDto.codFee || '0'),
+          cart.items.map(item => ({
+            productId: item.productId ?? undefined,
+            price: parseFloat(item.price) || 0,
+            quantity: item.quantity || 1,
+          }))
         );
         discount = result.discount.toString();
         couponCode = createOrderDto.couponCode;

@@ -62,7 +62,14 @@ export class CouponService {
     return this.prisma.coupon.delete({ where: { id } });
   }
 
-  async validateCoupon(code: string, userId: number, subtotal: number, deliveryFee: number = 0, codFee: number = 0) {
+  async validateCoupon(
+    code: string,
+    userId: number,
+    subtotal: number,
+    deliveryFee: number = 0,
+    codFee: number = 0,
+    cartItems?: Array<{ productId?: number; price: number; quantity: number }>
+  ) {
     const coupon = await (this.prisma.coupon as any).findUnique({
       where: { code: code.toUpperCase() },
       include: { 
@@ -101,9 +108,36 @@ export class CouponService {
       throw new BadRequestException(`Minimum order amount is ₹${coupon.minOrderAmount}`);
     }
 
+    // -- Handle excludeOfferProducts --
+    let eligibleSubtotal = subtotal;
+    if (coupon.excludeOfferProducts && cartItems && cartItems.length > 0) {
+      let offerProductsTotal = 0;
+      let allItemsAreOffer = true;
+
+      for (const item of cartItems) {
+        if (!item.productId) continue;
+        const product = await this.prisma.product.findUnique({
+          where: { id: item.productId },
+          select: { discount: true },
+        });
+        const itemTotal = (item.price || 0) * (item.quantity || 1);
+        if (product?.discount) {
+          offerProductsTotal += itemTotal;
+        } else {
+          allItemsAreOffer = false;
+        }
+      }
+
+      if (allItemsAreOffer && offerProductsTotal > 0) {
+        throw new BadRequestException('This coupon is not applicable for offer products.');
+      }
+
+      eligibleSubtotal = Math.max(0, subtotal - offerProductsTotal);
+    }
+
     const targets = coupon.applyTo || ['subtotal'];
     const totalTargetAmount = targets.reduce((sum, target) => {
-      if (target === 'subtotal') return sum + subtotal;
+      if (target === 'subtotal') return sum + eligibleSubtotal;
       if (target === 'delivery') return sum + deliveryFee;
       if (target === 'cod') return sum + codFee;
       return sum;

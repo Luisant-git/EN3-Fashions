@@ -20,6 +20,7 @@ const EditCoupon = () => {
     isActive: true,
     isHiddenFromUser: false,
     applyTo: ['subtotal'],
+    excludeOfferProducts: false,
     specificUserIds: []
   })
   const [loading, setLoading] = useState(true)
@@ -58,6 +59,7 @@ const EditCoupon = () => {
         isActive: data.isActive,
         isHiddenFromUser: data.isHiddenFromUser,
         applyTo: data.applyTo || ['subtotal'],
+        excludeOfferProducts: data.excludeOfferProducts || false,
         specificUserIds: data.specificUsers ? data.specificUsers.map(u => u.id) : []
       })
       if (data.specificUsers && data.specificUsers.length > 0) {
@@ -118,6 +120,7 @@ const EditCoupon = () => {
         isActive: formData.isActive,
         isHiddenFromUser: formData.isHiddenFromUser,
         applyTo: formData.applyTo,
+        excludeOfferProducts: formData.excludeOfferProducts,
         specificUserIds: formData.specificUserIds
       }
       await updateCoupon(id, data)
@@ -278,6 +281,21 @@ const EditCoupon = () => {
                   COD Fee
                 </label>
               </div>
+            </div>
+
+            <div className="form-group full-width" style={{ marginTop: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.excludeOfferProducts}
+                  onChange={(e) => handleInputChange('excludeOfferProducts', e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#10b981' }}
+                />
+                Exclude “Mark as Offer Product” items from coupon discount
+              </label>
+              <small style={{ display: 'block', marginTop: '4px', color: '#6b7280', fontSize: '12px' }}>
+                If enabled, coupon discount will only be applied to non-offer products. Offer products remain at their existing price.
+              </small>
             </div>
 
             <div className="form-row">
