@@ -553,6 +553,7 @@ const ProductSalesReport = () => {
                       <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Order ID</th>
                       <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Date</th>
                       <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#374151' }}>Customer</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Sale Type</th>
                       <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Price</th>
                       <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Qty</th>
                       <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>Total</th>
@@ -570,6 +571,43 @@ const ProductSalesReport = () => {
                         <td style={{ padding: '10px 12px' }}>
                           <div style={{ fontWeight: '500', color: '#111827' }}>{sale.customer}</div>
                           <div style={{ fontSize: '11px', color: '#6b7280' }}>{sale.phone}</div>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          {sale.saleType === 'Bundle' ? (
+                            <div>
+                              <span 
+                                style={{ 
+                                  display: 'inline-block',
+                                  background: '#e0f2fe', 
+                                  color: '#0369a1', 
+                                  padding: '2px 8px', 
+                                  borderRadius: '4px', 
+                                  fontSize: '11px',
+                                  fontWeight: '600'
+                                }}
+                                title={`Sold as part of: ${sale.parentName}`}
+                              >
+                                Bundle
+                              </span>
+                              <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={sale.parentName}>
+                                {sale.parentName}
+                              </div>
+                            </div>
+                          ) : (
+                            <span 
+                              style={{ 
+                                display: 'inline-block',
+                                background: '#f3f4f6', 
+                                color: '#4b5563', 
+                                padding: '2px 8px', 
+                                borderRadius: '4px', 
+                                fontSize: '11px',
+                                fontWeight: '600'
+                              }}
+                            >
+                              Single
+                            </span>
+                          )}
                         </td>
                         <td style={{ padding: '10px 12px', textAlign: 'center' }}>₹{parseFloat(sale.price).toFixed(2)}</td>
                         <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '600' }}>{sale.quantity}</td>

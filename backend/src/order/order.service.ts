@@ -249,7 +249,7 @@ async getOrderStats(startDate?: string, endDate?: string) {
       order.items?.forEach(item => {
         if (item.type === 'bundle' && item.bundleItems) {
           const bundleItems = item.bundleItems as any[];
-          orderQuantity += bundleItems.length;
+          orderQuantity += bundleItems.length * (item.quantity || 1);
         } else {
           orderQuantity += item.quantity || 0;
         }
@@ -1029,6 +1029,13 @@ async getProductReport(startDate?: string, endDate?: string) {
         // Handle bundle items
         if (item.type === 'bundle' && item.bundleItems) {
           const bundleItems = item.bundleItems as any[];
+          const bundleQuantity = item.quantity || 1;
+          const bundlePrice = parseFloat(item.price || '0');
+          const bundleTotalPrice = bundlePrice * bundleQuantity;
+          
+          // Calculate sum of original prices to allocate proportionally
+          const totalOriginalPrice = bundleItems.reduce((sum, b) => sum + (parseFloat(b.originalPrice) || 0), 0);
+          
           bundleItems.forEach(bundleItem => {
             const key = `${item.productId || 'N/A'}_${bundleItem.color}_${bundleItem.size}_${bundleItem.sizeVariantId || 'N/A'}`;
             
@@ -1048,17 +1055,31 @@ async getProductReport(startDate?: string, endDate?: string) {
             }
             
             const product = productMap.get(key);
-            product.deliveredQty += 1;
-            const itemPrice = parseFloat(bundleItem.originalPrice || '0');
-            product.totalSalesAmount += itemPrice;
+            product.deliveredQty += bundleQuantity;
+            
+            // Allocate the bundle's actual selling price proportionally based on originalPrice
+            let allocatedPrice = 0;
+            let unitPrice = 0;
+            if (totalOriginalPrice > 0) {
+              const proportion = (parseFloat(bundleItem.originalPrice) || 0) / totalOriginalPrice;
+              allocatedPrice = bundleTotalPrice * proportion;
+              unitPrice = bundlePrice * proportion;
+            } else {
+              allocatedPrice = bundleTotalPrice / bundleItems.length;
+              unitPrice = bundlePrice / bundleItems.length;
+            }
+            
+            product.totalSalesAmount += allocatedPrice;
             product.sales.push({
               orderId: order.id,
               customer: order.user?.name || (order.shippingAddress as any)?.fullName || 'N/A',
               phone: order.user?.phone || (order.shippingAddress as any)?.mobile || 'N/A',
-              quantity: 1,
-              price: itemPrice,
+              quantity: bundleQuantity,
+              price: unitPrice,
               date: order.createdAt,
-              status: order.status
+              status: order.status,
+              saleType: 'Bundle',
+              parentName: item.name
             });
           });
         } else {
@@ -1092,7 +1113,9 @@ async getProductReport(startDate?: string, endDate?: string) {
             quantity: quantity,
             price: itemPrice,
             date: order.createdAt,
-            status: order.status
+            status: order.status,
+            saleType: 'Single',
+            parentName: null
           });
         }
       });
