@@ -604,23 +604,6 @@ const Reports = () => {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
-                  <Truck size={24} />
-                </div>
-                <div className="stat-content">
-                  <h3>₹{salesSummary.totalShippingValue?.toFixed(2) || '0.00'}</h3>
-                  <p style={{ marginBottom: '4px' }}>Shipped Value</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                    <span>COD: ₹{salesSummary.totalCodShipping?.toFixed(2) || '0.00'}</span>
-                    <span style={{ color: '#d1d5db' }}>|</span>
-                    <span>Online: ₹{salesSummary.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
-                    <span>COD Return: ₹{salesSummary.totalCodReturnShipping?.toFixed(2) || '0.00'}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
                   <CreditCard size={24} />
                 </div>
@@ -645,6 +628,23 @@ const Reports = () => {
                     <span>COD: ₹{Math.round(salesSummary.totalCodSettlement || 0)}</span>
                     <span style={{ color: '#d1d5db' }}>|</span>
                     <span>Online: ₹{Math.round(salesSummary.totalOnlineSettlement || 0)}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+                  <Truck size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>₹{salesSummary.totalShippingValue?.toFixed(2) || '0.00'}</h3>
+                  <p style={{ marginBottom: '4px' }}>Shipped Value</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: ₹{salesSummary.totalCodShipping?.toFixed(2) || '0.00'}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: ₹{salesSummary.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
+                    <span>COD Return: ₹{salesSummary.totalCodReturnShipping?.toFixed(2) || '0.00'}</span>
                   </div>
                 </div>
               </div>

@@ -2388,9 +2388,6 @@ const statusCounts = getStatusCounts();
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: {orderStats.totalOnlineBills || 0}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
-          <span>COD Return: {orderStats.totalCodReturnBills || 0}</span>
-        </div>
       </div>
     </div>
 
@@ -2405,9 +2402,6 @@ const statusCounts = getStatusCounts();
           <span>COD: {orderStats.totalCodQuantity || 0}</span>
           <span style={{ color: '#d1d5db' }}>|</span>
           <span>Online: {orderStats.totalOnlineQuantity || 0}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
-          <span>COD Return: {orderStats.totalCodReturnQuantity || 0}</span>
         </div>
       </div>
     </div>
@@ -2448,24 +2442,6 @@ const statusCounts = getStatusCounts();
 
   {/* Second Row: 5 Cards */}
   <div className="summary-cards-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-      <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-        <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
-          <Truck size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
-          <p style={{ marginBottom: '4px' }}>Shipped Value</p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-            <span>COD: ₹{orderStats.totalCodShipping?.toFixed(2) || '0.00'}</span>
-            <span style={{ color: '#d1d5db' }}>|</span>
-            <span>Online: ₹{orderStats.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', fontSize: '9px', color: '#ef4444', fontWeight: '600', marginTop: '4px' }}>
-            <span>COD Return: ₹{orderStats.totalCodReturnShipping?.toFixed(2) || '0.00'}</span>
-          </div>
-        </div>
-      </div>
-
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}>
         <CreditCard size={24} />
@@ -2495,6 +2471,21 @@ const statusCounts = getStatusCounts();
         </div>
       </div>
     </div>
+
+      <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+        <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+          <Truck size={24} />
+        </div>
+        <div className="stat-content">
+          <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
+          <p style={{ marginBottom: '4px' }}>Shipped Value</p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+            <span>COD: ₹{orderStats.totalCodShipping?.toFixed(2) || '0.00'}</span>
+            <span style={{ color: '#d1d5db' }}>|</span>
+            <span>Online: ₹{orderStats.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
+          </div>
+        </div>
+      </div>
 
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
