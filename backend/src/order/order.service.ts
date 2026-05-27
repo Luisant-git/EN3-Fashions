@@ -242,19 +242,16 @@ async getOrderStats(startDate?: string, endDate?: string) {
     const includeStatuses = ['Accepted', 'Shipped', 'Delivered'];
 
     orders.forEach(order => {
-      // Calculate order base value and quantity first
-      let orderBaseValue = 0;
+      // Use stored subtotal as base value (original checkout calculation)
+      // This matches the Excel report subtotal column
+      const orderBaseValue = parseFloat(order.subtotal) || 0;
       let orderQuantity = 0;
       order.items?.forEach(item => {
         if (item.type === 'bundle' && item.bundleItems) {
           const bundleItems = item.bundleItems as any[];
           orderQuantity += bundleItems.length;
-          bundleItems.forEach(bItem => {
-            orderBaseValue += parseFloat(bItem.originalPrice) || 0;
-          });
         } else {
           orderQuantity += item.quantity || 0;
-          orderBaseValue += (parseFloat(item.price) || 0) * (item.quantity || 1);
         }
       });
 
@@ -762,13 +759,6 @@ async getSalesReport(startDate?: string, endDate?: string) {
     return orders.map(order => {
       const isCancelled = order.status === 'Cancelled';
       
-      const totalProductsValue = order.items.reduce((sum, item) => {
-        if (item.type === 'bundle' && item.bundleItems) {
-          return sum + (item.bundleItems as any[]).reduce((s, b) => s + (parseFloat(b.originalPrice) || 0), 0);
-        }
-        return sum + (parseFloat(item.price) || 0) * (item.quantity || 1);
-      }, 0);
-
       // Handle null values by providing default '0' string first, then parse
       const subtotalStr = order.subtotal || '0';
       const discountStr = order.discount || '0';
@@ -791,7 +781,8 @@ async getSalesReport(startDate?: string, endDate?: string) {
         trackingId: order.trackingId || '-',
         cancelRemarks: order.cancelRemarks || 'N/A',
         // Financial values - set to 0 for cancelled orders
-        productValue: isCancelled ? 0 : totalProductsValue,
+        // productValue uses stored subtotal (original checkout value)
+        productValue: isCancelled ? 0 : parseFloat(subtotalStr),
         subtotal: isCancelled ? 0 : parseFloat(subtotalStr),
         discount: isCancelled ? 0 : parseFloat(discountStr),
         deliveryFee: parseFloat(deliveryFeeStr),
