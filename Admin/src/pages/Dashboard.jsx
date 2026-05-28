@@ -608,6 +608,90 @@ const Dashboard = () => {
         </div>
       </div>
 
+       {/* Product Sales Summary */}
+      <div
+        ref={productStatsRef}
+        style={{
+          marginTop: '20px',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          backgroundColor: '#f9fafb',
+          border: '1px solid #e5e7eb',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#111827' }}>Product Sales Summary</h3>
+          <button
+            type="button"
+            onClick={downloadProductStatsAsImage}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: '#10b981',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+            title="Download product summary as image"
+          >
+            <ImageIcon size={16} />
+            <span>Download</span>
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
+                <ShoppingCart size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Products</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalProducts}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#f59e0b' }}>
+                <Archive size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Initial Stock</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalInitialStock}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#d1fae5', borderRadius: '8px', color: '#10b981' }}>
+                <CheckCircle size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Sale Stock</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalSaleStock}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#fee2e2', borderRadius: '8px', color: '#ef4444' }}>
+                <Package size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Current Stock</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalCurrentStock}</h3>
+          </div>
+          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ padding: '8px', backgroundColor: '#ede9fe', borderRadius: '8px', color: '#8b5cf6' }}>
+                <TrendingUp size={20} />
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Sales Amount</p>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{productStats.totalSalesAmount.toFixed(2)}</h3>
+          </div>
+        </div>
+      </div>
+
       {/* Return Summary */}
       <div
         ref={returnSummaryRef}
@@ -712,90 +796,6 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
-      {/* Product Sales Summary */}
-      <div
-        ref={productStatsRef}
-        style={{
-          marginTop: '20px',
-          padding: '16px 20px',
-          borderRadius: '12px',
-          backgroundColor: '#f9fafb',
-          border: '1px solid #e5e7eb',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#111827' }}>Product Sales Summary</h3>
-          <button
-            type="button"
-            onClick={downloadProductStatsAsImage}
-            style={{
-              padding: '8px 14px',
-              borderRadius: '999px',
-              border: 'none',
-              backgroundColor: '#10b981',
-              color: 'white',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '13px',
-              fontWeight: 500,
-            }}
-            title="Download product summary as image"
-          >
-            <ImageIcon size={16} />
-            <span>Download</span>
-          </button>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div style={{ padding: '8px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
-                <ShoppingCart size={20} />
-              </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Products</p>
-            </div>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalProducts}</h3>
-          </div>
-          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div style={{ padding: '8px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#f59e0b' }}>
-                <Archive size={20} />
-              </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Initial Stock</p>
-            </div>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalInitialStock}</h3>
-          </div>
-          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div style={{ padding: '8px', backgroundColor: '#d1fae5', borderRadius: '8px', color: '#10b981' }}>
-                <CheckCircle size={20} />
-              </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Sale Stock</p>
-            </div>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalSaleStock}</h3>
-          </div>
-          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div style={{ padding: '8px', backgroundColor: '#fee2e2', borderRadius: '8px', color: '#ef4444' }}>
-                <Package size={20} />
-              </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Current Stock</p>
-            </div>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>{productStats.totalCurrentStock}</h3>
-          </div>
-          <div style={{ flex: '1 1 0', minWidth: '160px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div style={{ padding: '8px', backgroundColor: '#ede9fe', borderRadius: '8px', color: '#8b5cf6' }}>
-                <TrendingUp size={20} />
-              </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Total Sales Amount</p>
-            </div>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{productStats.totalSalesAmount.toFixed(2)}</h3>
-          </div>
-        </div>
-      </div>
 
       {/* Customers Summary */}
       <div
