@@ -564,6 +564,21 @@ const Dashboard = () => {
 
             <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '8px', color: '#0284c7' }}>
+                  <Wallet size={20} />
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Final Amount</p>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#111827' }}>₹{Math.round((orderStats.totalSettlement || 0) - (orderStats.totalShippingValue || 0))}</h3>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', fontSize: '11px', color: '#9ca3af', fontWeight: 500, marginTop: '6px' }}>
+                <span>COD: ₹{Math.round((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0))}</span>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <span>Online: ₹{Math.round((orderStats.totalOnlineSettlement || 0) - (orderStats.totalOnlineShipping || 0))}</span>
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 0', minWidth: '180px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                 <div style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', color: '#ef4444' }}>
                   <Receipt size={20} />
                 </div>

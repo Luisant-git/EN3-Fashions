@@ -17,6 +17,7 @@ import {
   CreditCard,
   TrendingUp,
   ShoppingBag,
+  Wallet,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { fetchOrders as fetchOrdersApi, updateOrderStatus, uploadFile, deleteFile, deleteOrderFiles, pushToShiprocket, getOrderStats, removeOrderItem } from "../api/order";
@@ -2500,20 +2501,35 @@ const statusCounts = getStatusCounts();
       </div>
     </div>
 
-      <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
-        <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
-          <Truck size={24} />
-        </div>
-        <div className="stat-content">
-          <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
-          <p style={{ marginBottom: '4px' }}>Shipped Value</p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-            <span>COD: ₹{orderStats.totalCodShipping?.toFixed(2) || '0.00'}</span>
-            <span style={{ color: '#d1d5db' }}>|</span>
-            <span>Online: ₹{orderStats.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
-          </div>
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5' }}>
+        <Truck size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{orderStats.totalShippingValue?.toFixed(2) || '0.00'}</h3>
+        <p style={{ marginBottom: '4px' }}>Shipped Value</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{orderStats.totalCodShipping?.toFixed(2) || '0.00'}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{orderStats.totalOnlineShipping?.toFixed(2) || '0.00'}</span>
         </div>
       </div>
+    </div>
+
+    <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
+      <div className="stat-icon" style={{ backgroundColor: '#e0f2fe', color: '#0284c7' }}>
+        <Wallet size={24} />
+      </div>
+      <div className="stat-content">
+        <h3>₹{Math.round((orderStats.totalSettlement || 0) - (orderStats.totalShippingValue || 0))}</h3>
+        <p style={{ marginBottom: '4px' }}>Final Amount</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+          <span>COD: ₹{Math.round((orderStats.totalCodSettlement || 0) - (orderStats.totalCodShipping || 0))}</span>
+          <span style={{ color: '#d1d5db' }}>|</span>
+          <span>Online: ₹{Math.round((orderStats.totalOnlineSettlement || 0) - (orderStats.totalOnlineShipping || 0))}</span>
+        </div>
+      </div>
+    </div>
 
     <div className="stat-card summary-stat-card" style={{ flex: '1 1 0' }}>
       <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>

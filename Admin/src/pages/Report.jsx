@@ -12,7 +12,8 @@ import {
   Users,
   Eye,
   Image as ImageIcon,
-  CreditCard
+  CreditCard,
+  Wallet
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import { 
@@ -528,7 +529,7 @@ const Reports = () => {
                 <ImageIcon size={16} /> Download
               </button>
             </div>
-            <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+            <div className="summary-cards-container orders-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#10b981' }}>
                   <Users size={24} />
@@ -648,6 +649,22 @@ const Reports = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="stat-card">
+                <div className="stat-icon" style={{ backgroundColor: '#e0f2fe', color: '#0284c7' }}>
+                  <Wallet size={24} />
+                </div>
+                <div className="stat-content">
+                  <h3>₹{Math.round((salesSummary.totalSettlement || 0) - (salesSummary.totalShippingValue || 0))}</h3>
+                  <p style={{ marginBottom: '4px' }}>Final Amount</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                    <span>COD: ₹{Math.round((salesSummary.totalCodSettlement || 0) - (salesSummary.totalCodShipping || 0))}</span>
+                    <span style={{ color: '#d1d5db' }}>|</span>
+                    <span>Online: ₹{Math.round((salesSummary.totalOnlineSettlement || 0) - (salesSummary.totalOnlineShipping || 0))}</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
                   <Receipt size={24} />
@@ -657,6 +674,7 @@ const Reports = () => {
                   <p>Total Discount</p>
                 </div>
               </div>
+
               <div className="stat-card">
                 <div className="stat-icon" style={{ backgroundColor: '#e8f5e9', color: '#2e7d32' }}>
                   <TrendingUp size={24} />
