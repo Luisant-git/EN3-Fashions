@@ -94,7 +94,7 @@ const ProductDetailPage = () => {
             color: selectedColor.name,
             sizeVariantId: selectedSize?.sizeVariantId || null
         });
-        navigate('/checkout');
+        navigate('/cart');
     };
 
     const accordionItems = [
@@ -222,7 +222,7 @@ const ProductDetailPage = () => {
         
         console.log('Bundle Item with sizeVariantIds:', JSON.stringify(bundleItem, null, 2));
         addToCart(bundleItem);
-        navigate('/checkout');
+        navigate('/cart');
     };
 
     return (
