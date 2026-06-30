@@ -52,7 +52,11 @@ const LoginPage = () => {
             const { data } = await axios.post(`${API_URL}/auth/otp/verify`, { phone, otp, name, email });
             localStorage.setItem('token', data.access_token);
             toast.success('Login successful!');
-            window.location.href = '/';
+            if (localStorage.getItem('pendingCartItem')) {
+                window.location.href = '/cart';
+            } else {
+                window.location.href = '/';
+            }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Invalid OTP');
         } finally {
