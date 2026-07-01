@@ -90,7 +90,7 @@ export class OverviewService {
   async getTopPerformers() {
     // Only include order items from shipped and placed orders
     const topProducts = await this.prisma.orderItem.groupBy({
-      by: ['productId', 'name'],
+      by: ['productId', 'name', 'imageUrl'],
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 4,
@@ -104,6 +104,7 @@ export class OverviewService {
 
     return topProducts.map(p => ({
       name: p.name,
+      image: p.imageUrl,
       metric: `${p._sum.quantity} sales`,
       status: (p._sum.quantity || 0) > 200 ? 'trending' : (p._sum.quantity || 0) > 150 ? 'stable' : 'declining'
     }));
