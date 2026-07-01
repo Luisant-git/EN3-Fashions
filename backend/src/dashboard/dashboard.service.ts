@@ -5,11 +5,20 @@ import { PrismaService } from '../prisma.service';
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getDashboardStats() {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const sixtyDaysAgo = new Date();
-    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+  async getDashboardStats(year?: string) {
+    const targetYear = year ? parseInt(year) : new Date().getFullYear();
+    const isCurrentYear = targetYear === new Date().getFullYear();
+    
+    let thirtyDaysAgo = new Date();
+    let sixtyDaysAgo = new Date();
+    
+    if (!isCurrentYear) {
+      thirtyDaysAgo = new Date(targetYear, 11, 1); // Dec 1st of target year
+      sixtyDaysAgo = new Date(targetYear, 10, 1);  // Nov 1st of target year
+    } else {
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    }
 
     // Current period stats - only shipped and placed orders
     const currentOrders = await this.prisma.order.findMany({
@@ -79,9 +88,9 @@ export class DashboardService {
     };
   }
 
-  async getSalesAnalytics() {
+  async getSalesAnalytics(year?: string) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentYear = new Date().getFullYear();
+    const currentYear = year ? parseInt(year) : new Date().getFullYear();
     
     const salesData = await Promise.all(
       months.map(async (month, index) => {
@@ -104,6 +113,123 @@ export class DashboardService {
     );
 
     return salesData;
+  }
+
+  async getSalesComparison(type: string, year?: string) {
+    const now = new Date();
+    const targetYear = year ? parseInt(year) : now.getFullYear();
+    
+    let startDate: Date;
+    let endDate = new Date();
+    
+    if (type === 'yearly') {
+      startDate = new Date(targetYear, 0, 1);
+      endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
+    } else if (type === 'monthly') {
+      const month = targetYear === now.getFullYear() ? now.getMonth() : 11;
+      startDate = new Date(targetYear, month, 1);
+      endDate = new Date(targetYear, month + 1, 0, 23, 59, 59, 999);
+    } else if (type === 'weekly') {
+      if (targetYear === now.getFullYear()) {
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        startDate = new Date(now.setDate(diff));
+        startDate.setHours(0,0,0,0);
+        endDate = new Date(startDate.getTime());
+        endDate.setDate(startDate.getDate() + 6);
+        endDate.setHours(23,59,59,999);
+      } else {
+        // Last week of the target year
+        startDate = new Date(targetYear, 11, 25);
+        endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
+      }
+    } else {
+      startDate = new Date(targetYear, 0, 1);
+      endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        createdAt: { gte: startDate, lte: endDate }
+      },
+      include: { items: true }
+    });
+
+    const result = new Map<string, any>();
+
+    const getGroupKey = (date: Date) => {
+      if (type === 'yearly') {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months[date.getMonth()];
+      } else if (type === 'monthly') {
+        // Week of the month
+        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+        const d = date.getDate();
+        const week = Math.ceil((d + (firstDay === 0 ? 6 : firstDay - 1)) / 7);
+        return `Week ${week}`;
+      } else if (type === 'weekly') {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return days[date.getDay()];
+      }
+      return '';
+    };
+
+    if (type === 'yearly') {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      months.forEach(m => result.set(m, { period: m, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 }));
+    } else if (type === 'monthly') {
+      for(let i=1; i<=5; i++) {
+        result.set(`Week ${i}`, { period: `Week ${i}`, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+      }
+    } else if (type === 'weekly') {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      days.forEach(d => result.set(d, { period: d, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 }));
+    }
+
+    orders.forEach(order => {
+      const key = getGroupKey(order.createdAt);
+      if (!result.has(key)) return;
+      
+      const group = result.get(key);
+      const orderTotal = parseFloat(order.total) || 0;
+      
+      let orderQuantity = 0;
+      order.items?.forEach((item: any) => {
+        if (item.type === 'bundle' && item.bundleItems) {
+          orderQuantity += (item.bundleItems as any[]).length * (item.quantity || 1);
+        } else {
+          orderQuantity += item.quantity || 0;
+        }
+      });
+
+      if (order.status === 'Cancelled') {
+        group.totalCancel += 1;
+      } else {
+        group.totalBills += 1;
+        group.totalQty += orderQuantity;
+        group.totalAmount += orderTotal;
+        if (order.userId) group.totalCustomer.add(order.userId);
+        
+        if (order.paymentMethod === 'cod') {
+          group.codPayment += orderTotal;
+        } else {
+          group.onlinePayment += orderTotal;
+        }
+      }
+    });
+
+    const finalResult = Array.from(result.values()).map(g => ({
+      period: g.period,
+      totalCustomer: g.totalCustomer.size,
+      totalBills: g.totalBills,
+      totalQty: g.totalQty,
+      onlinePayment: Math.round(g.onlinePayment),
+      codPayment: Math.round(g.codPayment),
+      totalAmount: Math.round(g.totalAmount),
+      totalCancel: g.totalCancel
+    }));
+
+    return finalResult;
   }
 
   async getTopSellingProducts() {

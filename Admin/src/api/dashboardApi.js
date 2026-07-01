@@ -1,12 +1,22 @@
 import axiosInstance from './axiosInstance';
 
-export const getDashboardStats = async () => {
-  const response = await axiosInstance.get('/dashboard/stats');
+export const getDashboardStats = async (year) => {
+  const url = year ? `/dashboard/stats?year=${year}` : '/dashboard/stats';
+  const response = await axiosInstance.get(url);
   return response.data;
 };
 
-export const getSalesAnalytics = async () => {
-  const response = await axiosInstance.get('/dashboard/sales-analytics');
+export const getSalesAnalytics = async (year) => {
+  const url = year ? `/dashboard/sales-analytics?year=${year}` : '/dashboard/sales-analytics';
+  const response = await axiosInstance.get(url);
+  return response.data;
+};
+
+export const getSalesComparison = async (type = 'yearly', year) => {
+  const url = year 
+    ? `/dashboard/sales-comparison?type=${type}&year=${year}` 
+    : `/dashboard/sales-comparison?type=${type}`;
+  const response = await axiosInstance.get(url);
   return response.data;
 };
 

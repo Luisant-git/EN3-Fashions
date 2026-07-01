@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -8,13 +8,18 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('stats')
-  async getStats() {
-    return this.dashboardService.getDashboardStats();
+  async getStats(@Query('year') year: string) {
+    return this.dashboardService.getDashboardStats(year);
   }
 
   @Get('sales-analytics')
-  async getSalesAnalytics() {
-    return this.dashboardService.getSalesAnalytics();
+  async getSalesAnalytics(@Query('year') year: string) {
+    return this.dashboardService.getSalesAnalytics(year);
+  }
+
+  @Get('sales-comparison')
+  async getSalesComparison(@Query('type') type: string, @Query('year') year: string) {
+    return this.dashboardService.getSalesComparison(type || 'yearly', year);
   }
 
   @Get('top-products')
