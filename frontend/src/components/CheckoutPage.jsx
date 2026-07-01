@@ -229,7 +229,7 @@ const CheckoutPage = () => {
             setCodOtpVerified(true);
             setShowCodOtpModal(false);
             // After verification, we trigger handlePlaceOrder without the event to bypass the modal check
-            handlePlaceOrder();
+            handlePlaceOrder(null, true);
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Invalid OTP');
         } finally {
@@ -237,7 +237,7 @@ const CheckoutPage = () => {
         }
     };
 
-    const handlePlaceOrder = async (e) => {
+    const handlePlaceOrder = async (e, skipOtpCheck = false) => {
         if (e) e.preventDefault();
         if (isPlacingOrder) return;
         if (!selectedState) {
@@ -254,7 +254,7 @@ const CheckoutPage = () => {
             return;
         }
 
-        if (paymentMethod === 'cod' && !codOtpVerified) {
+        if (paymentMethod === 'cod' && !codOtpVerified && !skipOtpCheck) {
             requestCodOtp(formData.mobile);
             return;
         }
