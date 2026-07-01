@@ -203,15 +203,29 @@ const [orderStats, setOrderStats] = useState({
   };
 
   const handleSaveItems = async () => {
-    // Validate all items have required fields
-    const invalidItems = editItems.filter(item => 
-      !item.color || !item.size || !item.quantity || item.price === '' || item.price === null || item.price === undefined ||
-      item.quantity <= 0 || item.price < 0
-    );
-    
-    if (invalidItems.length > 0) {
-      toast.error('All items must have color, size, quantity (>0), and price (≥0)');
-      return;
+    // Validate all items have required fields, exempting bundles from color and size
+    for (let i = 0; i < editItems.length; i++) {
+      const item = editItems[i];
+      const itemName = item.name || `Item #${i + 1}`;
+      
+      if (!item.quantity || item.quantity <= 0) {
+        toast.error(`Please enter a valid quantity (>0) for "${itemName}"`);
+        return;
+      }
+      if (item.price === '' || item.price === null || item.price === undefined || item.price < 0) {
+        toast.error(`Please enter a valid price (≥0) for "${itemName}"`);
+        return;
+      }
+      if (item.type !== 'bundle') {
+        if (!item.color) {
+          toast.error(`Please select a color for "${itemName}"`);
+          return;
+        }
+        if (!item.size) {
+          toast.error(`Please select a size for "${itemName}"`);
+          return;
+        }
+      }
     }
     
     try {
