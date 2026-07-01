@@ -18,8 +18,8 @@ export class DashboardController {
   }
 
   @Get('sales-comparison')
-  async getSalesComparison(@Query('type') type: string, @Query('year') year: string) {
-    return this.dashboardService.getSalesComparison(type || 'yearly', year);
+  async getSalesComparison(@Query('type') type: string, @Query('year') year: string, @Query('month') month: string) {
+    return this.dashboardService.getSalesComparison(type || 'yearly', year, month);
   }
 
   @Get('top-products')

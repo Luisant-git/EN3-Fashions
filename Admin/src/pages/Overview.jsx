@@ -12,6 +12,7 @@ const Overview = () => {
   const [salesComparisonType, setSalesComparisonType] = useState('yearly');
   const [salesComparisonData, setSalesComparisonData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
   const salesComparisonRef = useRef(null);
 
   useEffect(() => {
@@ -20,11 +21,11 @@ const Overview = () => {
 
   useEffect(() => {
     fetchSalesComparisonData();
-  }, [salesComparisonType, selectedYear]);
+  }, [salesComparisonType, selectedYear, selectedMonth]);
 
   const fetchSalesComparisonData = async () => {
     try {
-      const data = await getSalesComparison(salesComparisonType, selectedYear);
+      const data = await getSalesComparison(salesComparisonType, selectedYear, selectedMonth);
       setSalesComparisonData(data);
     } catch (error) {
       console.error('Error fetching sales comparison:', error);
@@ -95,6 +96,30 @@ const Overview = () => {
           <p>Quick snapshot of your business performance</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {salesComparisonType === 'monthly' && (
+            <>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563' }}>Filter by month:</span>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  outline: 'none',
+                  backgroundColor: 'white',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: '#374151',
+                  cursor: 'pointer'
+                }}
+              >
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, i) => (
+                  <option key={month} value={i}>{month}</option>
+                ))}
+              </select>
+            </>
+          )}
           <span style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563' }}>Filter by year:</span>
           <select
             value={selectedYear}

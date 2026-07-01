@@ -12,10 +12,10 @@ export const getSalesAnalytics = async (year) => {
   return response.data;
 };
 
-export const getSalesComparison = async (type = 'yearly', year) => {
-  const url = year 
-    ? `/dashboard/sales-comparison?type=${type}&year=${year}` 
-    : `/dashboard/sales-comparison?type=${type}`;
+export const getSalesComparison = async (type = 'yearly', year, month) => {
+  let url = `/dashboard/sales-comparison?type=${type}`;
+  if (year) url += `&year=${year}`;
+  if (month !== undefined && month !== null && month !== '') url += `&month=${month}`;
   const response = await axiosInstance.get(url);
   return response.data;
 };

@@ -115,7 +115,7 @@ export class DashboardService {
     return salesData;
   }
 
-  async getSalesComparison(type: string, year?: string) {
+  async getSalesComparison(type: string, year?: string, monthParam?: string) {
     const now = new Date();
     const targetYear = year ? parseInt(year) : now.getFullYear();
     
@@ -126,9 +126,9 @@ export class DashboardService {
       startDate = new Date(targetYear, 0, 1);
       endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
     } else if (type === 'monthly') {
-      const month = targetYear === now.getFullYear() ? now.getMonth() : 11;
-      startDate = new Date(targetYear, month, 1);
-      endDate = new Date(targetYear, month + 1, 0, 23, 59, 59, 999);
+      const monthIndex = monthParam ? parseInt(monthParam) : (targetYear === now.getFullYear() ? now.getMonth() : 11);
+      startDate = new Date(targetYear, monthIndex, 1);
+      endDate = new Date(targetYear, monthIndex + 1, 0, 23, 59, 59, 999);
     } else if (type === 'weekly') {
       if (targetYear === now.getFullYear()) {
         const day = now.getDay();
@@ -162,11 +162,9 @@ export class DashboardService {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return months[date.getMonth()];
       } else if (type === 'monthly') {
-        // Week of the month
-        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
         const d = date.getDate();
-        const week = Math.ceil((d + (firstDay === 0 ? 6 : firstDay - 1)) / 7);
-        return `Week ${week}`;
+        const monthShort = date.toLocaleString('default', { month: 'short' });
+        return `${d} ${monthShort}`;
       } else if (type === 'weekly') {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return days[date.getDay()];
@@ -178,8 +176,12 @@ export class DashboardService {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       months.forEach(m => result.set(m, { period: m, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 }));
     } else if (type === 'monthly') {
-      for(let i=1; i<=5; i++) {
-        result.set(`Week ${i}`, { period: `Week ${i}`, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+      const monthIndex = monthParam ? parseInt(monthParam) : (targetYear === now.getFullYear() ? now.getMonth() : 11);
+      const daysInMonth = new Date(targetYear, monthIndex + 1, 0).getDate();
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dateObj = new Date(targetYear, monthIndex, i);
+        const dateStr = `${i} ${dateObj.toLocaleString('default', { month: 'short' })}`;
+        result.set(dateStr, { period: dateStr, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
       }
     } else if (type === 'weekly') {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -204,13 +206,13 @@ export class DashboardService {
 
       if (order.status === 'Cancelled') {
         group.totalCancel += 1;
-      } else {
+      } else if (order.status !== 'Abandoned' && order.status !== 'Failed') {
         group.totalBills += 1;
         group.totalQty += orderQuantity;
         group.totalAmount += orderTotal;
         if (order.userId) group.totalCustomer.add(order.userId);
         
-        if (order.paymentMethod === 'cod') {
+        if (order.paymentMethod?.toLowerCase() === 'cod') {
           group.codPayment += orderTotal;
         } else {
           group.onlinePayment += orderTotal;
