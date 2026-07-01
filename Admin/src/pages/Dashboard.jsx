@@ -123,6 +123,15 @@ const Dashboard = () => {
     totalCodReturnCustomers: 0
   });
 
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+  const getYearDateRange = () => {
+    return {
+      startDate: `${selectedYear}-01-01`,
+      endDate: `${selectedYear}-12-31`
+    };
+  };
+
   const scrollProducts = (direction) => {
     if (productsScrollRef.current) {
       const scrollAmount = 300;
@@ -138,12 +147,12 @@ const Dashboard = () => {
     fetchOrderStats();
     fetchProductStats();
     fetchCustomerStatsData();
-  }, []);
+  }, [selectedYear]);
 
   const fetchDashboardData = async () => {
     try {
       const [stats, offersData, ordersData, productsData] = await Promise.all([
-        getDashboardStats(),
+        getDashboardStats(selectedYear),
         getCurrentOffers(),
         getRecentOrders(),
         getProducts()
@@ -203,7 +212,8 @@ const Dashboard = () => {
 
   const fetchOrderStats = async () => {
     try {
-      const stats = await getOrderStats();
+      const { startDate, endDate } = getYearDateRange();
+      const stats = await getOrderStats(startDate, endDate);
       setOrderStats(stats);
     } catch (error) {
       console.error('Error fetching order stats:', error);
@@ -212,7 +222,8 @@ const Dashboard = () => {
 
   const fetchProductStats = async () => {
     try {
-      const data = await getProductReport();
+      const { startDate, endDate } = getYearDateRange();
+      const data = await getProductReport(startDate, endDate);
       if (Array.isArray(data)) {
         setProductStats({
           totalProducts: data.length,
@@ -229,7 +240,8 @@ const Dashboard = () => {
 
   const fetchCustomerStatsData = async () => {
     try {
-      const stats = await getCustomerStats();
+      const { startDate, endDate } = getYearDateRange();
+      const stats = await getCustomerStats(startDate, endDate);
       setCustomerStats(stats);
     } catch (error) {
       console.error('Error fetching customer stats:', error);
@@ -374,9 +386,32 @@ const Dashboard = () => {
       <header className="dashboard-header">
         <h1 className="header-title">Dashboard</h1>
         <div className="header-actions">
-          <div className="search-bar">
-            <Search size={20} className="search-icon" />
-            <input type="text" placeholder="Search..." />
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563' }}>Filter by year:</span>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                outline: 'none',
+                backgroundColor: 'white',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#374151',
+                cursor: 'pointer'
+              }}
+            >
+              {[...Array(5)].map((_, i) => {
+                const year = new Date().getFullYear() - i;
+                return <option key={year} value={year}>{year}</option>;
+              })}
+            </select>
+            <div className="search-bar">
+              <Search size={20} className="search-icon" />
+              <input type="text" placeholder="Search..." />
+            </div>
           </div>
         </div>
       </header>
