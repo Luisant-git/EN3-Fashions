@@ -253,7 +253,7 @@ const Overview = () => {
                 <th style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', color: '#111827', fontWeight: 700 }}>Online Payment</th>
                 <th style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', color: '#111827', fontWeight: 700 }}>COD Payment</th>
                 <th style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', color: '#111827', fontWeight: 700 }}>Total Amount</th>
-                <th style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', color: '#111827', fontWeight: 700 }}>Total Cancel</th>
+                <th style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', color: '#111827', fontWeight: 700 }}>COD Return</th>
               </tr>
             </thead>
             <tbody>
@@ -266,7 +266,7 @@ const Overview = () => {
                   <td style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', fontWeight: 500, backgroundColor: '#fff8e1' }}>₹{row.onlinePayment}</td>
                   <td style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', fontWeight: 500, backgroundColor: '#fff8e1' }}>₹{row.codPayment}</td>
                   <td style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', fontWeight: 700, backgroundColor: '#fff8e1' }}>₹{row.totalAmount}</td>
-                  <td style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', fontWeight: 500, backgroundColor: '#fff8e1' }}>{row.totalCancel}</td>
+                  <td style={{ padding: '12px', border: '1px solid #e5e7eb', textAlign: 'center', fontWeight: 500, backgroundColor: '#fff8e1' }}>{row.totalCodReturn}</td>
                 </tr>
               ))}
             </tbody>

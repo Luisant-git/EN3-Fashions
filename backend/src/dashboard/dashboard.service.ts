@@ -178,7 +178,7 @@ export class DashboardService {
       const currentMonth = now.getMonth();
       months.forEach((m, index) => {
         if (isCurrentYear && index > currentMonth) return;
-        result.set(m, { period: m, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+        result.set(m, { period: m, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCodReturn: 0 });
       });
     } else if (type === 'monthly') {
       const monthIndex = monthParam ? parseInt(monthParam) : (targetYear === now.getFullYear() ? now.getMonth() : 11);
@@ -189,7 +189,7 @@ export class DashboardService {
         if (isCurrentMonthAndYear && i > currentDay) continue;
         const dateObj = new Date(targetYear, monthIndex, i);
         const dateStr = `${i} ${dateObj.toLocaleString('default', { month: 'short' })}`;
-        result.set(dateStr, { period: dateStr, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+        result.set(dateStr, { period: dateStr, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCodReturn: 0 });
       }
     } else if (type === 'weekly') {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -197,7 +197,7 @@ export class DashboardService {
       const currentDayIndex = now.getDay() === 0 ? 6 : now.getDay() - 1;
       days.forEach((d, index) => {
         if (isCurrentYear && index > currentDayIndex) return;
-        result.set(d, { period: d, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+        result.set(d, { period: d, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCodReturn: 0 });
       });
     }
 
@@ -217,9 +217,9 @@ export class DashboardService {
         }
       });
 
-      if (order.status === 'Cancelled') {
-        group.totalCancel += 1;
-      } else if (order.status !== 'Abandoned' && order.status !== 'Failed') {
+      if (order.status === 'CODReturn') {
+        group.totalCodReturn += 1;
+      } else if (order.status !== 'Abandoned' && order.status !== 'Failed' && order.status !== 'Cancelled') {
         group.totalBills += 1;
         group.totalQty += orderQuantity;
         group.totalAmount += orderTotal;
@@ -241,7 +241,7 @@ export class DashboardService {
       onlinePayment: Math.round(g.onlinePayment),
       codPayment: Math.round(g.codPayment),
       totalAmount: Math.round(g.totalAmount),
-      totalCancel: g.totalCancel
+      totalCodReturn: g.totalCodReturn
     }));
 
     return finalResult;
