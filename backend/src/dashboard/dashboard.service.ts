@@ -174,18 +174,31 @@ export class DashboardService {
 
     if (type === 'yearly') {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      months.forEach(m => result.set(m, { period: m, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 }));
+      const isCurrentYear = targetYear === now.getFullYear();
+      const currentMonth = now.getMonth();
+      months.forEach((m, index) => {
+        if (isCurrentYear && index > currentMonth) return;
+        result.set(m, { period: m, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+      });
     } else if (type === 'monthly') {
       const monthIndex = monthParam ? parseInt(monthParam) : (targetYear === now.getFullYear() ? now.getMonth() : 11);
       const daysInMonth = new Date(targetYear, monthIndex + 1, 0).getDate();
+      const isCurrentMonthAndYear = targetYear === now.getFullYear() && monthIndex === now.getMonth();
+      const currentDay = now.getDate();
       for (let i = 1; i <= daysInMonth; i++) {
+        if (isCurrentMonthAndYear && i > currentDay) continue;
         const dateObj = new Date(targetYear, monthIndex, i);
         const dateStr = `${i} ${dateObj.toLocaleString('default', { month: 'short' })}`;
         result.set(dateStr, { period: dateStr, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
       }
     } else if (type === 'weekly') {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      days.forEach(d => result.set(d, { period: d, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 }));
+      const isCurrentYear = targetYear === now.getFullYear();
+      const currentDayIndex = now.getDay() === 0 ? 6 : now.getDay() - 1;
+      days.forEach((d, index) => {
+        if (isCurrentYear && index > currentDayIndex) return;
+        result.set(d, { period: d, totalCustomer: new Set(), totalBills: 0, totalQty: 0, onlinePayment: 0, codPayment: 0, totalAmount: 0, totalCancel: 0 });
+      });
     }
 
     orders.forEach(order => {
