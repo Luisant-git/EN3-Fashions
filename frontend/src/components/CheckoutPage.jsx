@@ -101,8 +101,10 @@ const CheckoutPage = () => {
     const [appSettings, setAppSettings] = useState({
         freeShippingThreshold: 0,
         freeShippingCodThreshold: 0,
-        freeShippingDeliveryFee: false,
-        freeShippingCodFee: false,
+        freeShippingOnlineDeliveryFee: false,
+        freeShippingOnlineCodFee: false,
+        freeShippingCombinedDeliveryFee: false,
+        freeShippingCombinedCodFee: false,
         codShippingCharge: 30
     });
 
@@ -183,16 +185,33 @@ const CheckoutPage = () => {
     // Base configured fees
     // deliveryFee = state flat shipping rate (shown as "Delivery Fee" in summary)
     // shippingFee = additional shipping fee (default 0, can be waived independently)
-    // freeShippingThreshold = online payment only threshold
-    // freeShippingCombinedThreshold = applies to both online and COD payments
+    // freeShippingThreshold = online payment only threshold (online waive flags)
+    // freeShippingCodThreshold = applies to both online and COD payments (combined waive flags)
     const freeShippingOnlineThreshold = Number(appSettings.freeShippingThreshold || 0);
     const freeShippingCombinedThreshold = Number(appSettings.freeShippingCodThreshold || 0);
 
-    const freeShippingThresholds = paymentMethod === 'cod'
-        ? [freeShippingCombinedThreshold]
-        : [freeShippingOnlineThreshold, freeShippingCombinedThreshold];
-    const freeShippingThreshold = Math.min(...freeShippingThresholds.filter(t => t > 0).concat([Infinity]));
-    const freeShippingActive = freeShippingThreshold < Infinity && subtotal >= freeShippingThreshold;
+    let effectiveThreshold = Infinity;
+    let freeShippingSource = 'none'; // 'online' or 'combined'
+
+    if (paymentMethod === 'cod') {
+        if (freeShippingCombinedThreshold > 0) {
+            effectiveThreshold = freeShippingCombinedThreshold;
+            freeShippingSource = 'combined';
+        }
+    } else {
+        const candidates = [];
+        if (freeShippingOnlineThreshold > 0) candidates.push({ t: freeShippingOnlineThreshold, source: 'online' });
+        if (freeShippingCombinedThreshold > 0) candidates.push({ t: freeShippingCombinedThreshold, source: 'combined' });
+        if (candidates.length) {
+            const lowest = candidates.reduce((a, b) => (a.t <= b.t ? a : b));
+            effectiveThreshold = lowest.t;
+            freeShippingSource = lowest.source;
+        }
+    }
+    const freeShippingActive = effectiveThreshold < Infinity && subtotal >= effectiveThreshold;
+
+    const freeShippingWaive = (online, combined) =>
+        freeShippingActive && (freeShippingSource === 'online' ? online : combined);
 
     const deliveryFeeOriginal = selectedState ? baseDeliveryFee : 0;
     let deliveryFee = deliveryFeeOriginal;
@@ -200,8 +219,14 @@ const CheckoutPage = () => {
     let codFee = paymentMethod === 'cod' ? codShippingFee : 0;
     const codFeeOriginal = codFee;
 
-    const deliveryFeeWaived = freeShippingActive && appSettings.freeShippingDeliveryFee && deliveryFeeOriginal > 0;
-    const codFeeWaived = freeShippingActive && appSettings.freeShippingCodFee && codFeeOriginal > 0;
+    const deliveryFeeWaived = freeShippingWaive(
+        appSettings.freeShippingOnlineDeliveryFee,
+        appSettings.freeShippingCombinedDeliveryFee
+    ) && deliveryFeeOriginal > 0;
+    const codFeeWaived = freeShippingWaive(
+        appSettings.freeShippingOnlineCodFee,
+        appSettings.freeShippingCombinedCodFee
+    ) && codFeeOriginal > 0;
 
     if (deliveryFeeWaived) {
         deliveryFee = 0;

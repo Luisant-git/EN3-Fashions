@@ -20,8 +20,10 @@ export class SettingsService {
     hiddenPages?: any,
     freeShippingThreshold?: number,
     freeShippingCodThreshold?: number,
-    freeShippingDeliveryFee?: boolean,
-    freeShippingCodFee?: boolean
+    freeShippingOnlineDeliveryFee?: boolean,
+    freeShippingOnlineCodFee?: boolean,
+    freeShippingCombinedDeliveryFee?: boolean,
+    freeShippingCombinedCodFee?: boolean
   ) {
     const settings = await this.getSettings();
     const updateData: any = {};
@@ -31,8 +33,10 @@ export class SettingsService {
     if (hiddenPages !== undefined) updateData.hiddenPages = hiddenPages;
     if (freeShippingThreshold !== undefined) updateData.freeShippingThreshold = freeShippingThreshold;
     if (freeShippingCodThreshold !== undefined) updateData.freeShippingCodThreshold = freeShippingCodThreshold;
-    if (freeShippingDeliveryFee !== undefined) updateData.freeShippingDeliveryFee = freeShippingDeliveryFee;
-    if (freeShippingCodFee !== undefined) updateData.freeShippingCodFee = freeShippingCodFee;
+    if (freeShippingOnlineDeliveryFee !== undefined) updateData.freeShippingOnlineDeliveryFee = freeShippingOnlineDeliveryFee;
+    if (freeShippingOnlineCodFee !== undefined) updateData.freeShippingOnlineCodFee = freeShippingOnlineCodFee;
+    if (freeShippingCombinedDeliveryFee !== undefined) updateData.freeShippingCombinedDeliveryFee = freeShippingCombinedDeliveryFee;
+    if (freeShippingCombinedCodFee !== undefined) updateData.freeShippingCombinedCodFee = freeShippingCombinedCodFee;
     
     return this.prisma.appSettings.update({
       where: { id: settings.id },

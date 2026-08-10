@@ -18,8 +18,10 @@ export class SettingsController {
     hiddenPages?: any,
     freeShippingThreshold?: number,
     freeShippingCodThreshold?: number,
-    freeShippingDeliveryFee?: boolean,
-    freeShippingCodFee?: boolean
+    freeShippingOnlineDeliveryFee?: boolean,
+    freeShippingOnlineCodFee?: boolean,
+    freeShippingCombinedDeliveryFee?: boolean,
+    freeShippingCombinedCodFee?: boolean
   }) {
     return this.settingsService.updateSettings(
       body.signatureUrl,
@@ -28,8 +30,10 @@ export class SettingsController {
       body.hiddenPages,
       body.freeShippingThreshold,
       body.freeShippingCodThreshold,
-      body.freeShippingDeliveryFee,
-      body.freeShippingCodFee
+      body.freeShippingOnlineDeliveryFee,
+      body.freeShippingOnlineCodFee,
+      body.freeShippingCombinedDeliveryFee,
+      body.freeShippingCombinedCodFee
     );
   }
 }

@@ -334,10 +334,12 @@ model AppSettings {
   codShippingCharge       Float    @default(0)
   maintenanceMode         Boolean  @default(false)
   hiddenPages             Json     @default("[]")
-  freeShippingThreshold   Float?   @default(0)
-  freeShippingCodThreshold Float?  @default(0)
-  freeShippingDeliveryFee Boolean? @default(false)
-  freeShippingCodFee      Boolean? @default(false)
+  freeShippingThreshold          Float?   @default(0)
+  freeShippingCodThreshold       Float?   @default(0)
+  freeShippingOnlineDeliveryFee  Boolean? @default(false)
+  freeShippingOnlineCodFee       Boolean? @default(false)
+  freeShippingCombinedDeliveryFee Boolean? @default(false)
+  freeShippingCombinedCodFee     Boolean? @default(false)
   updatedAt               DateTime @updatedAt
   createdAt               DateTime @default(now())
 }

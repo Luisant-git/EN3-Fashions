@@ -9,8 +9,10 @@ const Settings = () => {
   const [codShippingCharge, setCodShippingCharge] = useState(0);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState('');
   const [freeShippingCodThreshold, setFreeShippingCodThreshold] = useState('');
-  const [freeShippingDeliveryFee, setFreeShippingDeliveryFee] = useState(false);
-  const [freeShippingCodFee, setFreeShippingCodFee] = useState(false);
+  const [freeShippingOnlineDeliveryFee, setFreeShippingOnlineDeliveryFee] = useState(false);
+  const [freeShippingOnlineCodFee, setFreeShippingOnlineCodFee] = useState(false);
+  const [freeShippingCombinedDeliveryFee, setFreeShippingCombinedDeliveryFee] = useState(false);
+  const [freeShippingCombinedCodFee, setFreeShippingCombinedCodFee] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
 
@@ -35,11 +37,17 @@ const Settings = () => {
       if (data.freeShippingCodThreshold !== undefined) {
         setFreeShippingCodThreshold(data.freeShippingCodThreshold);
       }
-      if (data.freeShippingDeliveryFee !== undefined) {
-        setFreeShippingDeliveryFee(data.freeShippingDeliveryFee);
+      if (data.freeShippingOnlineDeliveryFee !== undefined) {
+        setFreeShippingOnlineDeliveryFee(data.freeShippingOnlineDeliveryFee);
       }
-      if (data.freeShippingCodFee !== undefined) {
-        setFreeShippingCodFee(data.freeShippingCodFee);
+      if (data.freeShippingOnlineCodFee !== undefined) {
+        setFreeShippingOnlineCodFee(data.freeShippingOnlineCodFee);
+      }
+      if (data.freeShippingCombinedDeliveryFee !== undefined) {
+        setFreeShippingCombinedDeliveryFee(data.freeShippingCombinedDeliveryFee);
+      }
+      if (data.freeShippingCombinedCodFee !== undefined) {
+        setFreeShippingCombinedCodFee(data.freeShippingCombinedCodFee);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -72,8 +80,10 @@ const Settings = () => {
           codShippingCharge: parseFloat(codShippingCharge) || 0,
           freeShippingThreshold: parseFloat(freeShippingThreshold) || 0,
           freeShippingCodThreshold: parseFloat(freeShippingCodThreshold) || 0,
-          freeShippingDeliveryFee: Boolean(freeShippingDeliveryFee),
-          freeShippingCodFee: Boolean(freeShippingCodFee)
+          freeShippingOnlineDeliveryFee: Boolean(freeShippingOnlineDeliveryFee),
+          freeShippingOnlineCodFee: Boolean(freeShippingOnlineCodFee),
+          freeShippingCombinedDeliveryFee: Boolean(freeShippingCombinedDeliveryFee),
+          freeShippingCombinedCodFee: Boolean(freeShippingCombinedCodFee)
         })
       });
       toast.success('Settings saved successfully!');
@@ -163,6 +173,28 @@ const Settings = () => {
             <span style={{ display: 'block', fontSize: '12px', color: '#666', marginTop: '4px' }}>
               Minimum cart subtotal required to activate free shipping for online payments (subtotal &ge; threshold)
             </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                <input
+                  type="checkbox"
+                  id="free-shipping-online-delivery-fee"
+                  checked={freeShippingOnlineDeliveryFee}
+                  onChange={(e) => setFreeShippingOnlineDeliveryFee(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Delivery Fee
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                <input
+                  type="checkbox"
+                  id="free-shipping-online-cod-fee"
+                  checked={freeShippingOnlineCodFee}
+                  onChange={(e) => setFreeShippingOnlineCodFee(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                COD Charge
+              </label>
+            </div>
           </div>
 
           <div className="free-shipping-field" style={{ marginBottom: '20px' }}>
@@ -181,19 +213,13 @@ const Settings = () => {
             <span style={{ display: 'block', fontSize: '12px', color: '#666', marginTop: '4px' }}>
               Free shipping activates for COD orders above this amount, and also applies to online payments once the subtotal crosses it
             </span>
-          </div>
-
-          <div className="fees-waive-group" style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '500' }}>
-              Fees to waive when free shipping is activated:
-            </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
                 <input
                   type="checkbox"
-                  id="free-shipping-delivery-fee"
-                  checked={freeShippingDeliveryFee}
-                  onChange={(e) => setFreeShippingDeliveryFee(e.target.checked)}
+                  id="free-shipping-combined-delivery-fee"
+                  checked={freeShippingCombinedDeliveryFee}
+                  onChange={(e) => setFreeShippingCombinedDeliveryFee(e.target.checked)}
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 Delivery Fee
@@ -201,12 +227,12 @@ const Settings = () => {
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
                 <input
                   type="checkbox"
-                  id="free-shipping-cod-fee"
-                  checked={freeShippingCodFee}
-                  onChange={(e) => setFreeShippingCodFee(e.target.checked)}
+                  id="free-shipping-combined-cod-fee"
+                  checked={freeShippingCombinedCodFee}
+                  onChange={(e) => setFreeShippingCombinedCodFee(e.target.checked)}
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
-                COD Fee
+                COD Charge
               </label>
             </div>
           </div>
