@@ -37,6 +37,7 @@ const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterSubCategory, setFilterSubCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
@@ -695,6 +696,16 @@ const ProductList = () => {
               </select>
 
               <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+
+              <select
                 value={filterSubCategory}
                 onChange={(e) => setFilterSubCategory(e.target.value)}
                 className="filter-select"
@@ -715,6 +726,7 @@ const ProductList = () => {
             data={products.filter(p => {
               const categoryMatch = filterCategory === 'all' || p.categoryId === parseInt(filterCategory);
               const subCategoryMatch = filterSubCategory === 'all' || p.subCategoryId === parseInt(filterSubCategory);
+              const statusMatch = filterStatus === 'all' || p.status?.toLowerCase() === filterStatus;
               
               // Search by product ID, name, or sizeVariantId
               const searchMatch = searchTerm === '' || 
@@ -726,7 +738,7 @@ const ProductList = () => {
                   )
                 );
               
-              return categoryMatch && subCategoryMatch && searchMatch;
+              return categoryMatch && subCategoryMatch && statusMatch && searchMatch;
             })}
             columns={columns}
             searchTerm=""
