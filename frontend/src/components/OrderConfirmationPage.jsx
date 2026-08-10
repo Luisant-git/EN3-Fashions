@@ -29,9 +29,15 @@ const OrderConfirmationPage = () => {
                     ))}
                     <hr/>
                     <div className="summary-row">
-                        <span>Delivery</span>
-                        <span>₹{parseFloat(order.deliveryFee).toFixed(2)}</span>
+                        <span>Delivery Fee</span>
+                        <span>₹{parseFloat(order.deliveryFee || 0).toFixed(2)}</span>
                     </div>
+                    {parseFloat(order.codFee || 0) > 0 && (
+                        <div className="summary-row">
+                            <span>COD Fee</span>
+                            <span>₹{parseFloat(order.codFee).toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="summary-row total">
                         <span>Total Paid</span>
                         <span>₹{parseFloat(order.total).toFixed(2)}</span>

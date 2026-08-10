@@ -98,6 +98,14 @@ const CheckoutPage = () => {
         fetchCoupons();
     }, [token]);
 
+    const [appSettings, setAppSettings] = useState({
+        freeShippingThreshold: 0,
+        freeShippingCodThreshold: 0,
+        freeShippingDeliveryFee: false,
+        freeShippingCodFee: false,
+        codShippingCharge: 30
+    });
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -106,10 +114,11 @@ const CheckoutPage = () => {
                     getAppSettings()
                 ]);
                 setShippingRules(rules);
-                if (settings && settings.codShippingCharge) {
-                    setCodShippingFee(Number(settings.codShippingCharge));
-                } else {
-                    setCodShippingFee(30);
+                if (settings) {
+                    setAppSettings(settings);
+                    if (settings.codShippingCharge !== undefined) {
+                        setCodShippingFee(Number(settings.codShippingCharge));
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch data:', error);
@@ -171,7 +180,39 @@ const CheckoutPage = () => {
         }
     }, [paymentMethod, subtotal, baseDeliveryFee, codShippingFee]);
 
-    const deliveryFee = paymentMethod === 'cod' ? (baseDeliveryFee + codShippingFee) : baseDeliveryFee;
+    // Base configured fees
+    // deliveryFee = state flat shipping rate (shown as "Delivery Fee" in summary)
+    // shippingFee = additional shipping fee (default 0, can be waived independently)
+    // freeShippingThreshold = online payment only threshold
+    // freeShippingCombinedThreshold = applies to both online and COD payments
+    const freeShippingOnlineThreshold = Number(appSettings.freeShippingThreshold || 0);
+    const freeShippingCombinedThreshold = Number(appSettings.freeShippingCodThreshold || 0);
+
+    const freeShippingThresholds = paymentMethod === 'cod'
+        ? [freeShippingCombinedThreshold]
+        : [freeShippingOnlineThreshold, freeShippingCombinedThreshold];
+    const freeShippingThreshold = Math.min(...freeShippingThresholds.filter(t => t > 0).concat([Infinity]));
+    const freeShippingActive = freeShippingThreshold < Infinity && subtotal >= freeShippingThreshold;
+
+    const deliveryFeeOriginal = selectedState ? baseDeliveryFee : 0;
+    let deliveryFee = deliveryFeeOriginal;
+    let shippingFee = 0;
+    let codFee = paymentMethod === 'cod' ? codShippingFee : 0;
+    const codFeeOriginal = codFee;
+
+    const deliveryFeeWaived = freeShippingActive && appSettings.freeShippingDeliveryFee && deliveryFeeOriginal > 0;
+    const codFeeWaived = freeShippingActive && appSettings.freeShippingCodFee && codFeeOriginal > 0;
+
+    if (deliveryFeeWaived) {
+        deliveryFee = 0;
+    }
+
+    if (codFeeWaived) {
+        codFee = 0;
+    }
+
+    const freeShippingSavings = (deliveryFeeWaived ? deliveryFeeOriginal : 0) + (codFeeWaived ? codFeeOriginal : 0);
+
     const subtotalAfterDiscount = subtotal - discount;
     
     const isSameState = selectedState?.value === BUSINESS_STATE;
@@ -182,7 +223,7 @@ const CheckoutPage = () => {
     const sgst = isSameState ? gstAmount / 2 : 0;
     const igst = !isSameState ? gstAmount : 0;
     
-    const finalTotal = subtotalAfterDiscount + deliveryFee;
+    const finalTotal = subtotalAfterDiscount + deliveryFee + shippingFee + codFee;
 
     const handleSelectPaymentMethod = (method) => {
         if (method === 'cod') {
@@ -281,15 +322,19 @@ const CheckoutPage = () => {
             // Create order first
             const orderData = {
                 subtotal: subtotal.toString(),
-                deliveryFee: baseDeliveryFee.toString(),
-                codFee: (paymentMethod === 'cod' ? codShippingFee : 0).toString(),
+                deliveryFee: deliveryFee.toString(),
+                shippingFee: shippingFee.toString(),
+                codFee: codFee.toString(),
                 total: finalTotal.toString(),
                 discount: discount.toString(),
                 couponCode: appliedCoupon?.code || undefined,
                 paymentMethod: paymentMethod,
                 shippingAddress: { ...formData, state: selectedState.value },
                 deliveryOption: { 
-                    fee: deliveryFee, // Still passed in deliveryOption for invoice backwards compat
+                    fee: deliveryFee + shippingFee,
+                    deliveryFee: deliveryFee,
+                    shippingFee: shippingFee,
+                    codFee: codFee,
                     name: paymentMethod === 'cod' ? 'Cash on Delivery' : 'Standard Delivery',
                     gst: {
                         rate: GST_RATE,
@@ -628,16 +673,36 @@ const CheckoutPage = () => {
                             <span>₹{igst.toFixed(2)}</span>
                         </div>
                     )}
+                    {freeShippingActive && freeShippingSavings > 0 && (
+                        <div className="free-shipping-offer">
+                            <span>🎉 Free Shipping Applied</span>
+                            <span className="free-shipping-saved">You saved ₹{freeShippingSavings.toFixed(2)}</span>
+                        </div>
+                    )}
                     {selectedState && deliveryAvailable && (
                         <>
                             <div className="summary-row">
                                 <span>Delivery Fee</span>
-                                <span>₹{baseDeliveryFee.toFixed(2)}</span>
+                                <span className="fee-value">
+                                    {deliveryFeeWaived && (
+                                        <span className="fee-waived">₹{deliveryFeeOriginal.toFixed(2)}</span>
+                                    )}
+                                    <span className={`fee-current ${deliveryFeeWaived ? 'free' : ''}`}>
+                                        {deliveryFeeWaived ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
+                                    </span>
+                                </span>
                             </div>
-                            {paymentMethod === 'cod' && codShippingFee > 0 && (
+                            {paymentMethod === 'cod' && (codFee > 0 || codFeeWaived) && (
                                 <div className="summary-row">
                                     <span>COD Charge</span>
-                                    <span>₹{codShippingFee.toFixed(2)}</span>
+                                    <span className="fee-value">
+                                        {codFeeWaived && (
+                                            <span className="fee-waived">₹{codFeeOriginal.toFixed(2)}</span>
+                                        )}
+                                        <span className={`fee-current ${codFeeWaived ? 'free' : ''}`}>
+                                            {codFeeWaived ? 'FREE' : `₹${codFee.toFixed(2)}`}
+                                        </span>
+                                    </span>
                                 </div>
                             )}
                         </>
@@ -745,16 +810,36 @@ const CheckoutPage = () => {
                                     <span>₹{igst.toFixed(2)}</span>
                                 </div>
                             )}
+                            {freeShippingActive && freeShippingSavings > 0 && (
+                                <div className="free-shipping-offer" style={{ marginBottom: '8px' }}>
+                                    <span>🎉 Free Shipping Applied</span>
+                                    <span className="free-shipping-saved">You saved ₹{freeShippingSavings.toFixed(2)}</span>
+                                </div>
+                            )}
                             {selectedState && deliveryAvailable && (
                                 <>
                                     <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
                                         <span>Delivery Fee</span>
-                                        <span>₹{baseDeliveryFee.toFixed(2)}</span>
+                                        <span className="fee-value">
+                                            {deliveryFeeWaived && (
+                                                <span className="fee-waived">₹{deliveryFeeOriginal.toFixed(2)}</span>
+                                            )}
+                                            <span className={`fee-current ${deliveryFeeWaived ? 'free' : ''}`}>
+                                                {deliveryFeeWaived ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
+                                            </span>
+                                        </span>
                                     </div>
-                                    {paymentMethod === 'cod' && codShippingFee > 0 && (
+                                    {paymentMethod === 'cod' && (codFee > 0 || codFeeWaived) && (
                                         <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
                                             <span>COD Charge</span>
-                                            <span>₹{codShippingFee.toFixed(2)}</span>
+                                            <span className="fee-value">
+                                                {codFeeWaived && (
+                                                    <span className="fee-waived">₹{codFeeOriginal.toFixed(2)}</span>
+                                                )}
+                                                <span className={`fee-current ${codFeeWaived ? 'free' : ''}`}>
+                                                    {codFeeWaived ? 'FREE' : `₹${codFee.toFixed(2)}`}
+                                                </span>
+                                            </span>
                                         </div>
                                     )}
                                 </>

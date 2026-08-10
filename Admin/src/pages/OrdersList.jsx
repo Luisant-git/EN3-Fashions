@@ -234,8 +234,9 @@ const [orderStats, setOrderStats] = useState({
       const newSubtotal = editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0);
       const discount = parseFloat(selectedOrder.discount) || 0;
       const deliveryFee = parseFloat(selectedOrder.deliveryFee) || 0;
+      const shippingFee = parseFloat(selectedOrder.shippingFee) || 0;
       const codFee = parseFloat(selectedOrder.codFee) || 0;
-      const newTotal = newSubtotal - discount + deliveryFee + codFee;
+      const newTotal = newSubtotal - discount + deliveryFee + shippingFee + codFee;
       
       const response = await fetch(`${API_BASE_URL}/orders/${selectedOrder.id}/items`, {
         method: 'PATCH',
@@ -571,16 +572,17 @@ const [orderStats, setOrderStats] = useState({
     const subtotal = parseFloat(order.subtotal) || 0;
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const shippingFee = parseFloat(order.shippingFee || order.deliveryOption?.shippingFee) || 0;
     const codFee = parseFloat(order.codFee) || (order.deliveryOption?.codFee ? parseFloat(order.deliveryOption.codFee) : 0) || 0;
     const total = parseFloat(order.total) || 0;
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
 
-    console.log('Generating PDF for order:', order.id, { subtotal, deliveryFee, codFee, total });
+    console.log('Generating PDF for order:', order.id, { subtotal, deliveryFee, shippingFee, codFee, total });
 
     const gstRate = 5;
     const afterDiscount = subtotal - discount;
-    const totalWithDelivery = afterDiscount + deliveryFee + codFee;
+    const totalWithDelivery = afterDiscount + deliveryFee + shippingFee + codFee;
     const baseAmount = totalWithDelivery / (1 + gstRate / 100);
     const gstAmount = totalWithDelivery - baseAmount;
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
@@ -591,25 +593,29 @@ const [orderStats, setOrderStats] = useState({
 
     yPos += 5;
     pdf.setFont(undefined, 'normal');
-    pdf.text('Subtotal (incl. GST):', 30, yPos);
+    pdf.text('Subtotal:', 30, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
 
     if (discount > 0) {
-      pdf.text(`Discount (${order.couponCode || ''})`, 30, yPos);
+      pdf.text(`Discount (${order.couponCode || ''}):`, 30, yPos);
       pdf.text(`- Rs.${discount.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
     }
 
-    pdf.text('Delivery Fee (incl. GST):', 30, yPos);
+    pdf.text('Delivery Fee:', 30, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 190, yPos, { align: 'right' });
     yPos += 6;
 
-    if (codFee > 0) {
-      pdf.text('COD Charge (incl. GST):', 30, yPos);
-      pdf.text(`Rs.${codFee.toFixed(2)}`, 190, yPos, { align: 'right' });
+    if (shippingFee > 0) {
+      pdf.text('Shipping Fee:', 30, yPos);
+      pdf.text(`Rs.${shippingFee.toFixed(2)}`, 190, yPos, { align: 'right' });
       yPos += 6;
     }
+
+    pdf.text('COD Fee:', 30, yPos);
+    pdf.text(`Rs.${codFee.toFixed(2)}`, 190, yPos, { align: 'right' });
+    yPos += 6;
 
     pdf.text('Taxable Amount:', 30, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 190, yPos, { align: 'right' });
@@ -1755,13 +1761,14 @@ const exportAllOrdersExcel = () => {
     const subtotal = parseFloat(order.subtotal) || 0;
     const discount = parseFloat(order.discount) || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const shippingFee = parseFloat(order.shippingFee || order.deliveryOption?.shippingFee) || 0;
     const codFee = parseFloat(order.codFee) || 0;
     const total = parseFloat(order.total) || 0;
     const deliveryGst = order.deliveryOption?.gst || {};
     const isSameState = deliveryGst.isSameState !== false;
     const gstRate = 5;
     const afterDiscount = subtotal - discount;
-    const totalWithDelivery = afterDiscount + deliveryFee + codFee;
+    const totalWithDelivery = afterDiscount + deliveryFee + shippingFee + codFee;
     const baseAmount = totalWithDelivery / (1 + gstRate / 100);
     const gstAmount = totalWithDelivery - baseAmount;
     const cgstAmount = isSameState ? (gstAmount / 2) : 0;
@@ -1769,25 +1776,29 @@ const exportAllOrdersExcel = () => {
     const igstAmount = !isSameState ? gstAmount : 0;
 
     pdf.setFont(undefined, 'normal');
-    pdf.text('Subtotal (incl. GST):', 118, yPos);
+    pdf.text('Subtotal:', 118, yPos);
     pdf.text(`Rs.${subtotal.toFixed(2)}`, 200, yPos, { align: 'right' });
     yPos += 3;
 
     if (discount > 0) {
-      pdf.text(`Discount (${order.couponCode || ''})`, 118, yPos);
+      pdf.text(`Discount (${order.couponCode || ''}):`, 118, yPos);
       pdf.text(`- Rs.${discount.toFixed(2)}`, 200, yPos, { align: 'right' });
       yPos += 3;
     }
 
-    pdf.text('Delivery Fee (incl. GST):', 118, yPos);
+    pdf.text('Delivery Fee:', 118, yPos);
     pdf.text(`Rs.${deliveryFee.toFixed(2)}`, 200, yPos, { align: 'right' });
     yPos += 3;
 
-    if (codFee > 0) {
-      pdf.text('COD Charge (incl. GST):', 118, yPos);
-      pdf.text(`Rs.${codFee.toFixed(2)}`, 200, yPos, { align: 'right' });
+    if (shippingFee > 0) {
+      pdf.text('Shipping Fee:', 118, yPos);
+      pdf.text(`Rs.${shippingFee.toFixed(2)}`, 200, yPos, { align: 'right' });
       yPos += 3;
     }
+
+    pdf.text('COD Fee:', 118, yPos);
+    pdf.text(`Rs.${codFee.toFixed(2)}`, 200, yPos, { align: 'right' });
+    yPos += 3;
 
     pdf.text('Taxable Amount:', 118, yPos);
     pdf.text(`Rs.${baseAmount.toFixed(2)}`, 200, yPos, { align: 'right' });
@@ -2959,13 +2970,16 @@ const statusCounts = getStatusCounts();
                   )}
                   <p><strong>Subtotal:</strong> ₹{editingItems ? editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0).toFixed(2) : selectedOrder.subtotal}</p>
                   <p><strong>Delivery Fee:</strong> ₹{selectedOrder.deliveryFee}</p>
+                  {parseFloat(selectedOrder.shippingFee) > 0 && (
+                    <p><strong>Shipping Fee:</strong> ₹{selectedOrder.shippingFee}</p>
+                  )}
                   {parseFloat(selectedOrder.codFee) > 0 && (
                     <p><strong>COD Fee:</strong> ₹{selectedOrder.codFee}</p>
                   )}
                   {selectedOrder.discount && parseFloat(selectedOrder.discount) > 0 && (
                     <p><strong>Discount:</strong> -₹{selectedOrder.discount}</p>
                   )}
-                  <p><strong>Total:</strong> ₹{editingItems ? (editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0) - (parseFloat(selectedOrder.discount) || 0) + (parseFloat(selectedOrder.deliveryFee) || 0) + (parseFloat(selectedOrder.codFee) || 0)).toFixed(2) : selectedOrder.total}</p>
+                  <p><strong>Total:</strong> ₹{editingItems ? (editItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0) - (parseFloat(selectedOrder.discount) || 0) + (parseFloat(selectedOrder.deliveryFee) || 0) + (parseFloat(selectedOrder.shippingFee) || 0) + (parseFloat(selectedOrder.codFee) || 0)).toFixed(2) : selectedOrder.total}</p>
                   {selectedOrder.chargedWeight > 0 && (
                     <p><strong>Weight (Admin):</strong> {selectedOrder.chargedWeight} g</p>
                   )}

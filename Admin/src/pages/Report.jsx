@@ -288,7 +288,7 @@ const Reports = () => {
   const shippingColumns = [
     ...baseColumns,
     { key: "subtotal", label: "Subtotal", render: (value) => formatCurrency(value) },
-    { key: "deliveryFee", label: "Delivery Fee", render: (value) => formatCurrency(value) },
+    { key: "deliveryFee", label: "Delivery Fee", render: (_, row) => formatCurrency((parseFloat(row.deliveryFee) || 0) + (parseFloat(row.shippingFee) || 0)) },
     { key: "codFee", label: "COD Fee", render: (value) => formatCurrency(value) },
     { key: "discount", label: "Discount", render: (value) => formatCurrency(value) },
     { key: "chargedWeight", label: "Weight (gms)", render: (value) => formatNumber(value) },
@@ -363,7 +363,7 @@ const Reports = () => {
       'Items': row.itemsCount,
       'Quantity': row.quantity,
       'Subtotal': row.subtotal ? parseFloat(row.subtotal) : 0,
-      'Delivery Fee': row.deliveryFee ? parseFloat(row.deliveryFee) : 0,
+      'Delivery Fee': (parseFloat(row.deliveryFee) || 0) + (parseFloat(row.shippingFee) || 0),
       'COD Fee': row.codFee ? parseFloat(row.codFee) : 0,
       'Discount': row.discount ? parseFloat(row.discount) : 0,
       'Total': row.total ? parseFloat(row.total) : 0,
@@ -868,7 +868,7 @@ const Reports = () => {
                   </div>
                   <div className="info-row">
                     <span className="info-label">Delivery Fee:</span>
-                    <span className="info-value">{formatCurrency(selectedOrder.deliveryFee)}</span>
+                    <span className="info-value">{formatCurrency((parseFloat(selectedOrder.deliveryFee) || 0) + (parseFloat(selectedOrder.shippingFee) || 0))}</span>
                   </div>
                   <div className="info-row total">
                     <span className="info-label">Total:</span>

@@ -11,7 +11,25 @@ export class SettingsController {
   }
 
   @Put()
-  updateSettings(@Body() body: { signatureUrl?: string, codShippingCharge?: number, maintenanceMode?: boolean, hiddenPages?: any }) {
-    return this.settingsService.updateSettings(body.signatureUrl, body.codShippingCharge, body.maintenanceMode, body.hiddenPages);
+  updateSettings(@Body() body: {
+    signatureUrl?: string,
+    codShippingCharge?: number,
+    maintenanceMode?: boolean,
+    hiddenPages?: any,
+    freeShippingThreshold?: number,
+    freeShippingCodThreshold?: number,
+    freeShippingDeliveryFee?: boolean,
+    freeShippingCodFee?: boolean
+  }) {
+    return this.settingsService.updateSettings(
+      body.signatureUrl,
+      body.codShippingCharge,
+      body.maintenanceMode,
+      body.hiddenPages,
+      body.freeShippingThreshold,
+      body.freeShippingCodThreshold,
+      body.freeShippingDeliveryFee,
+      body.freeShippingCodFee
+    );
   }
 }

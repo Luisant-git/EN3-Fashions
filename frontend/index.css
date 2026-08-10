@@ -3415,6 +3415,42 @@ button:disabled {
     color: var(--secondary-color);
 }
 
+.free-shipping-offer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: rgba(76, 175, 80, 0.08);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: var(--green-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+.free-shipping-saved {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.fee-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fee-waived {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.fee-current.free {
+    color: var(--green-color);
+    font-weight: 600;
+}
+
 @media (max-width: 992px) {
     .checkout-content {
         flex-direction: column;

@@ -116,6 +116,7 @@ export class OrderService {
         status: orderStatus,
         subtotal: createOrderDto.subtotal,
         deliveryFee: createOrderDto.deliveryFee,
+        shippingFee: createOrderDto.shippingFee || '0',
         codFee: createOrderDto.codFee || '0',
         discount,
         couponCode,
@@ -513,8 +514,9 @@ async getOrderStats(startDate?: string, endDate?: string) {
 
     const discount = parseFloat(order.discount ?? '0') || 0;
     const deliveryFee = parseFloat(order.deliveryFee) || 0;
+    const shippingFee = parseFloat((order as any).shippingFee) || 0;
     const codFee = parseFloat((order as any).codFee) || 0;
-    const newTotal = newSubtotal - discount + deliveryFee + codFee;
+    const newTotal = newSubtotal - discount + deliveryFee + shippingFee + codFee;
 
     return this.prisma.order.update({
       where: { id: orderId },
@@ -791,6 +793,7 @@ async getSalesReport(startDate?: string, endDate?: string) {
         subtotal: isCancelled ? 0 : parseFloat(subtotalStr),
         discount: isCancelled ? 0 : parseFloat(discountStr),
         deliveryFee: parseFloat(deliveryFeeStr),
+        shippingFee: isCancelled ? 0 : parseFloat((order as any).shippingFee || '0'),
         codFee: isCancelled ? 0 : parseFloat(codFeeStr),
         codCharge: (order.codCharge || 0),
         courierCharge: (order.courierCharge || 0),
@@ -888,6 +891,7 @@ async getShippingReport(startDate?: string, endDate?: string) {
         trackingId: order.trackingId || '-',
         subtotal: subtotal,
         deliveryFee: deliveryFee,
+        shippingFee: order.shippingFee ? parseFloat(order.shippingFee) : 0,
         codFee: codFee,
         discount: discount,
         total: total,

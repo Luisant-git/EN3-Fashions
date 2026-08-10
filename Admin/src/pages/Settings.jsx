@@ -7,6 +7,10 @@ import { toast } from 'react-toastify';
 const Settings = () => {
   const [signatureUrl, setSignatureUrl] = useState('');
   const [codShippingCharge, setCodShippingCharge] = useState(0);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState('');
+  const [freeShippingCodThreshold, setFreeShippingCodThreshold] = useState('');
+  const [freeShippingDeliveryFee, setFreeShippingDeliveryFee] = useState(false);
+  const [freeShippingCodFee, setFreeShippingCodFee] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
 
@@ -24,6 +28,18 @@ const Settings = () => {
       }
       if (data.codShippingCharge !== undefined) {
         setCodShippingCharge(data.codShippingCharge);
+      }
+      if (data.freeShippingThreshold !== undefined) {
+        setFreeShippingThreshold(data.freeShippingThreshold);
+      }
+      if (data.freeShippingCodThreshold !== undefined) {
+        setFreeShippingCodThreshold(data.freeShippingCodThreshold);
+      }
+      if (data.freeShippingDeliveryFee !== undefined) {
+        setFreeShippingDeliveryFee(data.freeShippingDeliveryFee);
+      }
+      if (data.freeShippingCodFee !== undefined) {
+        setFreeShippingCodFee(data.freeShippingCodFee);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -53,7 +69,11 @@ const Settings = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           signatureUrl,
-          codShippingCharge: parseFloat(codShippingCharge) || 0
+          codShippingCharge: parseFloat(codShippingCharge) || 0,
+          freeShippingThreshold: parseFloat(freeShippingThreshold) || 0,
+          freeShippingCodThreshold: parseFloat(freeShippingCodThreshold) || 0,
+          freeShippingDeliveryFee: Boolean(freeShippingDeliveryFee),
+          freeShippingCodFee: Boolean(freeShippingCodFee)
         })
       });
       toast.success('Settings saved successfully!');
@@ -117,6 +137,84 @@ const Settings = () => {
           <button 
             className="btn btn-primary save-btn" 
             onClick={handleSave}
+          >
+            <Save size={20} />
+            Save Settings
+          </button>
+        </div>
+
+        <div className="settings-card" id="free-shipping-settings-card" style={{ marginTop: '24px' }}>
+          <h3>Free Shipping Settings</h3>
+          <p className="settings-description">Configure free shipping threshold and waived fees</p>
+          
+          <div className="free-shipping-field" style={{ marginBottom: '20px' }}>
+            <label htmlFor="free-shipping-threshold" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Free Shipping Above Subtotal (Online Payment)
+            </label>
+            <input
+              type="number"
+              id="free-shipping-threshold"
+              className="form-control"
+              value={freeShippingThreshold}
+              onChange={(e) => setFreeShippingThreshold(e.target.value)}
+              placeholder="e.g. 999"
+              style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd', width: '200px' }}
+            />
+            <span style={{ display: 'block', fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              Minimum cart subtotal required to activate free shipping for online payments (subtotal &ge; threshold)
+            </span>
+          </div>
+
+          <div className="free-shipping-field" style={{ marginBottom: '20px' }}>
+            <label htmlFor="free-shipping-cod-threshold" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+              Free Shipping Above Subtotal (Online Payment + COD)
+            </label>
+            <input
+              type="number"
+              id="free-shipping-cod-threshold"
+              className="form-control"
+              value={freeShippingCodThreshold}
+              onChange={(e) => setFreeShippingCodThreshold(e.target.value)}
+              placeholder="e.g. 999"
+              style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd', width: '200px' }}
+            />
+            <span style={{ display: 'block', fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              Free shipping activates for COD orders above this amount, and also applies to online payments once the subtotal crosses it
+            </span>
+          </div>
+
+          <div className="fees-waive-group" style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '500' }}>
+              Fees to waive when free shipping is activated:
+            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                <input
+                  type="checkbox"
+                  id="free-shipping-delivery-fee"
+                  checked={freeShippingDeliveryFee}
+                  onChange={(e) => setFreeShippingDeliveryFee(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Delivery Fee
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                <input
+                  type="checkbox"
+                  id="free-shipping-cod-fee"
+                  checked={freeShippingCodFee}
+                  onChange={(e) => setFreeShippingCodFee(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                COD Fee
+              </label>
+            </div>
+          </div>
+
+          <button 
+            className="btn btn-primary save-btn" 
+            onClick={handleSave}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
           >
             <Save size={20} />
             Save Settings
