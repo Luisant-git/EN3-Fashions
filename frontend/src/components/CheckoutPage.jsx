@@ -190,28 +190,22 @@ const CheckoutPage = () => {
     const freeShippingOnlineThreshold = Number(appSettings.freeShippingThreshold || 0);
     const freeShippingCombinedThreshold = Number(appSettings.freeShippingCodThreshold || 0);
 
-    let effectiveThreshold = Infinity;
-    let freeShippingSource = 'none'; // 'online' or 'combined'
+    const freeShippingOnlineActive =
+        freeShippingOnlineThreshold > 0 && subtotal >= freeShippingOnlineThreshold;
+    const freeShippingCombinedActive =
+        freeShippingCombinedThreshold > 0 && subtotal >= freeShippingCombinedThreshold;
 
-    if (paymentMethod === 'cod') {
-        if (freeShippingCombinedThreshold > 0) {
-            effectiveThreshold = freeShippingCombinedThreshold;
-            freeShippingSource = 'combined';
-        }
-    } else {
-        const candidates = [];
-        if (freeShippingOnlineThreshold > 0) candidates.push({ t: freeShippingOnlineThreshold, source: 'online' });
-        if (freeShippingCombinedThreshold > 0) candidates.push({ t: freeShippingCombinedThreshold, source: 'combined' });
-        if (candidates.length) {
-            const lowest = candidates.reduce((a, b) => (a.t <= b.t ? a : b));
-            effectiveThreshold = lowest.t;
-            freeShippingSource = lowest.source;
-        }
-    }
-    const freeShippingActive = effectiveThreshold < Infinity && subtotal >= effectiveThreshold;
+    const freeShippingActive =
+        paymentMethod === 'cod'
+            ? freeShippingCombinedActive
+            : freeShippingOnlineActive || freeShippingCombinedActive;
 
-    const freeShippingWaive = (online, combined) =>
-        freeShippingActive && (freeShippingSource === 'online' ? online : combined);
+    const freeShippingWaive = (online, combined) => {
+        if (paymentMethod === 'cod') {
+            return freeShippingCombinedActive && combined;
+        }
+        return (freeShippingOnlineActive && online) || (freeShippingCombinedActive && combined);
+    };
 
     const deliveryFeeOriginal = selectedState ? baseDeliveryFee : 0;
     let deliveryFee = deliveryFeeOriginal;

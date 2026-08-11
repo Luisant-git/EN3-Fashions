@@ -167,7 +167,7 @@ const Settings = () => {
               className="form-control"
               value={freeShippingThreshold}
               onChange={(e) => setFreeShippingThreshold(e.target.value)}
-              placeholder="e.g. 999"
+              
               style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd', width: '200px' }}
             />
             <span style={{ display: 'block', fontSize: '12px', color: '#666', marginTop: '4px' }}>
@@ -184,7 +184,7 @@ const Settings = () => {
                 />
                 Delivery Fee
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+              {/* <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
                 <input
                   type="checkbox"
                   id="free-shipping-online-cod-fee"
@@ -193,7 +193,7 @@ const Settings = () => {
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 COD Charge
-              </label>
+              </label> */}
             </div>
           </div>
 
@@ -207,7 +207,7 @@ const Settings = () => {
               className="form-control"
               value={freeShippingCodThreshold}
               onChange={(e) => setFreeShippingCodThreshold(e.target.value)}
-              placeholder="e.g. 999"
+             
               style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ddd', width: '200px' }}
             />
             <span style={{ display: 'block', fontSize: '12px', color: '#666', marginTop: '4px' }}>
