@@ -418,6 +418,14 @@ export class WhatsappService {
         }
       });
  
+      await this.logTemplateToCRM(
+        phoneNumber,
+        response.data.messages[0].id,
+        'order_status_en3',
+        order.id,
+        `Order ${order.id} confirmation sent`
+      );
+
       console.log(`WhatsApp message sent to ${phoneNumber}:`, response.data);
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
@@ -468,6 +476,14 @@ export class WhatsappService {
           status: 'sent'
         }
       });
+
+      await this.logTemplateToCRM(
+        phoneNumber,
+        response.data.messages[0].id,
+        'order_ready_to_ship',
+        order.id,
+        `Order ${order.id} accepted notification sent`
+      );
 
       console.log(`WhatsApp accepted message sent to ${phoneNumber}:`, response.data);
       return { success: true, messageId: response.data.messages[0].id };
@@ -535,6 +551,14 @@ export class WhatsappService {
         }
       });
  
+      await this.logTemplateToCRM(
+        phoneNumber,
+        response.data.messages[0].id,
+        'order_shipped_invoice_v1',
+        order.id,
+        `Order ${order.id} shipped notification sent`
+      );
+
       console.log(`WhatsApp shipped message sent to ${phoneNumber}:`, response.data);
       console.log('Full request payload:', JSON.stringify({
         messaging_product: 'whatsapp',
@@ -618,6 +642,14 @@ export class WhatsappService {
         }
       });
  
+      await this.logTemplateToCRM(
+        phoneNumber,
+        response.data.messages[0].id,
+        'order_delivered_alert',
+        order.id,
+        `Order ${order.id} delivered notification sent`
+      );
+
       console.log(`WhatsApp delivered message sent to ${phoneNumber}:`, response.data);
       return { success: true, messageId: response.data.messages[0].id };
     } catch (error) {
@@ -658,6 +690,32 @@ export class WhatsappService {
     } catch (error) {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
+    }
+  private async logTemplateToCRM(customerPhone: string, messageId: string, templateName: string, orderId: any, templateContent: string) {
+    try {
+      const crmApiUrl = 'https://whatsapp.api.luisant.cloud/whatsapp/external/log-message';
+      const crmApiKey = process.env.EXTERNAL_API_KEY || 'default-secret-key';
+      
+      const payload = {
+        phoneNumberId: this.phoneNumberId,
+        customerPhone: customerPhone,
+        messageId: messageId,
+        templateName: templateName,
+        websiteId: 'EN3-Ecommerce',
+        orderId: orderId,
+        templateLanguage: 'en',
+        templateContent: templateContent
+      };
+
+      await axios.post(crmApiUrl, payload, {
+        headers: {
+          'Authorization': `Bearer ${crmApiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(`✅ Successfully logged template ${templateName} to CRM for order ${orderId}`);
+    } catch (error) {
+      console.error('❌ Failed to log template to CRM:', error.response?.data || error.message);
     }
   }
 }
