@@ -423,7 +423,8 @@ export class WhatsappService {
         response.data.messages[0].id,
         'order_status_en3',
         order.id,
-        `Order ${order.id} confirmation sent`
+        `Order ${order.id} confirmation sent`,
+        [name, `#ORD-${order.id}`, String(order.total), order.paymentMethod]
       );
 
       console.log(`WhatsApp message sent to ${phoneNumber}:`, response.data);
@@ -556,7 +557,8 @@ export class WhatsappService {
         response.data.messages[0].id,
         'order_shipped_invoice_v1',
         order.id,
-        `Order ${order.id} shipped notification sent`
+        `Order ${order.id} shipped`,
+        [name, order.id.toString(), trackingInfo.courier, trackingInfo.trackingId, trackingInfo.trackingUrl]
       );
 
       console.log(`WhatsApp shipped message sent to ${phoneNumber}:`, response.data);
@@ -645,9 +647,10 @@ export class WhatsappService {
       await this.logTemplateToCRM(
         phoneNumber,
         response.data.messages[0].id,
-        'order_delivered_alert',
+        'order_delivered_invoice',
         order.id,
-        `Order ${order.id} delivered notification sent`
+        `Order ${order.id} delivered`,
+        [name, `#ORD-${order.id}`, order.total, order.paymentMethod, invoiceUrl]
       );
 
       console.log(`WhatsApp delivered message sent to ${phoneNumber}:`, response.data);
@@ -691,7 +694,7 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
-  private async logTemplateToCRM(customerPhone: string, messageId: string, templateName: string, orderId: any, templateContent: string) {
+  private async logTemplateToCRM(customerPhone: string, messageId: string, templateName: string, orderId: any, templateContent: string, templateParameters?: string[], mediaId?: string, fileName?: string) {
     try {
       const crmApiUrl = 'https://whatsapp.api.luisant.cloud/whatsapp/external/log-message';
       const crmApiKey = process.env.EXTERNAL_API_KEY || 'default-secret-key';
@@ -704,7 +707,10 @@ export class WhatsappService {
         websiteId: 'EN3-Ecommerce',
         orderId: orderId,
         templateLanguage: 'en',
-        templateContent: templateContent
+        templateContent: templateContent,
+        templateParameters: templateParameters,
+        mediaId: mediaId,
+        fileName: fileName
       };
 
       await axios.post(crmApiUrl, payload, {
