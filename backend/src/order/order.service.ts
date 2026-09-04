@@ -891,7 +891,7 @@ async getShippingReport(startDate?: string, endDate?: string) {
         trackingId: order.trackingId || '-',
         subtotal: subtotal,
         deliveryFee: deliveryFee,
-        shippingFee: order.shippingFee ? parseFloat(order.shippingFee) : 0,
+        shippingFee: (order as any).shippingFee ? parseFloat((order as any).shippingFee) : 0,
         codFee: codFee,
         discount: discount,
         total: total,

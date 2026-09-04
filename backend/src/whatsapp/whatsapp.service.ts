@@ -694,6 +694,7 @@ export class WhatsappService {
       console.error('WhatsApp API Error:', error.response?.data || error.message);
       return { success: false, error: error.message };
     }
+  }
   private async logTemplateToCRM(customerPhone: string, messageId: string, templateName: string, orderId: any, templateContent: string, templateParameters?: string[], mediaId?: string, fileName?: string, templateButtons?: any[]) {
     try {
       const crmApiUrl = 'https://whatsapp.api.luisant.cloud/whatsapp/external/log-message';
